@@ -3,6 +3,7 @@
 
 #include "stdafx.h"
 #include <thread>
+#include <string>
 #include <chrono>
 #include <iostream>
 #include <Windows.h>
@@ -20,7 +21,7 @@ int hear(){
 		_tprintf(TEXT("SERVER::The buffer has been created\n"));
 	}
 	DWORD NuByRe;
-	HANDLE hpipe = CreateNamedPipe(a, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_NOWAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 500, NULL);
+	HANDLE hpipe = CreateNamedPipe(a, PIPE_ACCESS_DUPLEX, PIPE_TYPE_MESSAGE | PIPE_READMODE_MESSAGE | PIPE_WAIT, PIPE_UNLIMITED_INSTANCES, 512, 512, 500, NULL);
 	
 	if (hpipe == INVALID_HANDLE_VALUE){
 		_tprintf(TEXT("SERVER:: ERROR NUMBER: %d\n"), GetLastError());
@@ -28,7 +29,10 @@ int hear(){
 	else{
 		_tprintf(TEXT("SERVER::The pipe has been created\n"));
 	}
-	while (true){
+	ConnectNamedPipe(hpipe, nullptr);
+	
+	while (1){
+
 		BOOL i = ReadFile(hpipe, buffer, (512 * sizeof(TCHAR)), &NuByRe, NULL);
 		
 
@@ -46,32 +50,16 @@ int hear(){
 }
 
 int talk(){
-	LPTSTR a = TEXT("\\\\.\\pipe\\pipename");
-	TCHAR* buffer = (TCHAR*)malloc(512 * sizeof(TCHAR));
-	DWORD NuByRe;
-	LPTSTR mess = TEXT("DEFAULT MESSAGE");
-	
-	HANDLE hpipe = CreateFile(a,GENERIC_READ|GENERIC_WRITE,0,NULL,OPEN_EXISTING,0,NULL);
-
-	if (hpipe == INVALID_HANDLE_VALUE){
-		_tprintf(TEXT("%d\n"), GetLastError());
-	}
-
-	BOOL i = WriteFile(hpipe, mess, (lstrlen(mess)+1)*sizeof(TCHAR), &NuByRe, NULL);
-	i = WriteFile(hpipe, mess, (lstrlen(mess) + 1)*sizeof(TCHAR), &NuByRe, NULL);
-
-	_tprintf(TEXT("CLIENT::Sono riuscito  a scrivere qualcosa di %d Bytes , %d\n"),NuByRe,GetLastError());
-
-	this_thread::sleep_for(chrono::milliseconds(2000));
 	return 0;
 }
 
 int _tmain(int argc, _TCHAR* argv[])
 {		
-	thread uno(hear);
-	thread due(talk);
 
-	due.join();
+	thread uno(hear);
+//	thread due(talk);
+
+//	due.join();
 	uno.join();
 	
 	system("pause");
