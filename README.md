@@ -3,7 +3,7 @@
 
 The user should be able to select a folder through a suitable GUI of its own client.
 
-The files of the selected folder are stored inside a server (possibly running in an other pc)
+The files of the selected folder are stored inside a server (possibly running on other pc)
 
 The client should communicate to the server all the changes that the user made on the tracked files.
 
