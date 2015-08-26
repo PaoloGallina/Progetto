@@ -1,14 +1,45 @@
-// FunzioneMain.cpp : Defines the entry point for the console application.
-//
 
 #include "stdafx.h"
 #include "HashFiles.h"
+#include <fstream>
+#include <windows.h>
+#include <tchar.h>
+#include <stdio.h>
+#include <string>
+#include <iostream>
+#include <thread>
+#include <chrono>
+#include "Folder.h"
 
+#define _CRTDBG_MAP_ALLOC
+using namespace std;
 
-int _tmain(int argc, _TCHAR* argv[])
-{
-	ComputeHash();
+int _tmain(){
+
+	//deve essere passata in qualche modo,
+	//Può essere più di una??
+	wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2\\*");
+	wstring* file_output = new wstring(L"out.txt");
+	std::wofstream f(*file_output, std::wofstream::out);
 	
+
+	while (1){
+		Folder a(cartella_origine, file_output, f, *cartella_origine);
+		shared_future<wstring> p;
+		while (!Folder::lista_promesse.empty()){
+			p = Folder::lista_promesse.front();
+			std::wcout << L"THREAD COMPLETATO" + p.get() << std::endl;
+			Folder::lista_promesse.pop_front();
+		}
+		cout << "SLEEEEP";
+		std::this_thread::sleep_for(chrono::minutes(1));
+	}
+	f.close();
+	
+	system("pause");
+	delete cartella_origine;
+	delete file_output;
+	_CrtDumpMemoryLeaks();
 	return 0;
 }
 
