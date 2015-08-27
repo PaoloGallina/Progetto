@@ -1,6 +1,5 @@
 
 #include "stdafx.h"
-#include "HashFiles.h"
 #include <fstream>
 #include <windows.h>
 #include <tchar.h>
@@ -18,21 +17,18 @@ int _tmain(){
 
 	//deve essere passata in qualche modo,
 	//Può essere più di una??
-	wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2\\*");
+	wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
 	wstring* file_output = new wstring(L"out.txt");
+	std::list <Oggetto*> allthefiles;
 	std::wofstream f(*file_output, std::wofstream::out);
 	
 
-	while (1){
-		Folder a(cartella_origine, file_output, f, *cartella_origine);
-		shared_future<wstring> p;
-		while (!Folder::lista_promesse.empty()){
-			p = Folder::lista_promesse.front();
-			std::wcout << L"THREAD COMPLETATO" + p.get() << std::endl;
-			Folder::lista_promesse.pop_front();
-		}
-		cout << "SLEEEEP";
-		std::this_thread::sleep_for(chrono::minutes(1));
+//	while (1)
+	{
+		Folder a(cartella_origine, file_output, f, allthefiles);
+		
+		cout << "SLEEEP";
+//		std::this_thread::sleep_for(chrono::minutes(1));
 	}
 	f.close();
 	
