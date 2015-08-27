@@ -10,8 +10,6 @@ Oggetto::Oggetto(std::wstring path, std::wstring name)
 	this->name = name;
 	this->path = path;
 	this->hash=ComputeHash(pathcompleto);
-	backup = false;
-	version = 1;
 }
 
 

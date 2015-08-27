@@ -11,7 +11,7 @@
 using namespace std;
 
 
-wstring ComputeHash(std::wstring pathcompleto)
+wstring wComputeHash(std::wstring pathcompleto)
 {
 	std::ifstream ifs(pathcompleto,std::ios::binary);
 	std::ostringstream sstringa;
@@ -24,3 +24,15 @@ wstring ComputeHash(std::wstring pathcompleto)
 	return ret.assign(hash.begin(),hash.end());
 }
 
+
+string ComputeHash(std::wstring pathcompleto)
+{
+	std::ifstream ifs(pathcompleto, std::ios::binary);
+	std::ostringstream sstringa;
+	sstringa << ifs.rdbuf();
+	ifs.close();
+	string stringa(sstringa.str());
+	string hash = sha256(stringa);
+	sstringa.str("");//needed to clean it
+	return hash;
+}

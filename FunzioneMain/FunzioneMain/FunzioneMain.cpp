@@ -15,17 +15,15 @@ using namespace std;
 
 int _tmain(){
 
-	//deve essere passata in qualche modo,
-	//Può essere più di una??
 	wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
 	wstring* file_output = new wstring(L"out.txt");
 	std::list <Oggetto*> allthefiles;
 	std::wofstream f(*file_output, std::wofstream::out);
-	
 
 //	while (1)
 	{
-		Folder a(cartella_origine, file_output, f, allthefiles);
+		allthefiles.clear();
+		Folder a(cartella_origine, f, allthefiles);
 		
 		cout << "SLEEEP";
 //		std::this_thread::sleep_for(chrono::minutes(1));

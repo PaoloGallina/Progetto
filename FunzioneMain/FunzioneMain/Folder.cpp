@@ -16,7 +16,7 @@ using namespace std;
 
 
 
-Folder::Folder(std::wstring* cartella_origine, std::wstring* file_output, std::wofstream& f, std::list <Oggetto*>& allthefiles)
+Folder::Folder(std::wstring* cartella_origine, std::wofstream& f, std::list <Oggetto*>& allthefiles)
 {		
 	this->name = *cartella_origine;
 	WIN32_FIND_DATA find_file_data;
@@ -36,7 +36,7 @@ Folder::Folder(std::wstring* cartella_origine, std::wstring* file_output, std::w
 		
 		if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(find_file_data.cFileName, L"..") != 0 && wcscmp(find_file_data.cFileName, L".") != 0){
 				
-			this->contains.push_front(new Folder(&filepath, file_output, f, allthefiles));
+			this->contains.push_front(new Folder(&filepath, f, allthefiles));
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){

@@ -3,4 +3,5 @@
 #include "stdafx.h"
 #include <string>
 
-std::wstring ComputeHash(std::wstring pathcompleto);
+std::string ComputeHash(std::wstring pathcompleto);
+std::wstring wComputeHash(std::wstring pathcompleto);
