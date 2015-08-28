@@ -1,5 +1,3 @@
-// Database.cpp : Defines the entry point for the console application.
-//
 
 #include "stdafx.h"
 #include <stdio.h>
@@ -19,7 +17,6 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName){
 	printf("--------------------------\n");
 	return 0;
 }
-
 
 void CreateDatabase(){
 	sqlite3 *db;
@@ -58,24 +55,20 @@ void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash){
 	int  rc;
 
 
-	std::wostringstream sstringa;
+	std::ostringstream sstringa;
 
-	std::string path(wpath.begin(), wpath.end());
-	std::ifstream ifs("C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", std::ios::binary);
+	std::ifstream ifs("C:\\Users\\Paolo\\Desktop\\PROVA2\\VIDEO.wmv", std::ios::binary);
 	sstringa << ifs.rdbuf();
 	ifs.close();
 
-	std::string sql = "INSERT INTO FILES (PATH,HASH,DATI,VERSIONE,ORALASTMOD) VALUES ('a', 'ssssss ', ?3 , 15, NULL );";
+	std::string sql = "INSERT INTO FILES (PATH,HASH,DATI,VERSIONE,ORALASTMOD) VALUES ('Primo', 'ssssss ', ?3 , 15, NULL );";
 	
 	
 	sqlite3_stmt* stm = NULL;
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
-//	sstringa.str(L"capricci");
-	std::wstring A = sstringa.str();
-	const wchar_t* AA = A.c_str();
-	rc=sqlite3_bind_blob(stm,3, AA, sizeof(wchar_t)*(wcslen((AA))+1),SQLITE_STATIC);
-	//rc = sqlite3_bind_blob(stm, 3, &(a), sizeof(wchar_t)*50, SQLITE_STATIC);
+	std::string A = sstringa.str();
+	rc=sqlite3_bind_blob(stm,3, A.c_str(), A.size(),SQLITE_STATIC);
 	
 
 
@@ -95,8 +88,7 @@ int main(int argc, char* argv[])
 	sqlite3 *db;
 	char *zErrMsg = 0;
 	int  rc;
-	const char* data = "Callback function called";
-	
+
 	CreateDatabase();
 	/* Open database */
 	rc = sqlite3_open("test.db", &db);
@@ -109,19 +101,24 @@ int main(int argc, char* argv[])
 	sqlite3_stmt* stm;
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_step(stm);
-	
-	wchar_t *AA= L"";
-
+	std::string codes;
 	 while(rc == 100){
-		 std::wstring prrr=std::wstring((wchar_t*)sqlite3_column_blob(stm, 2));
-		 std::wcout << prrr << std::endl;
-		 std::cout << (char*)sqlite3_column_blob(stm, 1)<<std::endl;
-		 std::cout << (char*)sqlite3_column_blob(stm, 0) << std::endl;
-		 std::cout << sqlite3_column_int(stm, 3) << std::endl;
-		 std::cout << sqlite3_column_bytes(stm, 2) << std::endl;
+		 
+		 //std::cout << (char*)sqlite3_column_blob(stm, 0)<<std::endl;
+		 //std::cout << (char*)sqlite3_column_blob(stm, 1) << std::endl;
+		  codes= std::string((char*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2));
+	
+		 
 		 rc = sqlite3_step(stm);
 	}
 	
+	 std::ofstream ofs("C:\\Users\\Paolo\\Desktop\\PROVA2\\VOGLIO VOLARE.wmv", std::ios::binary);
+
+	 //// MEMORY LEAKKKKS
+	//// PATH STRAMBI SONO O NON SONO UN PROBLEMA????
+	 /// NO SERIALIZE!!! SOCKEtS?
+	 ofs << codes;
+	 ofs.close();
 
 	sqlite3_close(db);
 
