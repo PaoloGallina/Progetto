@@ -6,6 +6,8 @@
 #include <string>
 #include <chrono>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <Windows.h>
 
 using namespace std;
@@ -17,7 +19,6 @@ int hear(){
 
 int talk(){
 	LPTSTR a = TEXT("\\\\.\\pipe\\pipename");
-	TCHAR* buffer = (TCHAR*)malloc(512 * sizeof(TCHAR));
 	DWORD NuByRe;
 
 	
@@ -31,11 +32,26 @@ int talk(){
 		}
 	}
 	_tprintf(TEXT("The connention with the other process is working"));
-	LPTSTR mess = TEXT("DEFAULT MESSAGE");
-	wstring mess1;
+
+	
+	
+	std::ostringstream sstringa;
+	std::ifstream ifs("C:\\Users\\Paolo\\Desktop\\PROVA2\\VIDEO.wmv", std::ios::binary);
+	sstringa << ifs.rdbuf();
+	cout << GetLastError();
+
+	string mess1(sstringa.str());
+
+
+	ifs.close();
+	std::ofstream ofs("C:\\Users\\Paolo\\Desktop\\PROVA2\\lavoltabuona.jpg", std::ios::binary);
+	ofs << mess1;
+	ofs.close();
+
+
 	while (1){
-		wcin >> mess1;
-		BOOL i = WriteFile(hpipe, (mess1.c_str()), (lstrlen((mess1.c_str())) + 1)*sizeof(TCHAR), &NuByRe, NULL);
+		BOOL i = WriteFile(hpipe, (mess1.c_str()), mess1.size(), &NuByRe, NULL);
+		
 		if (i=0){
 			_tprintf(TEXT("CLIENT ERROR::%d\n"), GetLastError());
 		}

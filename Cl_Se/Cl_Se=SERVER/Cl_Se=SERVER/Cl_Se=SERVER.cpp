@@ -6,13 +6,15 @@
 #include <string>
 #include <chrono>
 #include <iostream>
+#include <fstream>
+#include <sstream>
 #include <Windows.h>
 
 using namespace std;
 
 int hear(){
 	LPTSTR a = TEXT("\\\\.\\pipe\\pipename");
-	TCHAR* buffer = (TCHAR*)malloc(512 * sizeof(TCHAR));
+	CHAR* buffer = (CHAR*)malloc(27000000 * sizeof(CHAR));
 	
 	if (buffer == nullptr){
 		_tprintf(TEXT("SERVER::%d\n"), GetLastError());
@@ -33,18 +35,25 @@ int hear(){
 	
 	while (1){
 
-		BOOL i = ReadFile(hpipe, buffer, (512 * sizeof(TCHAR)), &NuByRe, NULL);
+		BOOL i = ReadFile(hpipe, buffer, (27000000 * sizeof(CHAR)), &NuByRe, NULL);
 		
-
 		if (i){
-			_tprintf(TEXT("SERVER::I SUCCEED IN READING: %d bytes\n THE MESSAGE IS %s\n"), NuByRe, buffer);
+			_tprintf(TEXT("SERVER::I SUCCEED IN READING: %d byte\n"), NuByRe);
 		}
 		else{
 			_tprintf(TEXT("SERVER::NOT ABLE TO READ %d\n"), GetLastError());
 
 		}
 
-		this_thread::sleep_for(chrono::milliseconds(2000));
+		string mess1(buffer, NuByRe );
+		
+		std::ofstream ofs("C:\\Users\\Paolo\\Desktop\\PROVA2\\video.copia2.wmv", std::ios::binary);
+		ofs<<mess1;
+		ofs.close();
+
+	
+
+		this_thread::sleep_for(chrono::milliseconds(10000));
 	}
 	return 0;
 }
