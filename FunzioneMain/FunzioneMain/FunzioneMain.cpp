@@ -9,7 +9,7 @@
 #include <thread>
 #include <chrono>
 #include "Folder.h"
-
+#include "Sha.h"
 #define _CRTDBG_MAP_ALLOC
 using namespace std;
 
@@ -19,6 +19,7 @@ int _tmain(){
 	wstring* file_output = new wstring(L"out.txt");
 	std::list <Oggetto*> allthefiles;
 	std::wofstream f(*file_output, std::wofstream::out);
+
 
 //	while (1)
 	{

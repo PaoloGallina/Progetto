@@ -6,10 +6,9 @@
 
 Oggetto::Oggetto(std::wstring path, std::wstring name)
 {
-	std::wstring pathcompleto;
 	this->name = name;
 	this->path = path;
-	this->hash=ComputeHash(pathcompleto);
+	this->hash=ComputeHash(path);
 }
 
 

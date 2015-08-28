@@ -6,6 +6,7 @@
 #include <fstream>
 #include <sstream>
 #include <string>
+#include <windows.h>
 
 
 using namespace std;
@@ -30,9 +31,9 @@ string ComputeHash(std::wstring pathcompleto)
 	std::ifstream ifs(pathcompleto, std::ios::binary);
 	std::ostringstream sstringa;
 	sstringa << ifs.rdbuf();
-	ifs.close();
 	string stringa(sstringa.str());
 	string hash = sha256(stringa);
 	sstringa.str("");//needed to clean it
+	ifs.close();
 	return hash;
 }
