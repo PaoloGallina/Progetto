@@ -20,7 +20,7 @@ private:
 
 public:
 	std::wstring name;
-	Folder(std::wstring*, std::wofstream&, std::list <Oggetto*>&);
+	Folder(std::wstring*, std::list <Oggetto*>&);
 	~Folder();
 };
 

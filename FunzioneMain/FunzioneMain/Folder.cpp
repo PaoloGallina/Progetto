@@ -16,7 +16,7 @@ using namespace std;
 
 
 
-Folder::Folder(std::wstring* cartella_origine, std::wofstream& f, std::list <Oggetto*>& allthefiles)
+Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
 {		
 	this->name = *cartella_origine;
 	WIN32_FIND_DATA find_file_data;
@@ -24,11 +24,8 @@ Folder::Folder(std::wstring* cartella_origine, std::wofstream& f, std::list <Ogg
 	
 	if (Ffile == INVALID_HANDLE_VALUE){
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
-		//lancia una eccezione
+		
 	}
-
-	//cartella_origine->pop_back();
-	//cartella_origine->pop_back();
 
 	for (bool i; GetLastError() != ERROR_NO_MORE_FILES;i=FindNextFile(Ffile, &find_file_data)){
 			
@@ -36,7 +33,7 @@ Folder::Folder(std::wstring* cartella_origine, std::wofstream& f, std::list <Ogg
 		
 		if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(find_file_data.cFileName, L"..") != 0 && wcscmp(find_file_data.cFileName, L".") != 0){
 				
-			this->contains.push_front(new Folder(&filepath, f, allthefiles));
+			this->contains.push_front(new Folder(&filepath, allthefiles));
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
