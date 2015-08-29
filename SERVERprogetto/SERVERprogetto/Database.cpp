@@ -121,7 +121,7 @@ void ReadFILES(sqlite3*db){
 	ofs.close();
 }
 
-int main(int argc, char* argv[])
+int esempio()
 {
 	sqlite3 *db;
 
