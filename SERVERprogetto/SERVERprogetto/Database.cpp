@@ -7,6 +7,7 @@
 #include <string>
 #include <string.h>
 #include <fstream>
+#include <iostream>
 #include <sstream>
 
 static int callback(void *NotUsed, int argc, char **argv, char **azColName){
@@ -102,12 +103,14 @@ void ReadFILES(sqlite3*db){
 	std::wstring path;
 	std::string hash;
 	std::string file;
-	std::wcout << L"FILE PRESENTI NEL DB \n----------------------------";
+	std::wcout << L"FILE PRESENTI NEL DB \n----------------------------\n";
 	while (rc == 100){
 		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
 		file = std::string((char*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2));
-		std::wcout << path << L"----------------------------\n";
+		std::wcout << path.c_str() ;
+		std::wcout << L"eeeea\n" << L"beee\n";
+
 		rc = sqlite3_step(stm);
 	}
 
