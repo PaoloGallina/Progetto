@@ -8,7 +8,7 @@ Oggetto::Oggetto(std::wstring path, std::wstring name)
 {
 	this->name = name;
 	this->path = path;
-	this->hash=ComputeHash(path);
+	this->hash = ComputeHash(path);
 }
 
 Oggetto::Oggetto(Oggetto*old){

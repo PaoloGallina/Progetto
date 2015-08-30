@@ -23,7 +23,7 @@ int _tmain(){
 
 //	while (1)
 	{
-		allthefiles.clear();
+		allthefiles.clear(); //NON BASTA, DEVI ANCHE CANCELLARE GLI OGGETTI DELLA LISTA!---> rischi un memory leak, così facendo distruggi solo i pointers
 		Folder a(cartella_origine, f, allthefiles);
 		
 		cout << "SLEEEP";

@@ -37,6 +37,7 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
+			//sono due oggetti diversi, devi distruggerli entrambi!
 			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName));
 			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName));
 		}

@@ -14,6 +14,8 @@
 
 using namespace std;
 
+//tutto questo può diventare una classe singleton con nome datab, versione ecc salvati in un file
+
 static int callback(void *NotUsed, int argc, char **argv, char **azColName){
 	//useless, right now only the creation of the table "use" it
 	return 0;
@@ -135,13 +137,18 @@ void ReadFILES(sqlite3*db){
 	std::wstring path;
 	std::string hash;
 	std::string file;
-	std::wcout << L"FILE PRESENTI NEL DB \n----------------------------\n";
+	std::wcout << L"\n\n\nFILE PRESENTI NEL DB \n----------------------------\n";
+	if (rc != 100){
+		std::wcout << L"   NESSUN FILE PRESENTE" << endl;
+	}
 	while (rc == 100){
+
 		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
 		file = std::string((char*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2));
-		std::wcout << path.c_str() ;
-		std::wcout << "\n----------------------------"<<endl;
+		std::wcout << path.c_str() << endl ;
+		wcout << L"    HASH    " << hash.c_str() << endl;
+
 		rc = sqlite3_step(stm);
 	}
 
@@ -153,6 +160,40 @@ void ReadFILES(sqlite3*db){
 
 	sqlite3_finalize(stm);///POI PROVA A SPOSTARLO
 	ofs.close();
+	return;
+}
+
+void ReadVERSIONE(sqlite3 *db, int versione){
+	int rc;
+
+	/* Create SQL statement */
+	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_int(stm, 1, versione);
+	rc = sqlite3_step(stm);
+
+	std::wstring path;
+	std::string hash;
+	int ver;
+	wcout << L"\n\n\nULTIMA CONFIGURAZIONE PRESENTE\n--------------------" << endl;
+	if (rc != 100){
+		wcout << L"\n\n\nNESSUN FILE PRESENTE NELLA CONFIGURAZIONE\n--------------------" << endl;
+	}
+	while (rc == 100){
+
+		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
+		ver = sqlite3_column_int(stm, 1);
+		hash = std::string((char*)sqlite3_column_text(stm, 2));
+
+		wcout << path.c_str() << L"    VERSIONE " << ver << endl;
+		wcout << L"    HASH    " << hash.c_str() << endl;
+
+		rc = sqlite3_step(stm);
+
+	}
+
+	rc = sqlite3_finalize(stm);
 	return;
 }
 
@@ -173,13 +214,12 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 	std::wstring path;
 	std::string hash;
 	int ver;
-	wcout << L"ULTIMA CONFIGURAZIONE PRESENTE\n--------------------" << endl;
 	while (rc == 100){
+
 		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));		
+		ver = sqlite3_column_int(stm, 1);
 		hash = std::string((char*)sqlite3_column_text(stm, 2));
-		ver  = sqlite3_column_int(stm, 1);
-		//NON E' VENUTO NON AGGIUNTI QUELLI NUOVI E MESSO L?UNICO UGUALE!!! CAZZO!
-			//per ogni file nel db dell'ultima versione controllo se è nella lista e se è stato modificato l'hash
+		
 			Oggetto* p2;
 			int i = files.size();
 			for (int t = 0; t < i; t++){
@@ -187,17 +227,15 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 					if (!wcscmp(path.c_str(),p2->GetPath().c_str())){
 						if (!strcmp(hash.c_str(), p2->GetHash().c_str())){
 							files.pop_front();   //se l'hash è uguale non mi interessano
-							delete p2;
+							//non faccio il delete, ci penserà chi ha creato la lista!
 						}
 						else{
 							OggettiCheVorrei.push_front(new Oggetto(p2));
 							files.pop_front();					/// se l'hash è diverso la metto nella lista di quelli che mi servono!
-							delete p2;
+							//non faccio il delete, ci penserà chi ha creato la lista!
 						}
 					}
 					else{
-						wcout << path << endl;
-						wcout << p2->GetPath() << endl;
 						files.pop_front();					
 						files.push_back(p2);
 					}
@@ -205,10 +243,6 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 				
 				// SE NON TROVA IL FILE NON SUCCEDE NULLA!! DEVO USARE UN ITERATORE	
 			}
-		
-		wcout << path.c_str();
-		wcout << L"VERSIONE         "+ver << endl;
-
 		rc = sqlite3_step(stm);
 	}
 	//quelli che non ho trovato saranno sicuramente nuovi e quindi mi interessano!
@@ -217,7 +251,7 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 		p2 = files.front();
 		OggettiCheVorrei.push_front(new Oggetto(p2));
 		files.pop_front();
-		delete p2;
+		//non faccio il delete, ci penserà chi ha creato la lista!
 	}
 
 
@@ -225,21 +259,37 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 	return OggettiCheVorrei;
 }
 
-int esempio()
+void eliminaFILE(sqlite3* db,wstring wpath,string hash){
+	int rc;
+
+	/* Create SQL statement */
+	std::string sql = "DELETE from FILES where path=?1 and hash=?2";
+
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
+	rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
+	rc = sqlite3_step(stm);
+
+	sqlite3_finalize(stm);
+
+};
+
+int esempio(sqlite3 *db,int UltimaVersione)
 {
-	sqlite3 *db;
+	
 
 	/* Open database */
-	db = CreateDatabase();
+	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a1.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
+	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
+	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
 
-	InsertFILE(db,L"C:\\Users\\Paolo\\Desktop\\PROVA2\\VOGLIO RIVOLARE.wmv", "hash_esempio");
-	
+
+	InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a2.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
 	ReadFILES(db);
-	 //// MEMORY LEAKKKKS
-	 //// PATH STRAMBI SONO O NON SONO UN PROBLEMA????
-
-	sqlite3_close(db);
-
-	system("pause");
+	ReadVERSIONE(db, UltimaVersione);
 	return 0;
 }
