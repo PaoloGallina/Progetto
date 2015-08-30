@@ -275,6 +275,12 @@ void eliminaFILE(sqlite3* db,wstring wpath,string hash){
 
 };
 
+void pulisciDATAB(sqlite3* db, int UltimaVersione){
+	//questa funzione avrà il compito di pulire il database da tutte le versioni troppo vecchie
+	//come faccio a capire se i file sono vecchi? Ho bisogno di un timetag per salvare quelli più recenti!
+	return;
+}
+
 int esempio(sqlite3 *db,int UltimaVersione)
 {
 	

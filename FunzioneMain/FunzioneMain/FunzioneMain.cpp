@@ -16,24 +16,20 @@ using namespace std;
 int _tmain(){
 
 	wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
-	wstring* file_output = new wstring(L"out.txt");
 	std::list <Oggetto*> allthefiles;
-	std::wofstream f(*file_output, std::wofstream::out);
 
 
 //	while (1)
 	{
 		allthefiles.clear(); //NON BASTA, DEVI ANCHE CANCELLARE GLI OGGETTI DELLA LISTA!---> rischi un memory leak, così facendo distruggi solo i pointers
-		Folder a(cartella_origine, f, allthefiles);
+		Folder a(cartella_origine, allthefiles);
 		
 		cout << "SLEEEP";
 //		std::this_thread::sleep_for(chrono::minutes(1));
 	}
-	f.close();
 	
 	system("pause");
 	delete cartella_origine;
-	delete file_output;
 	_CrtDumpMemoryLeaks();
 	return 0;
 }

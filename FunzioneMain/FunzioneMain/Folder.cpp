@@ -10,6 +10,7 @@
 #include <future>
 #include <list>
 #include <chrono>
+#include <strsafe.h>
 
 using namespace std;
 
@@ -38,6 +39,22 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
 			//sono due oggetti diversi, devi distruggerli entrambi!
+			SYSTEMTIME struct_ultima_modifica,stLocal;
+			FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
+			wstring lpszString;// = (STRSAFE_LPWSTR)malloc(50 * sizeof(STRSAFE_LPWSTR));
+			
+
+			// Convert the last-write time to local time.
+			FileTimeToSystemTime(&find_file_data.ftLastWriteTime,&struct_ultima_modifica);
+			SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
+
+			// Build a string showing the date and time.
+			StringCchPrintf(lpszString, 50,
+				TEXT("%02d/%02d/%d  %02d:%02d"),
+				stLocal.wMonth, stLocal.wDay, stLocal.wYear,
+				stLocal.wHour, stLocal.wMinute);
+			
+
 			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName));
 			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName));
 		}
