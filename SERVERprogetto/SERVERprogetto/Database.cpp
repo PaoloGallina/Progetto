@@ -183,19 +183,27 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 			Oggetto* p2;
 			int i = files.size();
 			for (int t = 0; t < i; t++){
-				while (!files.empty()){
 					p2 = files.front();
-					if (path.compare(p2->GetPath())){
-						if (hash.compare(p2->GetHash())){
+					if (!wcscmp(path.c_str(),p2->GetPath().c_str())){
+						if (!strcmp(hash.c_str(), p2->GetHash().c_str())){
 							files.pop_front();   //se l'hash è uguale non mi interessano
+							delete p2;
 						}
 						else{
 							OggettiCheVorrei.push_front(new Oggetto(p2));
 							files.pop_front();					/// se l'hash è diverso la metto nella lista di quelli che mi servono!
+							delete p2;
 						}
-
 					}
-				}
+					else{
+						wcout << path << endl;
+						wcout << p2->GetPath() << endl;
+						files.pop_front();					
+						files.push_back(p2);
+					}
+
+				
+				// SE NON TROVA IL FILE NON SUCCEDE NULLA!! DEVO USARE UN ITERATORE	
 			}
 		
 		wcout << path.c_str();
@@ -209,6 +217,7 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files, int version
 		p2 = files.front();
 		OggettiCheVorrei.push_front(new Oggetto(p2));
 		files.pop_front();
+		delete p2;
 	}
 
 
