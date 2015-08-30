@@ -6,9 +6,10 @@ private:
 	std::wstring name;
 	std::wstring path;
 	std::string hash;
+	std::wstring LastModified;
 
 public:
-	Oggetto(std::wstring path,std::wstring name);
+	Oggetto(std::wstring path,std::wstring name,std::wstring LastModified);
 	Oggetto(Oggetto*);
 
 	std::string GetHash(){
@@ -19,6 +20,9 @@ public:
 	}
 	std::wstring GetName(){
 		return this->name;
+	}
+	std::wstring GetLastModified(){
+		return this->LastModified;
 	}
 
 	~Oggetto();

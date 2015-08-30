@@ -38,25 +38,23 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
-			//sono due oggetti diversi, devi distruggerli entrambi!
+			
 			SYSTEMTIME struct_ultima_modifica,stLocal;
 			FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
-			wstring lpszString;// = (STRSAFE_LPWSTR)malloc(50 * sizeof(STRSAFE_LPWSTR));
-			
-
+			TCHAR *lpszString=(TCHAR*)malloc(50*sizeof(TCHAR));
 			// Convert the last-write time to local time.
 			FileTimeToSystemTime(&find_file_data.ftLastWriteTime,&struct_ultima_modifica);
 			SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
-
 			// Build a string showing the date and time.
 			StringCchPrintf(lpszString, 50,
-				TEXT("%02d/%02d/%d  %02d:%02d"),
+				TEXT("%02d %02d %d  %02d %02d"),
 				stLocal.wMonth, stLocal.wDay, stLocal.wYear,
 				stLocal.wHour, stLocal.wMinute);
-			
 
-			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName));
-			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName));
+			wstring parametro(lpszString);
+			free(lpszString);
+			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName,parametro));
+			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName,parametro));
 		}
 
 	}
