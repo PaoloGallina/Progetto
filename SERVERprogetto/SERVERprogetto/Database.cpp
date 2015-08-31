@@ -74,7 +74,7 @@ int GetUltimaVersione(sqlite3*db){
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_step(stm);
 	
-	int temp;
+	int temp=0;
 	if (rc == 100){
 		temp = sqlite3_column_int(stm, 0);
 	}
