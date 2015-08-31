@@ -11,6 +11,7 @@ void ReadFILES(sqlite3*db);
 void ReadVERSIONE(sqlite3*db,int versione);
 int esempio(sqlite3 *db);
 void eliminaFILE(sqlite3* db, std::wstring wpath, std::string hash);
-std::list<Oggetto*>  ListObjINeed(sqlite3 *,std::list<Oggetto*>);
+std::list<Oggetto*>  CheFILEvoglio(sqlite3 *, std::list<Oggetto*>);
 void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere);
 int GetUltimaVersione(sqlite3*db);
+int file_cancellati(sqlite3* db, int);

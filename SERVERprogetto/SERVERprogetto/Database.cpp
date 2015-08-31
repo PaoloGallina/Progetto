@@ -86,7 +86,7 @@ int GetUltimaVersione(sqlite3*db){
 	return temp;
 }
 
-list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files){
+list < Oggetto *> CheFILEvoglio(sqlite3 *db, list < Oggetto *> files){
 	//this function takes as input the list of the files in the filesystem and 
 	//has the porpose to give back the list of the missing (or modified files);
 	int rc;
@@ -116,7 +116,7 @@ list < Oggetto *> ListObjINeed(sqlite3 *db, list < Oggetto *> files){
 			p2 = files.front();
 			if (!wcscmp(path.c_str(), p2->GetPath().c_str())){
 				if (!strcmp(hash.c_str(), p2->GetHash().c_str())){
-					files.pop_front();   //se l'hash è uguale non mi interessano
+					files.pop_front();   //se l'hash è uguale non mi interessano 
 					//non faccio il delete, ci penserà chi ha creato la lista!
 				}
 				else{
@@ -232,9 +232,9 @@ void ReadFILES(sqlite3*db){
 		std::wcout << path.c_str() << endl ;
 		//wcout << L"    HASH    " << hash.c_str() << endl;
 		
-		std::ofstream ofs(path, std::ios::binary);
-		ofs << file;
-		ofs.close();
+	//	std::ofstream ofs(path, std::ios::binary);
+	//	ofs << file;
+	//	ofs.close();
 		rc = sqlite3_step(stm);
 	}
 
@@ -301,20 +301,45 @@ void pulisciDATAB(sqlite3* db){
 	return;
 }
 
+int file_cancellati(sqlite3* db, int val){
+	//se i file nel filesystem sono lo stesso numero (VAL è appunto il numero di file) 
+	//o uno è stato aggiunto e uno rimosso (e quindi la lista da_chiedere non è vuota)
+	//oppure non c'è stata alcuna modifica        
+	int versione = GetUltimaVersione(db);
+	int rc;
+	int counter=0;
+	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_int(stm, 1, versione);
+	rc = sqlite3_step(stm);
+	while (rc == 100){
+
+		counter++;
+		rc = sqlite3_step(stm);
+
+	}
+
+
+	rc = sqlite3_finalize(stm);
+	return val - counter;
+};
+
 void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
 	//Devo prendere i File dalla "da_chiedere" e creare l'entry corrispondente  (in FILES)
 	//Per tutti i File in listaobj e mette l'entry in VERSIONS
 	//Questo deve essere fatto fra un begin e un commit!
-	//ORA METTE SEMPRE UNA NUOVA VERSIONE ANCHE SE NON E' CAMBIATO NULLA se la lista è a zero dovrebbe farlo solo se un file è stato cancellato
 	int Versione = GetUltimaVersione(db);
 	Versione++;
-	for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
-		InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(), Versione);
-	}
-
 	for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 		InsertFILE(db, (*ci2)->GetPath(), (*ci2)->GetHash());
 	}
+	for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
+		InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(), Versione);
+		//devi aggiornare il parametro versioni qui! che serve per la pulizia
+	}
+
+
 
 
 }
