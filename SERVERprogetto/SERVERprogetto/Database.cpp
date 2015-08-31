@@ -38,7 +38,7 @@ sqlite3 * CreateDatabase(){
 	}
 
 	/* Create SQL statement */
-	sql = "CREATE TABLE FILES( PATH BLOB NOT NULL, HASH TEXT NOT NULL,DATI  BLOB NOT NULL, PRIMARY KEY (PATH, HASH));";
+	sql = "CREATE TABLE FILES( PATH BLOB NOT NULL, HASH TEXT NOT NULL,DATI  BLOB NOT NULL, VER INT NOT NULL, PRIMARY KEY (PATH, HASH));";
 
 	/* CREATING FILES TABLE */
 	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
@@ -149,10 +149,10 @@ list < Oggetto *> CheFILEvoglio(sqlite3 *db, list < Oggetto *> files){
 	return OggettiCheVorrei;
 }
 
-void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash){
+void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash,int versione){
 
-	int  rc;
-	std::string sql = "INSERT INTO FILES (PATH,HASH,DATI) VALUES (?1, ?2, ?3);";
+	int  rc=0;
+	std::string sql = "INSERT INTO FILES (PATH , HASH , DATI , VER) VALUES (?1, ?2, ?3, ?4);";
 	
 	sqlite3_stmt* stm = NULL;
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
@@ -167,7 +167,8 @@ void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash){
 	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
 	rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
 	rc = sqlite3_bind_blob(stm, 3, file_string.c_str(), file_string.size(), SQLITE_STATIC);
-	
+	rc = sqlite3_bind_int(stm, 4, versione);
+
 	rc = sqlite3_step(stm);
 
 	if (rc != SQLITE_DONE){
@@ -220,6 +221,7 @@ void ReadFILES(sqlite3*db){
 	std::wstring path;
 	std::string hash;
 	std::string file;
+	int ver;
 	std::wcout << L"\n\n\nFILE PRESENTI NEL DB \n----------------------------\n";
 	if (rc != 100){
 		std::wcout << L"   NESSUN FILE PRESENTE" << endl;
@@ -229,7 +231,10 @@ void ReadFILES(sqlite3*db){
 		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
 		file = std::string((char*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2));
-		std::wcout << path.c_str() << endl ;
+		ver = (sqlite3_column_int(stm, 3));
+
+		std::wcout << path.c_str()<<"       COMPARE IN ="<<ver<< endl ;
+		
 		//wcout << L"    HASH    " << hash.c_str() << endl;
 		
 	//	std::ofstream ofs(path, std::ios::binary);
@@ -327,20 +332,35 @@ int file_cancellati(sqlite3* db, int val){
 
 void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
 	//Devo prendere i File dalla "da_chiedere" e creare l'entry corrispondente  (in FILES)
-	//Per tutti i File in listaobj e mette l'entry in VERSIONS
+	//Per tutti i File in listaobj e mette l'entry in VERSIONS e aggiornare l'ultima versione in cui sono stati utilizzati
 	//Questo deve essere fatto fra un begin e un commit!
+	
 	int Versione = GetUltimaVersione(db);
 	Versione++;
 	for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
-		InsertFILE(db, (*ci2)->GetPath(), (*ci2)->GetHash());
+		InsertFILE(db, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione);
 	}
+
 	for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
 		InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(), Versione);
-		//devi aggiornare il parametro versioni qui! che serve per la pulizia
 	}
 
+	
 
+	for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
+		std::string sql = "UPDATE FILES SET VER = ?3 where path=?1 and hash=?2";
+		int rc;
+		sqlite3_stmt* stm;
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
+		rc = sqlite3_bind_blob(stm, 1, (*ci)->GetPath().c_str(), (*ci)->GetPath().size()*sizeof(TCHAR), SQLITE_STATIC);
+		rc = sqlite3_bind_text(stm, 2, (*ci)->GetHash().c_str(), (*ci)->GetHash().size(), SQLITE_STATIC);
+		rc = sqlite3_bind_int(stm, 3, Versione);
+		
+		rc = sqlite3_step(stm);
+		sqlite3_finalize(stm);
+
+	}
 
 }
 
@@ -349,9 +369,9 @@ int esempio(sqlite3 *db)
 	
 	int UltimaVersione = GetUltimaVersione(db);
 	/* Open database */
-	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a1.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
-	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
-	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
+	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a1.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
 
 
 	InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a2.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);

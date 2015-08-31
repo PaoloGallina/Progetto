@@ -5,7 +5,7 @@
 #include "Oggetto.h"
 
 sqlite3* CreateDatabase();
-void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash);
+void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash,int versione);
 void InsertVER(sqlite3*db, std::wstring wpath, std::string hash,int ver);
 void ReadFILES(sqlite3*db);
 void ReadVERSIONE(sqlite3*db,int versione);
