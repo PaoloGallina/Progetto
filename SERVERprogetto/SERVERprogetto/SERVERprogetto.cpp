@@ -16,11 +16,12 @@ void PulisciLista(std::list < Oggetto *>&);
 
 int _tmain(int argc, _TCHAR* argv[])
 {	
+	//MANCA LA PARTE DELLA COMUNICAZIONE DELLA GESTIONE DEGLI ERRORI; UN PO' DI TESTING E L'INTERFACCIA GRAFICA
 	
 	while(1){
 		sqlite3 *db = CreateDatabase();
 		std::list < Oggetto *> listaobj;
-
+	
 		TxtToList("", listaobj); // è solo uno stub, dovrebbe connettersi con il client e chiedere la lista dei file attuali, invece li prende dal filesystem
 		std::list < Oggetto *> da_chiedere = CheFILEvoglio(db, listaobj);
 		if (da_chiedere.size() != 0 || file_cancellati(db, listaobj.size()) != 0){
@@ -29,7 +30,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		else{
 			wcout << L"\nThe database is updated\n" << endl;
 		}
-		 PulisciDB(db);
 		for (int i=max(1, GetUltimaVersione(db)-2); i <= GetUltimaVersione(db); i++){
 			ReadVERSIONE(db, i);
 		}
@@ -48,7 +48,7 @@ int _tmain(int argc, _TCHAR* argv[])
 }
 
 void TxtToList(string stub, list < Oggetto *>& listaobj){
-	//This function that now is just a stub will transform the txt file into the corresponding listobj 
+	//This function that now is just a stub will transform the txt file passed by the second process into the corresponding listobj 
 	//stub now is useless it will be the string containing the txt file (notice that we do not have access to Folder functions here!... )
 	//Serve per comunicare
 

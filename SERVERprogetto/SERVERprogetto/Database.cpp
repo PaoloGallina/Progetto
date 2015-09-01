@@ -352,6 +352,8 @@ void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Ogg
 		rc = sqlite3_step(stm);
 		sqlite3_finalize(stm);
 	}
+
+	PulisciDB(db);
 }
 
 void PulisciDB(sqlite3* db){
