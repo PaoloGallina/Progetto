@@ -15,3 +15,4 @@ std::list<Oggetto*>  CheFILEvoglio(sqlite3 *, std::list<Oggetto*>);
 void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere);
 int GetUltimaVersione(sqlite3*db);
 int file_cancellati(sqlite3* db, int);
+void PulisciDB(sqlite3* db);

@@ -106,7 +106,7 @@ list < Oggetto *> CheFILEvoglio(sqlite3 *db, list < Oggetto *> files){
 	int ver;
 	while (rc == 100){
 
-		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
+		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
 		ver = sqlite3_column_int(stm, 1);
 		hash = std::string((char*)sqlite3_column_text(stm, 2));
 
@@ -164,7 +164,7 @@ void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash,int versione){
 	std::string file_string = file_stringa_stream.str();
 	ifs.close();
 
-	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
+	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
 	rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
 	rc = sqlite3_bind_blob(stm, 3, file_string.c_str(), file_string.size(), SQLITE_STATIC);
 	rc = sqlite3_bind_int(stm, 4, versione);
@@ -175,7 +175,7 @@ void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash,int versione){
 		fprintf(stderr, "SQL error: %d... 19? maybe you insered twice same entry!\n",rc);
 	}
 	else{
-		fprintf(stdout, "Records created successfully\n");
+		fprintf(stdout, "Record FILE created successfully\n");
 	}
 	
 	sqlite3_finalize(stm);
@@ -200,7 +200,7 @@ void InsertVER(sqlite3*db, std::wstring wpath, std::string hash,int ver){
 		fprintf(stderr, "nuova versione non inserita!\n", rc);
 	}
 	else{
-		fprintf(stdout, "Records created successfully\n");
+		fprintf(stdout, "Record VERSION created successfully\n");
 	}
 
 	sqlite3_finalize(stm);
@@ -228,14 +228,14 @@ void ReadFILES(sqlite3*db){
 	}
 	while (rc == 100){
 
-		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
+		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
 		file = std::string((char*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2));
 		ver = (sqlite3_column_int(stm, 3));
 
-		std::wcout << path.c_str()<<"       COMPARE IN ="<<ver<< endl ;
+		std::wcout <<ver<<" : "<< path.c_str()<< endl ;
 		
-		//wcout << L"    HASH    " << hash.c_str() << endl;
+	//	wcout << L" HASH : " << hash.c_str() << endl;
 		
 	//	std::ofstream ofs(path, std::ios::binary);
 	//	ofs << file;
@@ -269,7 +269,7 @@ void ReadVERSIONE(sqlite3 *db, int versione){
 	}
 	while (rc == 100){
 
-		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0));
+		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
 		ver = sqlite3_column_int(stm, 1);
 		hash = std::string((char*)sqlite3_column_text(stm, 2));
 
@@ -284,27 +284,21 @@ void ReadVERSIONE(sqlite3 *db, int versione){
 	return;
 }
 
-void eliminaFILE(sqlite3* db,wstring wpath,string hash){
+void eliminaFILE(sqlite3* db,wstring wpath,int ver){
 	int rc;
 
 	/* Create SQL statement */
-	std::string sql = "DELETE from FILES where PATH=?1 and HASH=?2";
+	std::string sql = "DELETE from FILES where PATH=?1 and VER=?2";
 
 	sqlite3_stmt* stm;
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
-	rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
+	rc = sqlite3_bind_int(stm, 2, ver);
 	rc = sqlite3_step(stm);
 
 	sqlite3_finalize(stm);
 
 };
-
-void pulisciDATAB(sqlite3* db){
-	//questa funzione avrà il compito di pulire il database da tutte le versioni troppo vecchie
-	//come faccio a capire se i file sono vecchi? Ho bisogno di un timetag per salvare quelli più recenti!
-	return;
-}
 
 int file_cancellati(sqlite3* db, int val){
 	//se i file nel filesystem sono lo stesso numero (VAL è appunto il numero di file) 
@@ -360,20 +354,51 @@ void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Ogg
 	}
 }
 
+void PulisciDB(sqlite3* db){
+
+	int rc;
+	int Versione = GetUltimaVersione(db);
+	std::string sql = "DELETE FROM VERSIONS WHERE VER<?1";
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_int(stm, 1, Versione-2);
+	rc = sqlite3_step(stm);
+	sqlite3_finalize(stm);
+	std::string sql2 = "SELECT PATH,MIN(VER) FROM FILES GROUP BY PATH HAVING count(*)>3";
+	sqlite3_stmt* stm2;
+	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
+	rc = sqlite3_step(stm2);
+	while (rc == 100){
+		
+		wstring wpath = std::wstring((TCHAR*)sqlite3_column_blob(stm2, 0), sqlite3_column_bytes(stm2, 0)/sizeof(TCHAR));
+		int ver = sqlite3_column_int(stm2, 1);
+		sqlite3_finalize(stm2);
+		
+		//eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", ver);
+		eliminaFILE(db, wpath, ver);
+
+		rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
+		rc = sqlite3_step(stm2);
+	}
+
+	
+
+}
+
 int esempio(sqlite3 *db)
 {
 	
 	int UltimaVersione = GetUltimaVersione(db);
 
-	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076");
+	//InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	//InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
+	eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", 6);
 
 
 	//InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a2.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
 	//InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
 	//InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
 	ReadFILES(db);
-	ReadVERSIONE(db,324);
+	//ReadVERSIONE(db,324);
 	return 0;
 }
