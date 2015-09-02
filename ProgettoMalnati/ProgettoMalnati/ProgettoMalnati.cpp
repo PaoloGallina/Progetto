@@ -9,6 +9,8 @@
 #include <string>
 #include <iostream>
 #include "Folder.h"
+#include "Adder2.h"
+#include "NEW.h"
 
 #define _CRTDBG_MAP_ALLOC
 
@@ -32,6 +34,12 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 		std::wofstream f(*file_output, std::wofstream::out);
 		Folder a(cartella_origine, file_output, f, *cartella_origine);
+		
+	//	NEW *aa =new NEW();
+		Adder2<int> ciao(5);
+	//	ciao.Increment(*aa);
+
+
 		system("pause");
 		system("cls");
 
