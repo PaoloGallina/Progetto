@@ -28,13 +28,14 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.menuToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.chiudiToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.scegliCartellaDaControllareToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.comeUsareToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.problemiComuniToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.internetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sviluppatoreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.label1 = new System.Windows.Forms.Label();
@@ -45,18 +46,9 @@
             ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
-            // button1
-            // 
-            this.button1.Location = new System.Drawing.Point(640, 326);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(105, 64);
-            this.button1.TabIndex = 1;
-            this.button1.Text = "button1";
-            this.button1.UseVisualStyleBackColor = true;
-            this.button1.KeyDown += new System.Windows.Forms.KeyEventHandler(this.button1_KeyDown);
-            // 
             // menuStrip1
             // 
+            this.menuStrip1.BackColor = System.Drawing.SystemColors.ActiveCaption;
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.menuToolStripMenuItem,
             this.toolStripMenuItem1,
@@ -64,7 +56,7 @@
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
             this.menuStrip1.RenderMode = System.Windows.Forms.ToolStripRenderMode.System;
-            this.menuStrip1.Size = new System.Drawing.Size(745, 24);
+            this.menuStrip1.Size = new System.Drawing.Size(686, 24);
             this.menuStrip1.TabIndex = 2;
             this.menuStrip1.Text = "menuStrip1";
             this.menuStrip1.ItemClicked += new System.Windows.Forms.ToolStripItemClickedEventHandler(this.menuStrip1_ItemClicked);
@@ -72,7 +64,8 @@
             // menuToolStripMenuItem
             // 
             this.menuToolStripMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-            this.chiudiToolStripMenuItem});
+            this.chiudiToolStripMenuItem,
+            this.scegliCartellaDaControllareToolStripMenuItem});
             this.menuToolStripMenuItem.Name = "menuToolStripMenuItem";
             this.menuToolStripMenuItem.Size = new System.Drawing.Size(50, 20);
             this.menuToolStripMenuItem.Text = "menu";
@@ -80,15 +73,23 @@
             // chiudiToolStripMenuItem
             // 
             this.chiudiToolStripMenuItem.Name = "chiudiToolStripMenuItem";
-            this.chiudiToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.chiudiToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
             this.chiudiToolStripMenuItem.Text = "Client";
             this.chiudiToolStripMenuItem.Click += new System.EventHandler(this.chiudiToolStripMenuItem_Click);
+            // 
+            // scegliCartellaDaControllareToolStripMenuItem
+            // 
+            this.scegliCartellaDaControllareToolStripMenuItem.Name = "scegliCartellaDaControllareToolStripMenuItem";
+            this.scegliCartellaDaControllareToolStripMenuItem.Size = new System.Drawing.Size(222, 22);
+            this.scegliCartellaDaControllareToolStripMenuItem.Text = "Scegli cartella da controllare";
+            this.scegliCartellaDaControllareToolStripMenuItem.Click += new System.EventHandler(this.scegliCartellaDaControllareToolStripMenuItem_Click);
             // 
             // toolStripMenuItem1
             // 
             this.toolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.comeUsareToolStripMenuItem,
-            this.problemiComuniToolStripMenuItem});
+            this.problemiComuniToolStripMenuItem,
+            this.internetToolStripMenuItem});
             this.toolStripMenuItem1.Name = "toolStripMenuItem1";
             this.toolStripMenuItem1.Size = new System.Drawing.Size(46, 20);
             this.toolStripMenuItem1.Text = "aiuto";
@@ -104,6 +105,13 @@
             this.problemiComuniToolStripMenuItem.Name = "problemiComuniToolStripMenuItem";
             this.problemiComuniToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
             this.problemiComuniToolStripMenuItem.Text = "Problemi comuni";
+            // 
+            // internetToolStripMenuItem
+            // 
+            this.internetToolStripMenuItem.Name = "internetToolStripMenuItem";
+            this.internetToolStripMenuItem.Size = new System.Drawing.Size(166, 22);
+            this.internetToolStripMenuItem.Text = "Internet";
+            this.internetToolStripMenuItem.Click += new System.EventHandler(this.internetToolStripMenuItem_Click);
             // 
             // aboutToolStripMenuItem
             // 
@@ -135,9 +143,10 @@
             // pictureBox2
             // 
             this.pictureBox2.Image = global::PrimaGUI.Properties.Resources.logo_polito;
-            this.pictureBox2.Location = new System.Drawing.Point(96, 174);
+            this.pictureBox2.Location = new System.Drawing.Point(15, 224);
             this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(198, 204);
+            this.pictureBox2.Size = new System.Drawing.Size(162, 154);
+            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox2.TabIndex = 5;
             this.pictureBox2.TabStop = false;
             this.pictureBox2.Visible = false;
@@ -146,9 +155,10 @@
             // pictureBox1
             // 
             this.pictureBox1.Image = global::PrimaGUI.Properties.Resources.stagejob_cv;
-            this.pictureBox1.Location = new System.Drawing.Point(400, 42);
+            this.pictureBox1.Location = new System.Drawing.Point(408, 42);
             this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(333, 302);
+            this.pictureBox1.Size = new System.Drawing.Size(166, 160);
+            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
             this.pictureBox1.TabIndex = 3;
             this.pictureBox1.TabStop = false;
             this.pictureBox1.Visible = false;
@@ -159,15 +169,18 @@
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.BackColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.ClientSize = new System.Drawing.Size(745, 390);
+            this.BackgroundImage = global::PrimaGUI.Properties.Resources.sfondoAzzurrino;
+            this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
+            this.ClientSize = new System.Drawing.Size(686, 388);
             this.Controls.Add(this.pictureBox2);
             this.Controls.Add(this.label1);
-            this.Controls.Add(this.pictureBox1);
-            this.Controls.Add(this.button1);
             this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.pictureBox1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "Form1";
+            this.TopMost = true;
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
@@ -180,7 +193,6 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem menuToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem chiudiToolStripMenuItem;
@@ -192,6 +204,8 @@
         private System.Windows.Forms.PictureBox pictureBox1;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.PictureBox pictureBox2;
+        private System.Windows.Forms.ToolStripMenuItem internetToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem scegliCartellaDaControllareToolStripMenuItem;
     }
 }
 

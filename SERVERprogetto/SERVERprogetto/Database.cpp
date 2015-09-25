@@ -329,12 +329,13 @@ void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Ogg
 	//Per tutti i File in listaobj e mette l'entry in VERSIONS e aggiornare l'ultima versione in cui sono stati utilizzati
 	//Questo deve essere fatto fra un begin e un commit!
 	
+	//PERCHE CONST???
 	int Versione = GetUltimaVersione(db);
 	Versione++;
 	for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 		InsertFILE(db, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione);
 	}
-
+	
 	for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
 		InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(), Versione);
 		

@@ -9,8 +9,7 @@
 #include <string>
 #include <iostream>
 #include "Folder.h"
-#include "Adder2.h"
-#include "NEW.h"
+
 
 #define _CRTDBG_MAP_ALLOC
 
@@ -18,13 +17,26 @@ using namespace std;
 
 int _tmain(int argc, _TCHAR* argv[])
 {	
+	cout << "ciao"<<endl;
+	try{
+		cout << "a";
+		cout << "b";
+		cout << "c";
+		throw "err";
+
+	}
+	catch (...){
+		
+		cout << "asdadas";
+	}
+	
 
 	{
+		
 		if (argc != 4){
 			wcout << L"Impara ad usare questo tool!\n" << endl;
 			return 1;
 		}
-
 		wstring* cartella_origine = new wstring(argv[1]);
 		wstring* stringa = new wstring(argv[2]);
 		wstring* file_output = new wstring(argv[3]);
@@ -33,11 +45,10 @@ int _tmain(int argc, _TCHAR* argv[])
 			return 1;
 		}
 		std::wofstream f(*file_output, std::wofstream::out);
+		
 		Folder a(cartella_origine, file_output, f, *cartella_origine);
 		
-	//	NEW *aa =new NEW();
-		Adder2<int> ciao(5);
-	//	ciao.Increment(*aa);
+
 
 
 		system("pause");
@@ -55,8 +66,9 @@ int _tmain(int argc, _TCHAR* argv[])
 		delete stringa;
 		delete file_output;
 	}
+
 	system("pause");
-	
+
 
 	_CrtDumpMemoryLeaks();
 	return 0;
