@@ -26,7 +26,7 @@ protected:
 	uint32 m_h[8];
 };
 
-std::string sha256(std::string input);
+std::string sha256(std::wstring input);
 
 #define SHA2_SHFR(x, n)    (x >> n)
 #define SHA2_ROTR(x, n)   ((x >> n) | (x << ((sizeof(x) << 3) - n)))

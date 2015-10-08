@@ -12,12 +12,12 @@
 
 using namespace std;
 
-int hear(){
+int hearPIPES(){
   //creata nel processo SERVER
 	return 0;
 }
 
-int talk(){
+int talkPIPES(){
 	LPTSTR a = TEXT("\\\\.\\pipe\\pipename");
 	DWORD NuByRe;
 
@@ -58,6 +58,11 @@ int talk(){
 	}
 	return 0;
 }
+
+int talk(){ 
+	
+	
+	return 0; }
 
 int _tmain(int argc, _TCHAR* argv[])
 {

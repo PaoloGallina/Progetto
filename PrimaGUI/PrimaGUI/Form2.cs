@@ -101,7 +101,8 @@ namespace PrimaGUI
 
         private void About_Click(object sender, EventArgs e)
         {
-
+            Form1 f=new Form1();
+            f.ShowDialog();
             this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
             button1.Visible = false;
             button2.Visible = false;

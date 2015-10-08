@@ -38,7 +38,7 @@ sqlite3 * CreateDatabase(){
 	}
 
 	/* Create SQL statement */
-	sql = "CREATE TABLE FILES( PATH BLOB NOT NULL, HASH TEXT NOT NULL,DATI  BLOB NOT NULL, VER INT NOT NULL, PRIMARY KEY (PATH, HASH));";
+	sql = "CREATE TABLE FILES( PATH BLOB NOT NULL, HASH TEXT NOT NULL,DATI  BLOB, VER INT NOT NULL, PRIMARY KEY (PATH, HASH));";
 
 	/* CREATING FILES TABLE */
 	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
@@ -324,21 +324,53 @@ int file_cancellati(sqlite3* db, int val){
 	return val - counter;
 };
 
+void PulisciDB(sqlite3* db){
+
+	int rc;
+	int Versione = GetUltimaVersione(db);
+	std::string sql = "DELETE FROM VERSIONS WHERE VER<?1";
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_int(stm, 1, Versione - 2);
+	rc = sqlite3_step(stm);
+	sqlite3_finalize(stm);
+	std::string sql2 = "SELECT PATH,MIN(VER) FROM FILES GROUP BY PATH HAVING count(*)>3";
+	sqlite3_stmt* stm2;
+	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
+	rc = sqlite3_step(stm2);
+	while (rc == 100){
+
+		wstring wpath = std::wstring((TCHAR*)sqlite3_column_blob(stm2, 0), sqlite3_column_bytes(stm2, 0) / sizeof(TCHAR));
+		int ver = sqlite3_column_int(stm2, 1);
+		sqlite3_finalize(stm2);
+
+		//eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", ver);
+		eliminaFILE(db, wpath, ver);
+
+		rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
+		rc = sqlite3_step(stm2);
+	}
+
+
+
+}
+
 void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
 	//Devo prendere i File dalla "da_chiedere" e creare l'entry corrispondente  (in FILES)
 	//Per tutti i File in listaobj e mette l'entry in VERSIONS e aggiornare l'ultima versione in cui sono stati utilizzati
 	//Questo deve essere fatto fra un begin e un commit!
 	
-	//PERCHE CONST???
+
 	int Versione = GetUltimaVersione(db);
 	Versione++;
 	for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 		InsertFILE(db, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione);
 	}
-	
+
 	for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
 		InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(), Versione);
-		
+
+
 		std::string sql = "UPDATE FILES SET VER = ?3 where hash=?2 and path=?1";
 		int rc;
 		sqlite3_stmt* stm;
@@ -351,41 +383,13 @@ void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Ogg
 		rc = sqlite3_bind_int(stm, 3, Versione);
 
 		rc = sqlite3_step(stm);
+
 		sqlite3_finalize(stm);
+	
 	}
-
-	PulisciDB(db);
-}
-
-void PulisciDB(sqlite3* db){
-
-	int rc;
-	int Versione = GetUltimaVersione(db);
-	std::string sql = "DELETE FROM VERSIONS WHERE VER<?1";
-	sqlite3_stmt* stm;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-	rc = sqlite3_bind_int(stm, 1, Versione-2);
-	rc = sqlite3_step(stm);
-	sqlite3_finalize(stm);
-	std::string sql2 = "SELECT PATH,MIN(VER) FROM FILES GROUP BY PATH HAVING count(*)>3";
-	sqlite3_stmt* stm2;
-	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
-	rc = sqlite3_step(stm2);
-	while (rc == 100){
-		
-		wstring wpath = std::wstring((TCHAR*)sqlite3_column_blob(stm2, 0), sqlite3_column_bytes(stm2, 0)/sizeof(TCHAR));
-		int ver = sqlite3_column_int(stm2, 1);
-		sqlite3_finalize(stm2);
-		
-		//eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", ver);
-		eliminaFILE(db, wpath, ver);
-
-		rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
-		rc = sqlite3_step(stm2);
-	}
-
 	
 
+	PulisciDB(db);
 }
 
 int esempio(sqlite3 *db)
@@ -405,3 +409,5 @@ int esempio(sqlite3 *db)
 	//ReadVERSIONE(db,324);
 	return 0;
 }
+
+

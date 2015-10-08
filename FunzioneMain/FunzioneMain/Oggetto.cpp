@@ -1,7 +1,8 @@
 #include "stdafx.h"
 #include "Oggetto.h"
 #include <string>
-#include "HashFiles.h"
+#include "Sha.h"
+
 
 using namespace std;
 Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified)
@@ -9,7 +10,7 @@ Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified)
 	this->name = name;
 	this->path = path;
 	this->LastModified = LastModified;
-	this->hash = ComputeHash(path);
+	this->hash=sha256(path);
 }
 
 Oggetto::Oggetto(Oggetto*old){

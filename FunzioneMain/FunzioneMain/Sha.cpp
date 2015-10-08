@@ -116,21 +116,29 @@ void SHA256::final(unsigned char *digest)
 	}
 }
 
-std::string sha256(std::string input)
+std::string sha256(std::wstring file)
 {
 	unsigned char digest[SHA256::DIGEST_SIZE];
 	memset(digest, 0, SHA256::DIGEST_SIZE);
-
 	SHA256 ctx = SHA256();
 	ctx.init();
-	ctx.update((unsigned char*)input.c_str(), input.length());
-	ctx.final(digest);
-
+	
+	char* buffer = new char[1024];
+	std::ifstream A(file,std::ios_base::binary);
+	while (1){
+		A.read(buffer, 1024);
+		if (A.eof()){
+			ctx.update((unsigned char*)buffer, A.gcount());
+			ctx.final(digest);
+			break;
+		}
+		ctx.update((unsigned char*)buffer, 1024);
+	}
 	char buf[2 * SHA256::DIGEST_SIZE + 1];
 	buf[2 * SHA256::DIGEST_SIZE] = 0;
 	for (int i = 0; i < SHA256::DIGEST_SIZE; i++){
 		sprintf(buf + i * 2, "%02x", digest[i]);
 	}
-
+	delete[] buffer;
 	return std::string(buf);
 }
