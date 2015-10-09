@@ -16,6 +16,7 @@ using namespace std;
 void PulisciLista(std::list < Oggetto *>& a);
 
 int _tmain(){
+	
 
 	wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
 	std::list <Oggetto*> allthefiles;

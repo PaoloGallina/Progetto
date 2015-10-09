@@ -51,10 +51,11 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 				stLocal.wMonth, stLocal.wDay, stLocal.wYear,
 				stLocal.wHour, stLocal.wMinute);
 
-			wstring parametro(lpszString);
+			wstring lastmodified(lpszString);
 			free(lpszString);
-			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName,parametro));
-			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName,parametro));
+
+			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified,find_file_data.nFileSizeLow));
+			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, find_file_data.nFileSizeLow));
 		}
 
 	}
@@ -80,6 +81,7 @@ Folder::~Folder()
 		delete p2;
 		p2 = NULL;
 	}
+	system("pause");
 }
 
 

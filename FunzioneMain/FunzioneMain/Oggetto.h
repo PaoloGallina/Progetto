@@ -1,3 +1,4 @@
+#include <Windows.h>
 #pragma once
 #include <string>
 class Oggetto
@@ -6,10 +7,11 @@ private:
 	std::wstring name;
 	std::wstring path;
 	std::string hash;
+	DWORD size;
 	std::wstring LastModified;
 
 public:
-	Oggetto(std::wstring path,std::wstring name,std::wstring LastModified);
+	Oggetto(std::wstring path,std::wstring name,std::wstring LastModified,DWORD size);
 	Oggetto(Oggetto*);
 
 	std::string GetHash(){
@@ -23,6 +25,9 @@ public:
 	}
 	std::wstring GetLastModified(){
 		return this->LastModified;
+	}
+	DWORD GetSize(){
+		return this->size;
 	}
 
 	~Oggetto();
