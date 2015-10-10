@@ -7,6 +7,8 @@
 #include <windows.h>
 #include <iostream>
 #include <list>
+#include <fcntl.h>
+#include <io.h>
 
 #define _CRTDBG_MAP_ALLOC
 using namespace std;
@@ -18,7 +20,7 @@ int _tmain(int argc, _TCHAR* argv[])
 {	
 	//MANCA LA PARTE DELLA COMUNICAZIONE DELLA GESTIONE DEGLI ERRORI; UN PO' DI TESTING E L'INTERFACCIA GRAFICA
 	
-	while(1){
+	while (1){
 		sqlite3 *db = CreateDatabase();
 		std::list < Oggetto *> listaobj;
 	
@@ -38,7 +40,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		PulisciLista(listaobj);
 		PulisciLista(da_chiedere);
 		sqlite3_close(db); 
-		system("pause");
+		this_thread::sleep_for(chrono::seconds(60));
 		system("cls");
 	}
 

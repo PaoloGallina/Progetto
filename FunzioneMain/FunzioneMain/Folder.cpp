@@ -81,7 +81,6 @@ Folder::~Folder()
 		delete p2;
 		p2 = NULL;
 	}
-	system("pause");
 }
 
 
