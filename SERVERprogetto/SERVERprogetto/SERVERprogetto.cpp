@@ -17,10 +17,13 @@ void TxtToList(string, list < Oggetto *>&);
 void PulisciLista(std::list < Oggetto *>&);
 
 int _tmain(int argc, _TCHAR* argv[])
-{	
-	//MANCA LA PARTE DELLA COMUNICAZIONE DELLA GESTIONE DEGLI ERRORI; UN PO' DI TESTING E L'INTERFACCIA GRAFICA
-	
+{
+
+	//MANCA LA PARTE DELLA COMUNICAZIONE DELLA GESTIONE DEGLI ERRORI; UN PO' DI TESTING E L'INTERFACCIA GRAFICA e il recovery!
+	//AL blob del cazzo bisogna passare il nome del db(uno diverso per ogni nome utente) 
 	while (1){
+		_CrtDumpMemoryLeaks();
+
 		sqlite3 *db = CreateDatabase();
 		std::list < Oggetto *> listaobj;
 	
@@ -43,9 +46,8 @@ int _tmain(int argc, _TCHAR* argv[])
 		this_thread::sleep_for(chrono::seconds(60));
 		system("cls");
 	}
-
-	_CrtDumpMemoryLeaks();
 	
+	_CrtDumpMemoryLeaks();
 	return 0;
 }
 
