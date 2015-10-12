@@ -1,19 +1,27 @@
 // Cl_Se=SERVER.cpp : Defines the entry point for the console application.
 //
-
 #include "stdafx.h"
 #include <thread>
 #include <string>
 #include <chrono>
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <Windows.h>
+#include "Sock.h"
 
 using namespace std;
 
+
+int _tmain(int argc, _TCHAR* argv[])
+{
+
+
+	thread due(client);
+
+	due.join();
+	return 0;
+}
+
+
 int hearPIPES(){
-  //creata nel processo SERVER
+	//creata nel processo SERVER
 	return 0;
 }
 
@@ -21,7 +29,7 @@ int talkPIPES(){
 	LPTSTR a = TEXT("\\\\.\\pipe\\pipename");
 	DWORD NuByRe;
 
-	
+
 	HANDLE hpipe = CreateFile(a, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 
 	if (hpipe == INVALID_HANDLE_VALUE){
@@ -33,8 +41,8 @@ int talkPIPES(){
 	}
 	_tprintf(TEXT("The connention with the other process is working"));
 
-	
-	
+
+
 	std::ostringstream sstringa;
 	std::ifstream ifs("C:\\Users\\Paolo\\Desktop\\PROVA2\\VIDEO.wmv", std::ios::binary);
 	sstringa << ifs.rdbuf();
@@ -51,28 +59,10 @@ int talkPIPES(){
 
 	while (1){
 		BOOL i = WriteFile(hpipe, (mess1.c_str()), mess1.size(), &NuByRe, NULL);
-		
-		if (i=0){
+
+		if (i = 0){
 			_tprintf(TEXT("CLIENT ERROR::%d\n"), GetLastError());
 		}
 	}
-	return 0;
-}
-
-int talk(){ 
-	
-	
-	return 0; }
-
-int _tmain(int argc, _TCHAR* argv[])
-{
-
-	//thread uno(hear);
-	thread due(talk);
-
-	due.join();
-	//uno.join();
-
-	system("pause");
 	return 0;
 }
