@@ -105,69 +105,75 @@ SOCKET  __cdecl ConnectServer(){
 	struct addrinfo *result = NULL;
 	struct addrinfo hints;
 
+	while (ClientSocket == INVALID_SOCKET){
+		try{
+			// Initialize Winsock used to initiate the use of a DLL
+			iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+			if (iResult != 0) {
+				printf("WSAStartup failed with error: %d\n", iResult);
+				throw "SERVER WSAStartup failed";
+			}
 
-	// Initialize Winsock used to initiate the use of a DLL
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		printf("WSAStartup failed with error: %d\n", iResult);
-		throw "SERVER WSAStartup failed";
+			ZeroMemory(&hints, sizeof(hints));
+			hints.ai_family = AF_INET;
+			hints.ai_socktype = SOCK_STREAM;
+			hints.ai_protocol = IPPROTO_TCP;
+			hints.ai_flags = AI_PASSIVE;
+
+			// Resolve the server address and port
+			iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
+			if (iResult != 0) {
+				printf("getaddrinfo failed with error: %d\n", iResult);
+				WSACleanup();
+				throw "SERVER getaddrinfo failed ";
+			}
+
+			// Create a SOCKET for connecting to server
+			ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+			if (ListenSocket == INVALID_SOCKET) {
+				printf("socket failed with error: %ld\n", WSAGetLastError());
+				freeaddrinfo(result);
+				WSACleanup();
+				throw "SERVER socket failed \n";
+			}
+
+			// Setup the TCP listening socket
+			iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+			if (iResult == SOCKET_ERROR) {
+				printf("bind failed with error: %d\n", WSAGetLastError());
+				freeaddrinfo(result);
+				closesocket(ListenSocket);
+				WSACleanup();
+				throw "SERVER bind failed  \n";
+			}
+
+			freeaddrinfo(result);
+
+			iResult = listen(ListenSocket, SOMAXCONN);
+			if (iResult == SOCKET_ERROR) {
+				printf("listen failed with error: %d\n", WSAGetLastError());
+				closesocket(ListenSocket);
+				WSACleanup();
+				throw "SERVER listen failed";
+			}
+			printf("SERVER i'm waiting for connection\n");
+			// Accept a client socket
+			ClientSocket = accept(ListenSocket, NULL, NULL);
+			if (ClientSocket == INVALID_SOCKET) {
+				printf("accept failed with error: %d\n", WSAGetLastError());
+				closesocket(ListenSocket);
+				WSACleanup();
+				throw "SERVER accept failed";
+			}
+
+			printf("SERVER a connection is settled\n");
+			// No longer need server socket
+			closesocket(ListenSocket);
+		}
+		catch (char * a){
+			std::this_thread::sleep_for(std::chrono::seconds(5));
+		}
 	}
-
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = AI_PASSIVE;
-
-	// Resolve the server address and port
-	iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
-	if (iResult != 0) {
-		printf("getaddrinfo failed with error: %d\n", iResult);
-		WSACleanup();
-		throw "SERVER getaddrinfo failed ";
-	}
-
-	// Create a SOCKET for connecting to server
-	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	if (ListenSocket == INVALID_SOCKET) {
-		printf("socket failed with error: %ld\n", WSAGetLastError());
-		freeaddrinfo(result);
-		WSACleanup();
-		throw "SERVER socket failed \n";
-	}
-
-	// Setup the TCP listening socket
-	iResult = bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-	if (iResult == SOCKET_ERROR) {
-		printf("bind failed with error: %d\n", WSAGetLastError());
-		freeaddrinfo(result);
-		closesocket(ListenSocket);
-		WSACleanup();
-		throw "SERVER bind failed  \n";
-	}
-
-	freeaddrinfo(result);
-
-	iResult = listen(ListenSocket, SOMAXCONN);
-	if (iResult == SOCKET_ERROR) {
-		printf("listen failed with error: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
-		throw "SERVER listen failed";
-	}
-	printf("SERVER i'm waiting for connection\n");
-	// Accept a client socket
-	ClientSocket = accept(ListenSocket, NULL, NULL);
-	if (ClientSocket == INVALID_SOCKET) {
-		printf("accept failed with error: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
-		throw "SERVER accept failed";
-	}
-
-	printf("SERVER a connection is settled\n");
-	// No longer need server socket
-	closesocket(ListenSocket);
 	return ClientSocket;
 }
 
@@ -287,4 +293,31 @@ int  server(void)
 	WSACleanup();
 
 	return 0;
+}
+
+int opRichiesta(SOCKET Client){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf, recvbuflen);
+	return *ptr;
+}
+
+char * recvFile(SOCKET Client){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf, recvbuflen);
+	int size = *ptr;
+	char* file = (char*)malloc(size*sizeof(char));
+	int tot = 0;
+
+	while (tot < size){
+		if (tot + recvbuflen < size){
+			strcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf, recvbuflen));
+		}
+		else{
+			strcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf, recvbuflen));
+		}
+		tot += DEFAULT_BUFLEN;
+	}
+	return file;
 }

@@ -31,3 +31,5 @@ void sendInt(SOCKET ConnectSocket, int i);
 void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max);
 int client();
 int  server(void);
+int opRichiesta(SOCKET Client);
+char * recvFile(SOCKET Client);
