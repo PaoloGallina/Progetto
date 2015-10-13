@@ -199,19 +199,6 @@ void sendString(SOCKET ConnectSocket, char* stringa){
 	printf("Bytes Sent: %ld\n", iResult);
 }
 
-void sendInt(SOCKET ConnectSocket, int i){
-	char* buf;
-	buf = (char*)&i;
-	int iResult = send(ConnectSocket, buf, 4, 0);
-	if (iResult == SOCKET_ERROR) {
-		printf("send failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
-		throw "send int failed ";
-	}
-	printf("Bytes Sent: %ld\n", iResult);
-}
-
 void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max){
 	int tot = 0;
 
@@ -261,6 +248,20 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size, int max){
 			throw "send failed ";
 		}
 	}
+}
+
+void sendInt(SOCKET ConnectSocket, int i){
+	char* buf;
+	buf = (char*)&i;
+	sendNbytes(ConnectSocket, buf, 4, 512);
+}
+
+int recInt(SOCKET client){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int *ptr = (int*)recNbytes(client, sizeof(int), recvbuf, recvbuflen);
+	int size = *ptr;
+	return size;
 }
 
 int client(){
@@ -327,20 +328,26 @@ int opRichiesta(SOCKET Client){
 char * recvFile(SOCKET Client){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
+	printf("I get the size of the file\n");
 	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf, recvbuflen);
 	int size = *ptr;
-	char* file = (char*)malloc(size*sizeof(char));
+	char* file = (char*)malloc(size*sizeof(char)+4);
+	
 	int tot = 0;
-
+	
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			strcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf, recvbuflen));
+			memcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf, recvbuflen), recvbuflen);
 		}
 		else{
-			strcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf, recvbuflen));
+			memcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf, recvbuflen), size - tot);
+			tot += size - tot;
+			break;
 		}
 		tot += DEFAULT_BUFLEN;
 	}
+	
+	file[tot] = L'\0';
 	return file;
 }
 
@@ -351,7 +358,7 @@ void invFile(SOCKET Client, char*file,int size){
 
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			sendNbytes(Client, file+tot, recvbuflen, recvbuflen);
+			sendNbytes(Client, file + tot, recvbuflen, recvbuflen);
 		}
 		else{
 			sendNbytes(Client, file + tot, size - tot, recvbuflen);

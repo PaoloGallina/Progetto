@@ -34,3 +34,4 @@ int  server(void);
 int opRichiesta(SOCKET Client);
 char * recvFile(SOCKET Client);
 void invFile(SOCKET Client, char*file, int size);
+int recInt(SOCKET client);

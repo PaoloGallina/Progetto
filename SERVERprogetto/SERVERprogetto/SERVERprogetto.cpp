@@ -41,13 +41,17 @@ int _tmain(int argc, _TCHAR* argv[])
 
 void TxtToList(SOCKET client,list < Oggetto *>& listaobj){
 
+	printf("I get the number of obj in the list\n");
+	int n = recInt(client);
+
 	char* Hash = recvFile(client);
 	wchar_t* PathNameLast = (wchar_t*)recvFile(client);
-
 	istringstream c(Hash);
 	wistringstream b(PathNameLast);
 
-	while (1){
+	
+	int t = 0;
+	while(t<n){
 		wchar_t buf1[512], buf2[512], buf3[512];
 		char buf4[512],buf5[512];
 		b.getline(buf1, 512);
@@ -55,10 +59,11 @@ void TxtToList(SOCKET client,list < Oggetto *>& listaobj){
 		b.getline(buf3, 512);
 		c.getline(buf4, 512);
 		listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4,*((DWORD *) recNbytes(client,sizeof(DWORD),buf5,512))));
-		if (c.eof() == 0){
-			break;
-		}
+		t++;
 	}
+
+	free(Hash);
+	free(PathNameLast);
 }
 
 void PulisciLista(std::list < Oggetto *>& a){
@@ -90,6 +95,7 @@ void Sync(SOCKET client, std::string nome){
 	PulisciLista(listaobj);
 	PulisciLista(da_chiedere);
 	sqlite3_close(db);
+	system("pause");
 	system("cls");
 
 }

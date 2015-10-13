@@ -18,7 +18,8 @@ using namespace std;
 
 
 Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
-{		
+{
+	SetLastError(0);
 	this->name = *cartella_origine;
 	WIN32_FIND_DATA find_file_data;
 	HANDLE Ffile = FindFirstFile((*cartella_origine+L"\\*").c_str(), &find_file_data);		
