@@ -12,7 +12,9 @@ private:
 
 public:
 	Oggetto(std::wstring path,std::wstring name,std::wstring LastModified,DWORD size);
+	Oggetto(std::wstring path, std::wstring name, std::wstring LastModified,std::string hash, DWORD size);
 	Oggetto(Oggetto*);
+
 
 	std::string GetHash(){
 		return this->hash;

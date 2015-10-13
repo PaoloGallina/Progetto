@@ -14,6 +14,14 @@ Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified,DWOR
 	this->LastModified = LastModified;
 	this->hash=sha256(path);
 }
+Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified,string hasht, DWORD size)
+{
+	this->name = name;
+	this->path = path;
+	this->size = size;
+	this->LastModified = LastModified;
+	this->hash = hasht;
+}
 
 Oggetto::Oggetto(Oggetto*old){
 	this->name = old->GetName();

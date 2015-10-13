@@ -1,16 +1,15 @@
 
+
 #include "stdafx.h"
+#include "Sock.h"
 #include "Datab.h"
 #include "Oggetto.h"
 #include "Folder.h"
 #include <iostream>
-#include <windows.h>
-#include <iostream>
-#include <stream>
 #include <list>
 #include <fcntl.h>
 #include <io.h>
-#include "Sock.h"
+
 
 #define _CRTDBG_MAP_ALLOC
 using namespace std;
@@ -42,24 +41,24 @@ int _tmain(int argc, _TCHAR* argv[])
 
 void TxtToList(SOCKET client,list < Oggetto *>& listaobj){
 
-	wchar_t* path =(wchar_t*) recvFile(client);
-	char* hash = recvFile(client);
-	char* size = recvFile(client);
-	char* name = recvFile(client);
-	wchar_t* lastmodified = (wchar_t*)recvFile(client);
-	wistringstream a(path);
-	wistringstream b(lastmodified);
-	istringstream c(size);//forse è meglio passare un array di double
-	istringstream d(hash);
-	istringstream e(name);
+	char* Hash = recvFile(client);
+	wchar_t* PathNameLast = (wchar_t*)recvFile(client);
 
+	istringstream c(Hash);
+	wistringstream b(PathNameLast);
 
 	while (1){
-		
-		
+		wchar_t buf1[512], buf2[512], buf3[512];
+		char buf4[512],buf5[512];
+		b.getline(buf1, 512);
+		b.getline(buf2, 512);
+		b.getline(buf3, 512);
+		c.getline(buf4, 512);
+		listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4,*((DWORD *) recNbytes(client,sizeof(DWORD),buf5,512))));
+		if (c.eof() == 0){
+			break;
+		}
 	}
-	
-	return;
 }
 
 void PulisciLista(std::list < Oggetto *>& a){

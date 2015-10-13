@@ -25,7 +25,7 @@
 SOCKET __cdecl ConnectClient()
 {
 	int argc = 2;
-	char* addr = "192.168.1.104";
+	char* addr = "127.0.0.1";
 	
 
 	WSADATA wsaData;
@@ -241,6 +241,28 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max){
 	return stringa;
 }
 
+void sendNbytes(SOCKET ConnectSocket,char*stringa, int size, int max){
+	int tot = 0;
+
+	if (size > max){
+		throw "too big packet";
+	}
+
+	while (tot < size){
+		int iResult = send(ConnectSocket,stringa+tot, size - tot, 0);
+		if (iResult > 0) {
+			printf("Bytes sent: %d\n", iResult);
+			tot += iResult;
+		}
+		else  {
+			printf("sending failed with error: %d\n", WSAGetLastError());
+			closesocket(ConnectSocket);
+			WSACleanup();
+			throw "send failed ";
+		}
+	}
+}
+
 int client(){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
@@ -320,4 +342,20 @@ char * recvFile(SOCKET Client){
 		tot += DEFAULT_BUFLEN;
 	}
 	return file;
+}
+
+void invFile(SOCKET Client, char*file,int size){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int tot = 0;
+
+	while (tot < size){
+		if (tot + recvbuflen < size){
+			sendNbytes(Client, file+tot, recvbuflen, recvbuflen);
+		}
+		else{
+			sendNbytes(Client, file + tot, size - tot, recvbuflen);
+		}
+		tot += DEFAULT_BUFLEN;
+	}
 }
