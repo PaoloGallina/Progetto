@@ -188,17 +188,6 @@ void closeConn(SOCKET ConnectSocket){
 	}
 }
 
-void sendString(SOCKET ConnectSocket, char* stringa){
-	int iResult = send(ConnectSocket, stringa, (int)strlen(stringa) + 1, 0);
-	if (iResult == SOCKET_ERROR) {
-		printf("send failed with error: %d\n", WSAGetLastError());
-		closesocket(ConnectSocket);
-		WSACleanup();
-		throw "send failed ";
-	}
-	printf("Bytes Sent: %ld\n", iResult);
-}
-
 void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max){
 	int tot = 0;
 
@@ -264,60 +253,6 @@ int recInt(SOCKET client){
 	return size;
 }
 
-int client(){
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-
-	SOCKET ConnectSocket = ConnectClient();
-
-	char* stringa = (char*)malloc(51 * sizeof(char));
-	while (1){
-
-		gets(stringa);
-		if (strcmp(stringa, "exit") == 0){
-			break;
-		}
-		strcat(stringa, "\n");
-		sendInt(ConnectSocket, strlen(stringa) + 1);
-		sendString(ConnectSocket, stringa);
-	}
-
-	closeConn(ConnectSocket);
-
-	// Receive until the peer closes the connection
-	while (1){
-		int *ptr = (int*)recNbytes(ConnectSocket, sizeof(int), recvbuf, recvbuflen);
-		if (ptr == nullptr) break;
-
-	}
-
-	// cleanup
-	closesocket(ConnectSocket);
-	WSACleanup();
-
-	return 0;
-}
-
-int  server(void)
-{
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-
-	SOCKET ClientSocket = ConnectServer();
-	// Receive until the peer shuts down the connection
-	while (1){
-		int *ptr = (int*)recNbytes(ClientSocket, sizeof(int), recvbuf, recvbuflen);
-		if (ptr == nullptr) break;
-		printf("%s", (char*)recNbytes(ClientSocket, *ptr, recvbuf, recvbuflen));
-	}
-
-	// cleanup
-	closesocket(ClientSocket);
-	WSACleanup();
-
-	return 0;
-}
-
 int opRichiesta(SOCKET Client){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
@@ -326,6 +261,7 @@ int opRichiesta(SOCKET Client){
 }
 
 char * recvFile(SOCKET Client){
+	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	printf("I get the size of the file\n");

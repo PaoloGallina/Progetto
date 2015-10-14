@@ -20,8 +20,9 @@ void Sync(SOCKET client, std::string nome);
 
 int _tmain(int argc, _TCHAR* argv[])
 {
+	{
 		//autenticazione+più di un client+devoritornare anche il nome utente
-		SOCKET client= ConnectServer();
+		SOCKET client = ConnectServer();
 		string nome = "stub";
 		while (1){
 			int op = opRichiesta(client);
@@ -31,10 +32,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			else if (op == 999){
 				break;
 			}
+			break;
 		}
 		closesocket(client);
 		WSACleanup();
-
+	}
 	_CrtDumpMemoryLeaks();
 	return 0;
 }

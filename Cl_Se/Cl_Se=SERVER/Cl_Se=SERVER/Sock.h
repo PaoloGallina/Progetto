@@ -26,11 +26,8 @@
 SOCKET __cdecl ConnectClient();
 SOCKET  __cdecl ConnectServer();
 void closeConn(SOCKET ConnectSocket);
-void sendString(SOCKET ConnectSocket, char* stringa);
 void sendInt(SOCKET ConnectSocket, int i);
 void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max);
-int client();
-int  server(void);
 int opRichiesta(SOCKET Client);
 char * recvFile(SOCKET Client);
 void invFile(SOCKET Client, char*file, int size);

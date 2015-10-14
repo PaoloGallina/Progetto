@@ -236,7 +236,7 @@ void ReadFILES(sqlite3*db){
 	int rc;
 
 	/* Create SQL statement */
-	std::string sql = "SELECT * from FILES";
+	std::string sql = "SELECT PATH,HASH,VER from FILES";
 
 	sqlite3_stmt* stm;
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
@@ -254,16 +254,9 @@ void ReadFILES(sqlite3*db){
 
 		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
-		file = std::string((char*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2));
-		ver = (sqlite3_column_int(stm, 3));
+		ver = (sqlite3_column_int(stm, 2));
 
 		std::wcout <<ver<<" : "<< path.c_str()<< endl ;
-		
-	//	wcout << L" HASH : " << hash.c_str() << endl;
-		
-	//	std::ofstream ofs(path+L"DADATABASE", std::ios::binary);
-	//	ofs << file;
-	//	ofs.close();
 		rc = sqlite3_step(stm);
 	}
 

@@ -18,10 +18,10 @@ void PulisciLista(std::list < Oggetto *>& a);
 void ObjtoTxt(SOCKET client, std::list < Oggetto *>& a);
 
 int _tmain(){
-	
+		{
 	SOCKET server = ConnectClient();
 	while (1){
-		//questa sarà passata
+		//questa sarà passata dall'utente
 		wstring* cartella_origine = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
 		std::list <Oggetto*> allthefiles;
 		//guarda il set last error 0
@@ -37,7 +37,7 @@ int _tmain(){
 
 	closesocket(server);
 	WSACleanup();
-
+}
 	_CrtDumpMemoryLeaks();
 	return 0;
 }
