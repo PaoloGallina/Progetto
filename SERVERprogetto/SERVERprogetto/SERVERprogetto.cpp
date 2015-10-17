@@ -85,7 +85,7 @@ void Sync(SOCKET client, std::string nome){
 	TxtToList(client,listaobj); 
 	std::list < Oggetto *> da_chiedere = CheFILEvoglio(db, listaobj);
 	if (da_chiedere.size() != 0 || file_cancellati(db, listaobj.size()) != 0){
-		nuovaVersione(db, listaobj, da_chiedere);
+		nuovaVersione(db,client, listaobj, da_chiedere);
 	}
 	else{
 		wcout << L"\nThe database is updated\n" << endl;
@@ -97,6 +97,8 @@ void Sync(SOCKET client, std::string nome){
 	PulisciLista(listaobj);
 	PulisciLista(da_chiedere);
 	sqlite3_close(db);
+	//dico al client che la sync è terminata con successo
+	sendInt(client, -10);
 	system("pause");
 	system("cls");
 

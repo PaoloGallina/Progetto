@@ -3,7 +3,7 @@
 #include <stdio.h>
 #include <iostream>
 #include "sqlite3.h" 
-#include <windows.h>
+#include "Sock.h"
 #include <string>
 #include "Oggetto.h"
 #include <string.h>
@@ -150,7 +150,7 @@ list < Oggetto *> CheFILEvoglio(sqlite3 *db, list < Oggetto *> files){
 	return OggettiCheVorrei;
 }
 
-void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash,int versione,DWORD size){
+void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione,DWORD size){
 
 	int  rc=0;
 	std::string sql = "INSERT INTO FILES (PATH , HASH , DATI , VER) VALUES (?1, ?2, ?3, ?4);";
@@ -188,20 +188,27 @@ void InsertFILE(sqlite3*db, std::wstring wpath, std::string hash,int versione,DW
 		cout << sqlite3_errmsg(db)<<endl;
 	}
 
-	char* buffer = new char[1024];
-	std::ifstream A(wpath, std::ios_base::binary);
-	int i = 0;
-	while (1){
-		A.read(buffer, 1024);
-		if (A.eof()){	
-			rc = sqlite3_blob_write(BLOB, buffer, A.gcount(), i * 1024);
+	sendInt(client, (wpath.size() + 1)*sizeof(wchar_t));
+	sendNbytes(client, (char*)wpath.c_str(),(wpath.size()+1)*sizeof(wchar_t),512);
+
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int tot = 0;
+
+	while (tot < (int)size){
+		if (tot + recvbuflen < size){
+			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf, recvbuflen), recvbuflen, tot);
+		}
+		else{
+			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf, recvbuflen), size - tot, tot);
+			tot += size - tot;
 			break;
 		}
-		rc = sqlite3_blob_write(BLOB, buffer, 1024, i*1024);
-		i++;
+		tot += DEFAULT_BUFLEN;
 	}
+
+
 	sqlite3_blob_close(BLOB);
-	delete buffer;
 	
 };
 
@@ -237,6 +244,7 @@ void ReadFILES(sqlite3*db){
 
 	/* Create SQL statement */
 	std::string sql = "SELECT PATH,HASH,VER from FILES";
+	//std::string sql = "SELECT PATH,HASH,VER,DATI from FILES";
 
 	sqlite3_stmt* stm;
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
@@ -244,7 +252,7 @@ void ReadFILES(sqlite3*db){
 
 	std::wstring path;
 	std::string hash;
-	std::string file;
+	//std::string file;
 	int ver;
 	std::wcout << L"\n\n\nFILE PRESENTI NEL DB \n----------------------------\n";
 	if (rc != 100){
@@ -255,11 +263,18 @@ void ReadFILES(sqlite3*db){
 		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
 		ver = (sqlite3_column_int(stm, 2));
+		
+	//	file = std::string((char*)sqlite3_column_blob(stm, 3), sqlite3_column_bytes(stm, 3));
+	//	std::ofstream ofs(path, std::ios::binary);
+	//	ofs << file;
+	//	std::ofstream ifs(path + L".wmv", std::ios::binary);
+	//	ifs << file;
 
 		std::wcout <<ver<<" : "<< path.c_str()<< endl ;
 		rc = sqlite3_step(stm);
 	}
 
+	
 	
 	
 
@@ -372,14 +387,14 @@ void PulisciDB(sqlite3* db){
 
 }
 
-void nuovaVersione(sqlite3* db, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
+void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
 	
 	try{
 		sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 		int Versione = GetUltimaVersione(db);
 		Versione++;
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
-			InsertFILE(db, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize());
+			InsertFILE(db,client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize());
 		}
 
 		for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){

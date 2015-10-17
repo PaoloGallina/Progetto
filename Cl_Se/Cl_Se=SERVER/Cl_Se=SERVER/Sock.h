@@ -25,6 +25,7 @@
 
 SOCKET __cdecl ConnectClient();
 SOCKET  __cdecl ConnectServer();
+void sendNbytes(SOCKET ConnectSocket, char*stringa, int size, int max);
 void closeConn(SOCKET ConnectSocket);
 void sendInt(SOCKET ConnectSocket, int i);
 void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max);
