@@ -60,7 +60,7 @@ void TxtToList(SOCKET client,list < Oggetto *>& listaobj){
 		b.getline(buf2, 512);
 		b.getline(buf3, 512);
 		c.getline(buf4, 512);
-		listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4,*((DWORD *) recNbytes(client,sizeof(DWORD),buf5,512))));
+		listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4, *((DWORD *)recNbytes(client, sizeof(DWORD), buf5)), INVALID_HANDLE_VALUE));
 		t++;
 	}
 

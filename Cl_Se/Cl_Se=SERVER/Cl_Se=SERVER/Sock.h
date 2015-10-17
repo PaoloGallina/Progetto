@@ -25,10 +25,10 @@
 
 SOCKET __cdecl ConnectClient();
 SOCKET  __cdecl ConnectServer();
-void sendNbytes(SOCKET ConnectSocket, char*stringa, int size, int max);
+void sendNbytes(SOCKET ConnectSocket, char*stringa, int size);
 void closeConn(SOCKET ConnectSocket);
 void sendInt(SOCKET ConnectSocket, int i);
-void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max);
+void* recNbytes(SOCKET ConnectSocket, int size, char*stringa);
 int opRichiesta(SOCKET Client);
 char * recvFile(SOCKET Client);
 void invFile(SOCKET Client, char*file, int size);

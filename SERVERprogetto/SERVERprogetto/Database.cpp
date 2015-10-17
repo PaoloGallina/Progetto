@@ -189,7 +189,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 	}
 
 	sendInt(client, (wpath.size() + 1)*sizeof(wchar_t));
-	sendNbytes(client, (char*)wpath.c_str(),(wpath.size()+1)*sizeof(wchar_t),512);
+	sendNbytes(client, (char*)wpath.c_str(),(wpath.size()+1)*sizeof(wchar_t));
 
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
@@ -197,10 +197,10 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 
 	while (tot < (int)size){
 		if (tot + recvbuflen < size){
-			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf, recvbuflen), recvbuflen, tot);
+			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf), recvbuflen, tot);
 		}
 		else{
-			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf, recvbuflen), size - tot, tot);
+			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf), size - tot, tot);
 			tot += size - tot;
 			break;
 		}

@@ -7,12 +7,13 @@ private:
 	std::wstring name;
 	std::wstring path;
 	std::string hash;
+	HANDLE handle;
 	DWORD size;
 	std::wstring LastModified;
 
 public:
-	Oggetto(std::wstring path,std::wstring name,std::wstring LastModified,DWORD size);
-	Oggetto(std::wstring path, std::wstring name, std::wstring LastModified,std::string hash, DWORD size);
+	Oggetto(std::wstring path, std::wstring name, std::wstring , DWORD size,HANDLE handle);
+	Oggetto(std::wstring path, std::wstring name, std::wstring,std::string hashpassed, DWORD size, HANDLE handle);
 	Oggetto(Oggetto*);
 
 
@@ -30,6 +31,9 @@ public:
 	}
 	DWORD GetSize(){
 		return this->size;
+	}
+	HANDLE GetHandle(){
+		return this->handle;
 	}
 
 	~Oggetto();

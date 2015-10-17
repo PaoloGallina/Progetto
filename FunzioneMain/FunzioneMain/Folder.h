@@ -16,7 +16,6 @@ private:
 	Folder& operator=(const Folder& source);  //operatore di assegnazione  DEVONO ESSERE COERENTI!!  DEVI ACCERTARTI DI NON ESSERE UGUALE A TE STESSO!
 	Folder(const Folder& source);   //costruttore di copia
 	std::list <Folder*> contains;
-	std::list <Oggetto*> files;
 
 public:
 	std::wstring name;

@@ -188,10 +188,10 @@ void closeConn(SOCKET ConnectSocket){
 	}
 }
 
-void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max){
+void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 	int tot = 0;
 
-	if (size > max){
+	if (size > DEFAULT_BUFLEN){
 		throw "requested too big packet";
 	}
 
@@ -217,10 +217,10 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, int max){
 	return stringa;
 }
 
-void sendNbytes(SOCKET ConnectSocket,char*stringa, int size, int max){
+void sendNbytes(SOCKET ConnectSocket,char*stringa, int size){
 	int tot = 0;
 
-	if (size > max){
+	if (size > DEFAULT_BUFLEN){
 		throw "too big packet";
 	}
 
@@ -233,7 +233,7 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size, int max){
 		else  {
 			printf("sending failed with error: %d\n", WSAGetLastError());
 			closesocket(ConnectSocket);
-			WSACleanup();
+			WSACleanup(); 
 			throw "send failed ";
 		}
 	}
@@ -242,13 +242,13 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size, int max){
 void sendInt(SOCKET ConnectSocket, int i){
 	char* buf;
 	buf = (char*)&i;
-	sendNbytes(ConnectSocket, buf, 4, 512);
+	sendNbytes(ConnectSocket, buf, 4);
 }
 
 int recInt(SOCKET client){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
-	int *ptr = (int*)recNbytes(client, sizeof(int), recvbuf, recvbuflen);
+	int *ptr = (int*)recNbytes(client, sizeof(int), recvbuf);
 	int size = *ptr;
 	return size;
 }
@@ -256,7 +256,7 @@ int recInt(SOCKET client){
 int opRichiesta(SOCKET Client){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
-	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf, recvbuflen);
+	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf);
 	return *ptr;
 }
 
@@ -265,7 +265,7 @@ char * recvFile(SOCKET Client){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	printf("I get the size of the file\n");
-	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf, recvbuflen);
+	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf);
 	int size = *ptr;
 	char* file = (char*)malloc(size*sizeof(char)+4);
 	
@@ -273,10 +273,10 @@ char * recvFile(SOCKET Client){
 	
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			memcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf, recvbuflen), recvbuflen);
+			memcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf), recvbuflen);
 		}
 		else{
-			memcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf, recvbuflen), size - tot);
+			memcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf), size - tot);
 			tot += size - tot;
 			break;
 		}
@@ -294,10 +294,10 @@ void invFile(SOCKET Client, char*file,int size){
 
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			sendNbytes(Client, file + tot, recvbuflen, recvbuflen);
+			sendNbytes(Client, file + tot, recvbuflen);
 		}
 		else{
-			sendNbytes(Client, file + tot, size - tot, recvbuflen);
+			sendNbytes(Client, file + tot, size - tot);
 		}
 		tot += DEFAULT_BUFLEN;
 	}

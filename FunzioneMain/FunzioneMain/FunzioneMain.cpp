@@ -29,7 +29,6 @@ int _tmain(){
 
 
 
-
 		system("pause");
 	}
 
@@ -105,17 +104,17 @@ void sync(SOCKET server){
 		char recvbuf[DEFAULT_BUFLEN];
 		int recvbuflen = DEFAULT_BUFLEN;
 
-		wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf, recvbuflen));
+		wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf));
 
 		std::ifstream A(wpath, std::ios_base::binary);
 		
 		while (1){
 			A.read(recvbuf, recvbuflen);
 			if (A.eof()){
-				sendNbytes(server, recvbuf, A.gcount(), recvbuflen);
+				sendNbytes(server, recvbuf, A.gcount());
 				break;
 			}
-			sendNbytes(server, recvbuf, A.gcount(), recvbuflen);
+			sendNbytes(server, recvbuf, A.gcount());
 		}
 		lunghezza = recInt(server);
 

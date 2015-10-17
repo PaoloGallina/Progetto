@@ -20,9 +20,10 @@ using namespace std;
 Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
 {
 	SetLastError(0);
+	wstring desk(L"desktop.ini");
 	this->name = *cartella_origine;
 	WIN32_FIND_DATA find_file_data;
-	HANDLE Ffile = FindFirstFile((*cartella_origine+L"\\*").c_str(), &find_file_data);		
+	HANDLE Ffile = FindFirstFileW((*cartella_origine+L"\\*").c_str(), &find_file_data);		
 	
 	if (Ffile == INVALID_HANDLE_VALUE){
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
@@ -39,24 +40,30 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
-			
-			SYSTEMTIME struct_ultima_modifica,stLocal;
-			FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
-			TCHAR *lpszString=(TCHAR*)malloc(50*sizeof(TCHAR));
-			// Convert the last-write time to local time.
-			FileTimeToSystemTime(&find_file_data.ftLastWriteTime,&struct_ultima_modifica);
-			SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
-			// Build a string showing the date and time.
-			StringCchPrintf(lpszString, 50,
-				TEXT("%02d %02d %d  %02d %02d"),
-				stLocal.wMonth, stLocal.wDay, stLocal.wYear,
-				stLocal.wHour, stLocal.wMinute);
+			if (desk.compare(find_file_data.cFileName)){
+				SYSTEMTIME struct_ultima_modifica, stLocal;
+				FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
+				TCHAR *lpszString = (TCHAR*)malloc(50 * sizeof(TCHAR));
+				// Convert the last-write time to local time.
+				FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
+				SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
+				// Build a string showing the date and time.
+				StringCchPrintf(lpszString, 50,
+					TEXT("%02d %02d %d  %02d %02d"),
+					stLocal.wMonth, stLocal.wDay, stLocal.wYear,
+					stLocal.wHour, stLocal.wMinute);
 
-			wstring lastmodified(lpszString);
-			free(lpszString);
+				wstring lastmodified(lpszString);
+				free(lpszString);
 
-			this->files.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified,find_file_data.nFileSizeLow));
-			allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, find_file_data.nFileSizeLow));
+
+				HANDLE handle = INVALID_HANDLE_VALUE;// CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				if (handle == INVALID_HANDLE_VALUE){
+					cout << "non posso aprire il file" << endl;
+				}
+
+				allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, find_file_data.nFileSizeLow,handle));
+			}
 		}
 
 	}
@@ -73,14 +80,6 @@ Folder::~Folder()
 		this->contains.pop_front();
 		delete p;
 		p = NULL;
-	}
-
-	Oggetto* p2;
-	while (!this->files.empty()){
-		p2 = this->files.front();
-		this->files.pop_front();
-		delete p2;
-		p2 = NULL;
 	}
 }
 
