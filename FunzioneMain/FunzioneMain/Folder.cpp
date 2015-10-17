@@ -1,7 +1,5 @@
 #include "stdafx.h"
-#include "Folder.h"
 #include "fstream"
-#include <windows.h>
 #include <string>
 #include <string.h>
 #include <iostream>
@@ -11,6 +9,8 @@
 #include <list>
 #include <chrono>
 #include <strsafe.h>
+#include "Folder.h"
+#include <windows.h>
 
 using namespace std;
 
@@ -57,7 +57,7 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 				free(lpszString);
 
 
-				HANDLE handle = INVALID_HANDLE_VALUE;// CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				HANDLE handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 				if (handle == INVALID_HANDLE_VALUE){
 					cout << "non posso aprire il file" << endl;
 				}

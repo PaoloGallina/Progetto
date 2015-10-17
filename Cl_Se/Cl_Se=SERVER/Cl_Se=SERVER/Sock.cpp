@@ -1,7 +1,6 @@
 #define WIN32_LEAN_AND_MEAN
 
 #include "stdafx.h"
-#include <thread>
 #include <string>
 #include <chrono>
 #include <exception>
@@ -11,6 +10,7 @@
 #include <ws2tcpip.h>
 #include <stdlib.h>
 #include <stdio.h>
+#include <thread>
 
 // Need to link with Ws2_32.lib, Mswsock.lib, and Advapi32.lib
 #pragma comment (lib, "Ws2_32.lib")

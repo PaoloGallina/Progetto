@@ -1,4 +1,4 @@
-#include <Windows.h>
+#include <windows.h>
 #pragma once
 #include <string>
 class Oggetto

@@ -1,8 +1,9 @@
 
 #include "stdafx.h"
+#include "Sock.h"
 #include <cstring>
-#include <fstream>
 #include "Sha.h"
+#include <windows.h>
 
 const unsigned int SHA256::sha256_k[64] = //UL = uint32
 { 0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5,
@@ -116,23 +117,27 @@ void SHA256::final(unsigned char *digest)
 	}
 }
 
-std::string sha256(std::wstring file)
+std::string sha256(HANDLE file)
 {
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	DWORD read = 0;
+
 	unsigned char digest[SHA256::DIGEST_SIZE];
 	memset(digest, 0, SHA256::DIGEST_SIZE);
 	SHA256 ctx = SHA256();
 	ctx.init();
 	
 	char* buffer = new char[1024];
-	std::ifstream A(file,std::ios_base::binary);
 	while (1){
-		A.read(buffer, 1024);
-		if (A.eof()){
-			ctx.update((unsigned char*)buffer, A.gcount());
+		
+		ReadFile(file, recvbuf, recvbuflen, &read, NULL);
+			if(recvbuflen!=read){
+			ctx.update((unsigned char*)buffer, read);
 			ctx.final(digest);
 			break;
 		}
-		ctx.update((unsigned char*)buffer, 1024);
+		ctx.update((unsigned char*)buffer, read);
 	}
 	char buf[2 * SHA256::DIGEST_SIZE + 1];
 	buf[2 * SHA256::DIGEST_SIZE] = 0;

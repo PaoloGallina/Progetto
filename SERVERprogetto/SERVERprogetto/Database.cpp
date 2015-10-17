@@ -1,9 +1,9 @@
 
 #include "stdafx.h"
+#include "Sock.h"
 #include <stdio.h>
 #include <iostream>
 #include "sqlite3.h" 
-#include "Sock.h"
 #include <string>
 #include "Oggetto.h"
 #include <string.h>

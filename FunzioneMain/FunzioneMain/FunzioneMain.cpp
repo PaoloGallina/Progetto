@@ -43,6 +43,14 @@ void PulisciLista(std::list < Oggetto *>& a){
 	Oggetto* p2;
 	while (!a.empty()){
 		p2 = a.front();
+		if (p2->GetHandle() != INVALID_HANDLE_VALUE){
+			if (!CloseHandle(p2->GetHandle())){
+				std::cout << "HO CHIUSO UNA HANDLE MALE" << endl;
+				std::cout << GetLastError() << endl;
+			}
+		}
+
+
 		a.pop_front();
 		delete p2;
 		p2 = NULL;
@@ -98,7 +106,7 @@ void sync(SOCKET server){
 		invFile(server, (char*)&size, sizeof(DWORD));
 	}
 
-	//send requested files
+	//size of name
 	int lunghezza = recInt(server);
 	while (lunghezza != -10){
 		char recvbuf[DEFAULT_BUFLEN];
@@ -106,19 +114,30 @@ void sync(SOCKET server){
 
 		wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf));
 
-		std::ifstream A(wpath, std::ios_base::binary);
-		
-		while (1){
-			A.read(recvbuf, recvbuflen);
-			if (A.eof()){
-				sendNbytes(server, recvbuf, A.gcount());
+		HANDLE file;
+		DWORD read;
+		for (std::list<Oggetto*>::iterator it = allthefiles.begin(); it != allthefiles.end(); ++it){
+			Oggetto IT = *it;
+			if (!IT.GetPath().compare(wpath)){
+				file = IT.GetHandle();
 				break;
 			}
-			sendNbytes(server, recvbuf, A.gcount());
+			
+		}
+		int tot = 0;
+		while (1){
+			ReadFile(file, recvbuf, recvbuflen, &read, NULL);
+			if (read != recvbuflen){
+				sendNbytes(server, recvbuf, read);
+				tot += read;
+				break;
+			}
+			tot += read;
+			sendNbytes(server, recvbuf, read);
 		}
 		lunghezza = recInt(server);
 
-		A.close();
+		
 	}
 	
 

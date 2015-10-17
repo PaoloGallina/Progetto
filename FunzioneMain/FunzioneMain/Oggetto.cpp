@@ -3,7 +3,6 @@
 #include <string>
 #include "Sha.h"
 #include <iostream>
-#include "Windows.h"
 
 
 using namespace std;
@@ -15,7 +14,8 @@ Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified, DWO
 	this->size = size;
 	this->handle = nhandle;
 	this->LastModified = LastModified;
-	this->hash = sha256(path);
+	this->hash = sha256(nhandle);
+	SetFilePointer(handle, 0, 0, 0);
 }
 Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified,string hashpassed, DWORD size, HANDLE nhandle)
 {
@@ -38,13 +38,6 @@ Oggetto::Oggetto(Oggetto*old){
 
 Oggetto::~Oggetto()
 {
-	if (this->handle != INVALID_HANDLE_VALUE){
-		if (!CloseHandle(this->handle)){
-			std::cout << "HO CHIUSO UNA HANDLE MALE" << endl;
-			std::cout << GetLastError()<<endl;
-		}
-		this->handle = INVALID_HANDLE_VALUE;
-	}
 
 }
 
