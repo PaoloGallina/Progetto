@@ -18,23 +18,35 @@ void PulisciLista(std::list < Oggetto *>& a);
 void sync(SOCKET client);
 
 int _tmain(){
-		{
+	
 	SOCKET server = ConnectClient();
-	while (1){
-		
+	
+	//devi mandare un int per dire se ti vuoi registrare o solo loggare
+	//password
+	//sendInt(server, strlen(nome));
+	//sendNbytes(server, nome, strlen(nome));	
+	char nome[50];
+	gets(nome);
+	sendInt(server, strlen(nome));
+	sendNbytes(server, nome, strlen(nome));
 
+	if (recInt(server) == 999){
+		//nel caso in cui un utente sia già o stia loggando in questo momento nel server
+		closeConn(server);
+		WSACleanup();
+		return 0;
+	}
+	while (1){
 
 		//effettuo una sync
 		sync(server);
 
-
-
-		system("pause");
+		this_thread::sleep_for(chrono::seconds(10));
 	}
 
-	closesocket(server);
+	closeConn(server);
 	WSACleanup();
-}
+
 	_CrtDumpMemoryLeaks();
 	return 0;
 }
@@ -49,7 +61,6 @@ void PulisciLista(std::list < Oggetto *>& a){
 				std::cout << GetLastError() << endl;
 			}
 		}
-
 
 		a.pop_front();
 		delete p2;
@@ -106,6 +117,7 @@ void sync(SOCKET server){
 		invFile(server, (char*)&size, sizeof(DWORD));
 	}
 
+	printf("I start sending the file that are needed");
 	//size of name
 	int lunghezza = recInt(server);
 	while (lunghezza != -10){
@@ -136,13 +148,13 @@ void sync(SOCKET server){
 			sendNbytes(server, recvbuf, read);
 		}
 		lunghezza = recInt(server);
-
-		
+		SetFilePointer(file, 0, 0, 0);
 	}
-	
+	printf("Sync terminated, no more file needed");
 
 	//pulizia
 	delete cartella_origine;
 	PulisciLista(allthefiles);
 }
+
 

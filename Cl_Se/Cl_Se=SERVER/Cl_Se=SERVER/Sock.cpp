@@ -87,8 +87,7 @@ SOCKET __cdecl ConnectClient()
 
 		}
 		catch (char* a){
-			WSACleanup();
-			std::this_thread::sleep_for(std::chrono::seconds(10));
+			std::this_thread::sleep_for(std::chrono::seconds(3));
 		}
 	}
 	printf("Connection is settled!\n");
@@ -186,6 +185,7 @@ void closeConn(SOCKET ConnectSocket){
 		WSACleanup();
 		throw "shutdown failed with error: %d\n";
 	}
+	closesocket(ConnectSocket);
 }
 
 void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
@@ -202,7 +202,7 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 		}
 		else if (iResult == 0)
 		{
-			printf("Connection closing...\n");
+			printf("Connection closing, this should not happen...\nI was waiting for som data and you closed the conn!\n");
 			closeConn(ConnectSocket);
 			return nullptr;
 		}
@@ -257,7 +257,8 @@ int opRichiesta(SOCKET Client){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf);
-	return *ptr;
+	int size = *ptr;
+	return size;
 }
 
 char * recvFile(SOCKET Client){
