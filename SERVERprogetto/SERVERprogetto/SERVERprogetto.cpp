@@ -17,8 +17,16 @@
 #include <exception>
 #include <thread>
 #include <mutex>
+#include <stdlib.h>
+#include <crtdbg.h>
 
-#define _CRTDBG_MAP_ALLOC
+#ifdef _DEBUG
+
+#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
+
+#define new DEBUG_NEW
+
+#endif
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
@@ -35,6 +43,8 @@ mutex m;
 int _tmain(int argc, _TCHAR* argv[])
 {
 
+	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+	
 	WSADATA wsaData;
 	int iResult;
 
@@ -108,6 +118,7 @@ int _tmain(int argc, _TCHAR* argv[])
 			thread  cliente(ServeClient,ClientSocket);
 			cliente.detach();
 			ClientSocket = INVALID_SOCKET;
+			
 		}
 		catch (char * a){
 			std::this_thread::sleep_for(std::chrono::seconds(5));
@@ -118,7 +129,7 @@ int _tmain(int argc, _TCHAR* argv[])
 	//il server si tiene sempre online
 	closesocket(ListenSocket);
 	WSACleanup();
-	_CrtDumpMemoryLeaks();
+	//_CrtDumpMemoryLeaks();
 	return 0;
 }
 
@@ -161,7 +172,7 @@ void PulisciLista(std::list < Oggetto *>& a){
 
 void Sync(SOCKET client, std::string nome){
 	//qui dovrei passare il nome utente
-	sqlite3 *db = CreateDatabase();
+	sqlite3 *db = CreateDatabase(nome);
 	std::list < Oggetto *> listaobj;
 	TxtToList(client,listaobj); 
 	std::list < Oggetto *> da_chiedere = CheFILEvoglio(db, listaobj);

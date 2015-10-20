@@ -31,7 +31,6 @@ SOCKET __cdecl ConnectClient()
 	WSADATA wsaData;
 	SOCKET ConnectSocket = INVALID_SOCKET;
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
-	char *sendbuf;
 	int iResult;
 
 	while (ConnectSocket == INVALID_SOCKET){
@@ -171,13 +170,12 @@ int opRichiesta(SOCKET Client){
 	return size;
 }
 
-char * recvFile(SOCKET Client){
+char* recvFile(SOCKET Client){
 	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	printf("I get the size of the file\n");
-	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf);
-	int size = *ptr;
+	int size = recInt(Client);
 	char* file = (char*)malloc(size*sizeof(char)+4);
 	
 	int tot = 0;
@@ -199,7 +197,6 @@ char * recvFile(SOCKET Client){
 }
 
 void invFile(SOCKET Client, char*file,int size){
-	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	int tot = 0;
 

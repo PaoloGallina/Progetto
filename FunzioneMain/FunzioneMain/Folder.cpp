@@ -60,10 +60,9 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 
 				HANDLE handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 				while (handle == INVALID_HANDLE_VALUE){
-					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 					wcout << "non posso aprire il file " << filepath << endl;
 					this_thread::sleep_for(chrono::seconds(10));
-				
+					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 				}
 
 				allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, find_file_data.nFileSizeLow,handle));

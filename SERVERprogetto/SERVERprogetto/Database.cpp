@@ -22,14 +22,14 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName){
 	return 0;
 }
 
-sqlite3 * CreateDatabase(){
+sqlite3 * CreateDatabase(std::string nome){
 	sqlite3 *db;
 	int  rc;
 	char *sql;
 	char *zErrMsg = 0;
 
 	/* Open database */
-	rc = sqlite3_open("test", &db);
+	rc = sqlite3_open(nome.c_str(), &db);
 	if (rc){
 		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
 		exit(0);
@@ -44,7 +44,6 @@ sqlite3 * CreateDatabase(){
 	/* CREATING FILES TABLE */
 	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
 	if (rc != SQLITE_OK){
-		fprintf(stderr, "SQL error: %s\n", zErrMsg);
 		sqlite3_free(zErrMsg);
 	}
 	else{
@@ -57,7 +56,6 @@ sqlite3 * CreateDatabase(){
 	/* CREATING VERSION TABLE */
 	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
 	if (rc != SQLITE_OK){
-		fprintf(stderr, "SQL error: %s\n", zErrMsg);
 		sqlite3_free(zErrMsg);
 	}
 	else{
@@ -228,10 +226,10 @@ void InsertVER(sqlite3*db, std::wstring wpath, std::string hash,int ver){
 	rc = sqlite3_step(stm);
 
 	if (rc != SQLITE_DONE){
-		fprintf(stderr, "nuova versione non inserita!\n", rc);
+		printf( "nuova versione non inserita!\n");
 	}
 	else{
-		fprintf(stdout, "Record VERSION created successfully\n");
+		printf( "Record VERSION created successfully\n");
 	}
 
 	sqlite3_finalize(stm);
@@ -412,6 +410,7 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 			rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
 			rc = sqlite3_bind_int(stm, 3, Versione);
 
+			//qui il programma richiede di colpo tantissima memoria.. ma è colpa di sqlite3
 			rc = sqlite3_step(stm);
 
 			sqlite3_finalize(stm);
@@ -427,23 +426,4 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
 	}
 }
-
-int esempio(sqlite3 *db)
-{
-	
-	int UltimaVersione = GetUltimaVersione(db);
-
-	//InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	//InsertFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	//eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", 6);
-
-
-	//InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a2.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	//InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	//InsertVER(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\ARRR.jpg", "94d148fc7cf925f1d1ad97873930079da668e14033cda3545b891bac192ee076", UltimaVersione);
-	ReadFILES(db);
-	//ReadVERSIONE(db,324);
-	return 0;
-}
-
 

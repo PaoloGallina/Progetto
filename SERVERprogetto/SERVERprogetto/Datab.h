@@ -4,7 +4,7 @@
 #include <list>
 #include "Oggetto.h"
 
-sqlite3* CreateDatabase();
+sqlite3* CreateDatabase(std::string nome);
 void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione);
 void InsertVER(sqlite3*db, std::wstring wpath, std::string hash,int ver);
 void ReadFILES(sqlite3*db);
