@@ -100,14 +100,11 @@ int _tmain(int argc, _TCHAR* argv[])
 			ClientSocket = accept(ListenSocket, NULL, NULL);
 			if (ClientSocket == INVALID_SOCKET) {
 				printf("accept failed with error: %d\n", WSAGetLastError());
-				closesocket(ListenSocket);
-				WSACleanup();
 				throw "SERVER accept failed";
 			}
 
 			printf("SERVER a connection is settled\n");
-			// No longer need server socket
-
+			
 			thread  cliente(ServeClient,ClientSocket);
 			cliente.detach();
 			ClientSocket = INVALID_SOCKET;
@@ -117,7 +114,7 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 	
-	//questa parte del programma per ora non verrà mai eseguita
+	//questa parte del programma ||per ora|| non verrà mai eseguita
 	//il server si tiene sempre online
 	closesocket(ListenSocket);
 	WSACleanup();
@@ -148,8 +145,8 @@ void TxtToList(SOCKET client,list < Oggetto *>& listaobj){
 		t++;
 	}
 
-	free(Hash);
-	free(PathNameLast);
+	::free(Hash);
+	::free(PathNameLast);
 }
 
 void PulisciLista(std::list < Oggetto *>& a){
@@ -191,35 +188,52 @@ void Sync(SOCKET client, std::string nome){
 }
 
 int ServeClient(SOCKET client){
-	
-	int sizename = recInt(client);
-	char* nome = (char*)malloc(100 * sizeof(char));
-	nome =(char*) recNbytes(client, sizename, nome);
-	nome[sizename] = '\0';
-	{
-		lock_guard<mutex> LG(m);
-		for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
-			string IT = *it;
-			if (!IT.compare(nome)){
-				sendInt(client, 999);
-				free(nome);
-				closeConn(client);
-				return 0;
+	char* nome=nullptr;
+	try{
+
+		int sizename = recInt(client);
+		nome= (char*)malloc(100 * sizeof(char));
+		nome = (char*)recNbytes(client, sizename, nome);
+		nome[sizename] = '\0';
+		{
+
+			lock_guard<mutex> LG(m);
+			for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
+				string IT = *it;
+				if (!IT.compare(nome)){
+					sendInt(client, 999);
+					::free(nome);
+					closeConn(client);
+					return 0;
+				}
+			}
+			clients.push_back(nome);
+			sendInt(client, 0);
+		}
+
+		while (1){
+			int op = opRichiesta(client);
+			if (op == 10){
+				Sync(client, nome);
+			}
+			else if (op == 999){
+				break;
 			}
 		}
-		clients.push_back(nome);
-		sendInt(client, 0);
 	}
-	while (1){
-		int op = opRichiesta(client);
-		if (op == 10){
-			Sync(client, nome);
-		}
-		else if (op == 999){
-			break;
-		}
+	catch (...){
+		//Se non catchassi eccezioni a questo punto rischierei di far chrashare tutto il server
+		lock_guard<mutex> LG(m);
+		if (nome != nullptr)
+			{clients.remove(nome);
+			::free(nome);}
+		closeConn(client);
+		return -1;
 	}
-	free(nome);
+	
+	lock_guard<mutex> LG(m);
+	clients.remove(nome);
+	::free(nome);
 	closeConn(client);
 
 	return 0;

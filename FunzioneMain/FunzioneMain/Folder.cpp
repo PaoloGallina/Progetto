@@ -75,7 +75,6 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 	FindClose(Ffile); //ricordati di chiudere sempre le HANDLE
 }
 
-//Visto che creiamo il distruttore specifico è ovvio che abbiamo bisogno del costruttore di copia e assegnazione
 Folder::~Folder()
 {
 	Folder* p;
