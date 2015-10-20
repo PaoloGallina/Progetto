@@ -2,7 +2,6 @@
 #include <string>
 #include <iostream>
 #include <list>
-#include <string>
 #include "fstream"
 #include <future>
 #include "Oggetto.h"
