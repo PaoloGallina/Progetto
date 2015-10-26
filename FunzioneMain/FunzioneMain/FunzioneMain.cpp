@@ -19,22 +19,19 @@ void sync(SOCKET client,wstring* cartella);
 list<Oggetto*> GetLastConfig(SOCKET server);
 void SerializeList(SOCKET server, list<Oggetto*> daser);
 list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig);
-
+int Register(SOCKET server);
+int Login(SOCKET server);
 int _tmain(){
 	
 	SOCKET server = ConnectClient();
-	
-	//devi mandare un int per dire se ti vuoi registrare o solo loggare
-	//password
-	//sendInt(server, strlen(nome));
-	//sendNbytes(server, nome, strlen(nome));	
-	char nome[50];
-	gets(nome);
-	sendInt(server, strlen(nome));
-	sendNbytes(server, nome, strlen(nome));
+	int c;
 
-	if (recInt(server) == 999){
-		//nel caso in cui un utente sia già o stia loggando in questo momento nel server
+	char*a = (char*)malloc(50);
+	gets(a);
+		if (strcmp(a,"login")==0){ c = Login(server); }
+		else{ c = Register(server); }
+
+	if (c==999){
 		closeConn(server);
 		WSACleanup();
 		return 0;
@@ -203,6 +200,32 @@ list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig
 		}
 	}
 	return da_mandare;
+}
+
+int Register(SOCKET server){
+	sendInt(server, 30);
+	char nome[50];
+	gets(nome);
+	sendInt(server, strlen(nome)+1);
+	sendNbytes(server, nome, strlen(nome)+1);
+	char pass[50];
+	gets(pass);
+	sendInt(server, strlen(pass)+1);
+	sendNbytes(server, pass, strlen(pass)+1);
+	return recInt(server);
+}
+
+int Login(SOCKET server){
+	sendInt(server, 40);
+	char nome[50];
+	gets(nome);
+	sendInt(server, strlen(nome)+1);
+	sendNbytes(server, nome, strlen(nome)+1);
+	char pass[50];
+	gets(pass);
+	sendInt(server, strlen(pass)+1);
+	sendNbytes(server, pass, strlen(pass)+1);
+	return recInt(server);
 }
 
 void PulisciLista(std::list < Oggetto *>& a){

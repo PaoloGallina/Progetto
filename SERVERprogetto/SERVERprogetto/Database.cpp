@@ -61,6 +61,18 @@ sqlite3 * CreateDatabase(std::string nome){
 	else{
 		fprintf(stdout, "Table created successfully\n");
 	}
+	
+	/* Create SQL statement */
+	sql = "CREATE TABLE CREDENTIAL( USER TEXT NOT NULL, PASS TEXT NOT NULL, PRIMARY KEY (USER));";
+
+	/* CREATING VERSION TABLE */
+	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
+	if (rc != SQLITE_OK){
+		sqlite3_free(zErrMsg);
+	}
+	else{
+		fprintf(stdout, "Table created successfully\n");
+	}
 
 	return db;
 };

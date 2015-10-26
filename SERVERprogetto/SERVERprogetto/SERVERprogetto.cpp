@@ -34,6 +34,8 @@
 void TxtToList(SOCKET, std::list < Oggetto *>&);
 void PulisciLista(std::list < Oggetto *>&);
 void Sync(SOCKET client, std::string nome);
+void Register(SOCKET client, string& nome);
+void Login(SOCKET client,string& nome);
 int ServeClient(SOCKET client);
 void SendLastconfig(SOCKET client, std::string nome);
 list<string> clients;
@@ -134,32 +136,24 @@ int _tmain(int argc, _TCHAR* argv[])
 	return 0;
 }
 
-int ServeClient(SOCKET client){
-	char* nome = nullptr;
+int ServeClient(SOCKET client) {
+	string nome;
 	try{
-
-		int sizename = recInt(client);
-		nome = (char*)malloc(100 * sizeof(char));
-		nome = (char*)recNbytes(client, sizename, nome);
-		nome[sizename] = '\0';
-		{
-
-			lock_guard<mutex> LG(m);
-			for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
-				string IT = *it;
-				if (!IT.compare(nome)){
-					sendInt(client, 999);
-					::free(nome);
-					closeConn(client);
-					return 0;
-				}
-			}
-			clients.push_back(nome);
-			sendInt(client, 0);
+		int op = opRichiesta(client);
+		if (op == 30){
+			Register(client,nome);
 		}
+		else if (op == 40){
+			Login(client,nome);
+		}
+		else{
+			closeConn(client);
+			return -1;
+		}
+		
 
 		while (1){
-			int op = opRichiesta(client);
+			op = opRichiesta(client);
 			if (op == 10){
 				Sync(client, nome);
 			}
@@ -172,12 +166,11 @@ int ServeClient(SOCKET client){
 		}
 	}
 	catch (...){
-		//Se non catchassi eccezioni a questo punto rischierei di far chrashare tutto il server
 		lock_guard<mutex> LG(m);
-		if (nome != nullptr)
+		if (nome.length()!=0)
 		{
 			clients.remove(nome);
-			::free(nome);
+			
 		}
 		closeConn(client);
 		return -1;
@@ -185,14 +178,12 @@ int ServeClient(SOCKET client){
 
 	lock_guard<mutex> LG(m);
 	clients.remove(nome);
-	::free(nome);
 	closeConn(client);
 
 	return 0;
 }
 
 void Sync(SOCKET client, std::string nome){
-	//qui dovrei passare il nome utente
 	sqlite3 *db = CreateDatabase(nome);
 	std::list < Oggetto *> newconfig,missingfiles;
 
@@ -289,4 +280,105 @@ void PulisciLista(std::list < Oggetto *>& a){
 		delete p2;
 		p2 = NULL;
 	}
+};
+
+void Register(SOCKET client,string& nome){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+
+	int sizename = recInt(client);
+	nome = string((char*)recNbytes(client, sizename, recvbuf));
+
+	int sizepass = recInt(client);
+	string pass = string((char*)recNbytes(client, sizepass, recvbuf));
+	
+	{
+
+		lock_guard<mutex> LG(m);
+		for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
+			string IT = *it;
+			if (!IT.compare(nome)){
+				sendInt(client, 999);
+				closeConn(client);
+				throw "user already served";
+			}
+		}
+		clients.push_back(nome);
+	}
+	
+	ifstream my_file(nome);
+	if (my_file)
+	{
+		sendInt(client, 999);
+		throw "User already registered ";
+	}
+	else{
+		my_file.close();
+		sqlite3 *db = CreateDatabase(nome.c_str());
+		int  rc;
+		std::string sql = "INSERT INTO CREDENTIAL (USER,PASS) VALUES (?1, ?2);";
+
+		sqlite3_stmt* stm = NULL;
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+
+		rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
+		rc = sqlite3_bind_text(stm, 2, pass.c_str(), pass.size(), SQLITE_STATIC);
+
+		rc = sqlite3_step(stm);
+		rc = sqlite3_finalize(stm);
+	}
+
+	sendInt(client, -30);
+	return;
+};
+
+void Login(SOCKET client,string& nome){
+	
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+
+	int sizename = recInt(client);
+	nome = string((char*)recNbytes(client, sizename, recvbuf));
+
+	int sizepass = recInt(client);
+	string pass = string((char*)recNbytes(client, sizepass, recvbuf));
+
+	{
+
+		lock_guard<mutex> LG(m);
+		for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
+			string IT = *it;
+			if (!IT.compare(nome)){
+				sendInt(client, 999);
+				closeConn(client);
+				throw "user already served";
+			}
+		}
+		clients.push_back(nome);
+	}
+
+	ifstream my_file(nome);
+	if (my_file)
+	{	
+		my_file.close();
+		sqlite3 *db = CreateDatabase(nome.c_str());
+		std::string sql = "SELECT PASS FROM CREDENTIAL WHERE USER=?1";
+		sqlite3_stmt* stm;
+		int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
+		rc = sqlite3_step(stm);
+		string passD=string ((char*)sqlite3_column_text(stm, 0));
+		if (passD.compare(pass)!=0){
+			sendInt(client, 999);
+			throw "wrong password ";
+		}
+		rc = sqlite3_finalize(stm);
+	}
+	else{
+		sendInt(client, 999);
+		throw "User not registered ";
+	}
+	
+	sendInt(client, -40);
+	
 };
