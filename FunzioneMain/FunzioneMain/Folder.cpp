@@ -16,8 +16,6 @@
 using namespace std;
 
 
-
-
 Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
 {
 	SetLastError(0);

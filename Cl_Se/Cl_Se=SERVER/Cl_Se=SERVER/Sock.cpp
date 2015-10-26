@@ -18,7 +18,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 
-#define DEFAULT_BUFLEN 512
+#define DEFAULT_BUFLEN 1024
 #define DEFAULT_PORT "8080"
 
 
@@ -111,8 +111,9 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 
 	while (tot < size){
 		int iResult = recv(ConnectSocket, stringa + tot, size - tot, 0);
-		if (iResult > 0) {
-			printf("Bytes received: %d\n", iResult);
+		if (iResult > 0 ) {
+			//DEBUG
+			//printf("Bytes received: %d\n", iResult);
 		}
 		else if (iResult == 0)
 		{
@@ -138,7 +139,8 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size){
 	while (tot < size){
 		int iResult = send(ConnectSocket,stringa+tot, size - tot, 0);
 		if (iResult > 0) {
-			printf("Bytes sent: %d\n", iResult);
+			//DEBUG
+			// printf("Bytes sent: %d\n", iResult);
 			tot += iResult;
 		}
 		else  {

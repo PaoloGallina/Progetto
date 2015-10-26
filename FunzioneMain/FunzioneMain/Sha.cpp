@@ -128,22 +128,22 @@ std::string sha256(HANDLE file)
 	SHA256 ctx = SHA256();
 	ctx.init();
 	
-	char* buffer = new char[1024];
+	
 	while (1){
 		
 		ReadFile(file, recvbuf, recvbuflen, &read, NULL);
 			if(recvbuflen!=read){
-			ctx.update((unsigned char*)buffer, read);
+				ctx.update((unsigned char*)recvbuf, read);
 			ctx.final(digest);
 			break;
 		}
-		ctx.update((unsigned char*)buffer, read);
+			ctx.update((unsigned char*)recvbuf, read);
 	}
 	char buf[2 * SHA256::DIGEST_SIZE + 1];
 	buf[2 * SHA256::DIGEST_SIZE] = 0;
 	for (int i = 0; i < SHA256::DIGEST_SIZE; i++){
 		sprintf(buf + i * 2, "%02x", digest[i]);
 	}
-	delete[] buffer;
+
 	return std::string(buf);
 }

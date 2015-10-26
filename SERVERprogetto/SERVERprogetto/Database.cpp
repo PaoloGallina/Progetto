@@ -85,12 +85,10 @@ int GetUltimaVersione(sqlite3*db){
 	return temp;
 }
 
-list < Oggetto *> CheFILEvoglio(sqlite3 *db, list < Oggetto *> files){
-	//this function takes as input the list of the files in the filesystem and 
-	//has the porpose to give back the list of the missing (or modified files);
+list<Oggetto*> LastVersion(sqlite3*db){
 	int rc;
 	int versione = GetUltimaVersione(db);
-	list < Oggetto *> OggettiCheVorrei;
+	list < Oggetto *> last;
 
 
 	/* Create SQL statement */
@@ -105,47 +103,16 @@ list < Oggetto *> CheFILEvoglio(sqlite3 *db, list < Oggetto *> files){
 	int ver;
 	while (rc == 100){
 
-		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
+		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
 		ver = sqlite3_column_int(stm, 1);
 		hash = std::string((char*)sqlite3_column_text(stm, 2));
 
-		Oggetto* p2;
-		int i = files.size();
-		for (int t = 0; t < i; t++){
-			p2 = files.front();
-			if (!wcscmp(path.c_str(), p2->GetPath().c_str())){
-				if (!strcmp(hash.c_str(), p2->GetHash().c_str())){
-					files.pop_front();   //se l'hash è uguale non mi interessano 
-					//non faccio il delete, ci penserà chi ha creato la lista!
-				}
-				else{
-					OggettiCheVorrei.push_front(new Oggetto(p2));
-					files.pop_front();					/// se l'hash è diverso la metto nella lista di quelli che mi servono!
-					//non faccio il delete, ci penserà chi ha creato la lista!
-				}
-			}
-			else{
-				files.pop_front();
-				files.push_back(p2);
-			}
-
-
-			// SE NON TROVA IL FILE NON SUCCEDE NULLA!! DEVO USARE UN ITERATORE	
-		}
+		Oggetto* p2=new Oggetto(path,L"",L"",hash,0,INVALID_HANDLE_VALUE);
+		last.push_front(p2);
 		rc = sqlite3_step(stm);
 	}
-	//quelli che non ho trovato saranno sicuramente nuovi e quindi mi interessano!
-	Oggetto* p2;
-	while (!files.empty()){
-		p2 = files.front();
-		OggettiCheVorrei.push_front(new Oggetto(p2));
-		files.pop_front();
-		//non faccio il delete, ci penserà chi ha creato la lista!
-	}
-
-
-	rc = sqlite3_finalize(stm);
-	return OggettiCheVorrei;
+	sqlite3_finalize(stm);
+	return last;
 }
 
 void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione,DWORD size){
@@ -262,11 +229,11 @@ void ReadFILES(sqlite3*db){
 		hash = std::string((char*)sqlite3_column_text(stm, 1));
 		ver = (sqlite3_column_int(stm, 2));
 		
-	//	file = std::string((char*)sqlite3_column_blob(stm, 3), sqlite3_column_bytes(stm, 3));
-	//	std::ofstream ofs(path, std::ios::binary);
-	//	ofs << file;
-	//	std::ofstream ifs(path + L".wmv", std::ios::binary);
-	//	ifs << file;
+		//file = std::string((char*)sqlite3_column_blob(stm, 3), sqlite3_column_bytes(stm, 3));
+	    //std::ofstream ofs(path, std::ios::binary);
+		//ofs << file;
+		//std::ofstream ifs(path + L".wmv", std::ios::binary);
+		//ifs << file;
 
 		std::wcout <<ver<<" : "<< path.c_str()<< endl ;
 		rc = sqlite3_step(stm);
@@ -330,30 +297,6 @@ void eliminaFILE(sqlite3* db,wstring wpath,int ver){
 
 };
 
-int file_cancellati(sqlite3* db, int val){
-	//se i file nel filesystem sono lo stesso numero (VAL è appunto il numero di file) 
-	//o uno è stato aggiunto e uno rimosso (e quindi la lista da_chiedere non è vuota)
-	//oppure non c'è stata alcuna modifica        
-	int versione = GetUltimaVersione(db);
-	int rc;
-	int counter=0;
-	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
-	sqlite3_stmt* stm;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-	rc = sqlite3_bind_int(stm, 1, versione);
-	rc = sqlite3_step(stm);
-	while (rc == 100){
-
-		counter++;
-		rc = sqlite3_step(stm);
-
-	}
-
-
-	rc = sqlite3_finalize(stm);
-	return val - counter;
-};
-
 void PulisciDB(sqlite3* db){
 
 	int rc;
@@ -364,6 +307,7 @@ void PulisciDB(sqlite3* db){
 	rc = sqlite3_bind_int(stm, 1, Versione - 2);
 	rc = sqlite3_step(stm);
 	sqlite3_finalize(stm);
+
 	std::string sql2 = "SELECT PATH,MIN(VER) FROM FILES GROUP BY PATH HAVING count(*)>3";
 	sqlite3_stmt* stm2;
 	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
@@ -373,15 +317,13 @@ void PulisciDB(sqlite3* db){
 		wstring wpath = std::wstring((TCHAR*)sqlite3_column_blob(stm2, 0), sqlite3_column_bytes(stm2, 0) / sizeof(TCHAR));
 		int ver = sqlite3_column_int(stm2, 1);
 		sqlite3_finalize(stm2);
-
-		//eliminaFILE(db, L"C:\\Users\\Paolo\\Desktop\\PROVA2\\a.txt", ver);
 		eliminaFILE(db, wpath, ver);
 
 		rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
 		rc = sqlite3_step(stm2);
 	}
 
-
+	sqlite3_finalize(stm2);
 
 }
 
@@ -418,6 +360,7 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		}
 
 		PulisciDB(db);
+		sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
 		wcout << L"TRANSACTION COMMITTED" << endl;
 	}
@@ -427,3 +370,23 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 	}
 }
 
+int file_cancellati(sqlite3* db, int val){
+	
+	int versione = GetUltimaVersione(db);
+	int rc;
+	int counter = 0;
+	
+	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_int(stm, 1, versione);
+	rc = sqlite3_step(stm);
+	while (rc == 100){
+		counter++;
+		rc = sqlite3_step(stm);
+	}
+
+
+	rc = sqlite3_finalize(stm);
+	return val - counter;
+};

@@ -23,7 +23,6 @@
 #define DEFAULT_PORT "8080"
 
 SOCKET __cdecl ConnectClient();
-SOCKET  __cdecl ConnectServer();
 void sendNbytes(SOCKET ConnectSocket, char*stringa, int size);
 void closeConn(SOCKET ConnectSocket);
 void sendInt(SOCKET ConnectSocket, int i);
