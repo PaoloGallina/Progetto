@@ -14,6 +14,7 @@
 #include <chrono>
 #include <exception>
 #include <thread>
+#include "Sha.h"
 #include <mutex>
 #define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
@@ -117,8 +118,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			printf("SERVER a connection is settled\n");
 			
-			thread  cliente(ServeClient,ClientSocket);
-			cliente.detach();
+		//	thread  cliente(ServeClient,ClientSocket);	
+		//	cliente.detach();
+			ServeClient( ClientSocket);
 			ClientSocket = INVALID_SOCKET;
 		//	break;
 			
@@ -166,6 +168,7 @@ int ServeClient(SOCKET client) {
 		}
 	}
 	catch (...){
+		printf("logout of a client due to an error");
 		lock_guard<mutex> LG(m);
 		if (nome.length()!=0)
 		{
@@ -179,7 +182,7 @@ int ServeClient(SOCKET client) {
 	lock_guard<mutex> LG(m);
 	clients.remove(nome);
 	closeConn(client);
-
+	printf("logout of a client");
 	return 0;
 }
 
@@ -206,7 +209,13 @@ void Sync(SOCKET client, std::string nome){
 	sqlite3_close(db);
 	//dico al client che la sync è terminata con successo
 	sendInt(client, -10);
-	printf("sync is terminated no more files are needed");
+	if (recInt(client) != -10){
+		printf("sync problem, not terminated correctly");
+	}
+	else{
+		sendInt(client, -10);
+		printf("sync is terminated no more files are needed");
+	}
 
 	this_thread::sleep_for(chrono::seconds(10));
 	system("cls");
@@ -290,7 +299,7 @@ void Register(SOCKET client,string& nome){
 	nome = string((char*)recNbytes(client, sizename, recvbuf));
 
 	int sizepass = recInt(client);
-	string pass = string((char*)recNbytes(client, sizepass, recvbuf));
+	string pass = sha256(string((char*)recNbytes(client, sizepass, recvbuf)));
 	
 	{
 
@@ -341,7 +350,7 @@ void Login(SOCKET client,string& nome){
 	nome = string((char*)recNbytes(client, sizename, recvbuf));
 
 	int sizepass = recInt(client);
-	string pass = string((char*)recNbytes(client, sizepass, recvbuf));
+	string pass = sha256(string((char*)recNbytes(client, sizepass, recvbuf)));
 
 	{
 

@@ -28,8 +28,10 @@ int _tmain(){
 
 	char*a = (char*)malloc(50);
 	gets(a);
-		if (strcmp(a,"login")==0){ c = Login(server); }
-		else{ c = Register(server); }
+		if (strcmp(a,"login")==0){ 
+			c = Login(server); }
+		else{ 
+			c = Register(server); }
 
 	if (c==999){
 		closeConn(server);
@@ -63,15 +65,17 @@ void sync(SOCKET server,wstring* cartella){
 	lastconfig = GetLastConfig(server);
 	missingfiles = FilesDaMandare(newconfig, lastconfig);
 
+	printf("I ask to the server to do 10 SYNC\n");
 	sendInt(server, 10);//the required operation is a sync
 	printf("\nI send to the server the new configuration\n");
 	SerializeList(server, newconfig);
 	printf("\nI send to the server the list of the missing files\n");
 	SerializeList(server, missingfiles);
 
-	
+	//questa parte sarebbe carino metterla in una funzione a se
 	printf("\n\nI start sending to the server the file that are needed\n");
-	
+	DWORD read;
+	int tot;
 	int lunghezza = recInt(server);
 	while (lunghezza != -10){
 		char recvbuf[DEFAULT_BUFLEN];
@@ -80,7 +84,7 @@ void sync(SOCKET server,wstring* cartella){
 		wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf));
 
 		HANDLE file;
-		DWORD read;
+		
 		for (std::list<Oggetto*>::iterator it = newconfig.begin(); it != newconfig.end(); ++it){
 			Oggetto IT = *it;
 			if (!IT.GetPath().compare(wpath)){
@@ -89,7 +93,7 @@ void sync(SOCKET server,wstring* cartella){
 			}
 			
 		}
-		int tot = 0;
+		tot = 0;
 		while (1){
 			ReadFile(file, recvbuf, recvbuflen, &read, NULL);
 			if (read != recvbuflen){
@@ -103,7 +107,13 @@ void sync(SOCKET server,wstring* cartella){
 		lunghezza = recInt(server);
 		SetFilePointer(file, 0, 0, 0);
 	}
-	printf("Sync terminated, no more file needed");
+	sendInt(server, -10);
+	if (recInt(server) == -10){
+		printf("Sync terminated, no more file needed");
+	}
+	else{
+		printf("ERROR during sync termination");
+	}
 
 	//pulizia
 	
@@ -113,6 +123,7 @@ void sync(SOCKET server,wstring* cartella){
 }
 
 list<Oggetto*> GetLastConfig(SOCKET server){
+	printf("I send the #20 requested last config");
 	sendInt(server, 20);
 	list<Oggetto*>last;
 	printf("I get the number of files in the last config\n");

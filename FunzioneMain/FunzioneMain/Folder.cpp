@@ -40,11 +40,21 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
 			if (desk.compare(find_file_data.cFileName)){
+			
+				HANDLE handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				while (handle == INVALID_HANDLE_VALUE&&GetLastError()!=ERROR_FILE_NOT_FOUND){
+					wcout << "non posso aprire il file " << filepath << endl;
+					this_thread::sleep_for(chrono::seconds(10));
+					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				}
+				FILETIME ultimamodifica;
+				GetFileTime(handle, NULL, NULL, &ultimamodifica);
+
 				SYSTEMTIME struct_ultima_modifica, stLocal;
-				FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
+				FileTimeToSystemTime(&ultimamodifica, &struct_ultima_modifica);
 				TCHAR *lpszString = (TCHAR*)malloc(50 * sizeof(TCHAR));
 				// Convert the last-write time to local time.
-				FileTimeToSystemTime(&find_file_data.ftLastWriteTime, &struct_ultima_modifica);
+				FileTimeToSystemTime(&ultimamodifica, &struct_ultima_modifica);
 				SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
 				// Build a string showing the date and time.
 				StringCchPrintf(lpszString, 50,
@@ -55,15 +65,9 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 				wstring lastmodified(lpszString);
 				free(lpszString);
 
-
-				HANDLE handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-				while (handle == INVALID_HANDLE_VALUE){
-					wcout << "non posso aprire il file " << filepath << endl;
-					this_thread::sleep_for(chrono::seconds(10));
-					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				if (handle != INVALID_HANDLE_VALUE){
+					allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, GetFileSize(handle, NULL), handle));
 				}
-
-				allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, find_file_data.nFileSizeLow,handle));
 			}
 		}
 

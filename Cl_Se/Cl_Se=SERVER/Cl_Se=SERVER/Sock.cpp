@@ -111,9 +111,10 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 
 	while (tot < size){
 		int iResult = recv(ConnectSocket, stringa + tot, size - tot, 0);
+		tot += iResult;
 		if (iResult > 0 ) {
 			//DEBUG
-			//printf("Bytes received: %d\n", iResult);
+			printf("Bytes received: %d TOT=%d\n", iResult,tot);
 		}
 		else if (iResult == 0)
 		{
@@ -124,7 +125,6 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 			printf("recv failed with error: %d\n", WSAGetLastError());
 			throw "recv failed ";
 		}
-		tot += iResult;
 	}
 	return stringa;
 }
@@ -140,7 +140,7 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size){
 		int iResult = send(ConnectSocket,stringa+tot, size - tot, 0);
 		if (iResult > 0) {
 			//DEBUG
-			// printf("Bytes sent: %d\n", iResult);
+			 printf("Bytes sent: %d\n", iResult);
 			tot += iResult;
 		}
 		else  {
