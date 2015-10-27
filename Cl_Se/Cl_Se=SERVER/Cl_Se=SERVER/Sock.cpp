@@ -114,7 +114,7 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 		tot += iResult;
 		if (iResult > 0 ) {
 			//DEBUG
-			printf("Bytes received: %d TOT=%d\n", iResult,tot);
+			//printf("Bytes received: %d TOT=%d\n", iResult,tot);
 		}
 		else if (iResult == 0)
 		{
@@ -140,7 +140,7 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size){
 		int iResult = send(ConnectSocket,stringa+tot, size - tot, 0);
 		if (iResult > 0) {
 			//DEBUG
-			 printf("Bytes sent: %d\n", iResult);
+			// printf("Bytes sent: %d\n", iResult);
 			tot += iResult;
 		}
 		else  {

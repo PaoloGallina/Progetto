@@ -118,9 +118,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			printf("SERVER a connection is settled\n");
 			
-		//	thread  cliente(ServeClient,ClientSocket);	
-		//	cliente.detach();
-			ServeClient( ClientSocket);
+			thread  cliente(ServeClient,ClientSocket);	
+			cliente.detach();
+		//	ServeClient( ClientSocket);
 			ClientSocket = INVALID_SOCKET;
 		//	break;
 			
