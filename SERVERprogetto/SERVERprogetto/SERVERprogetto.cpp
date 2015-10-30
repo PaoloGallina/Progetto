@@ -35,6 +35,7 @@
 void TxtToList(SOCKET, std::list < Oggetto *>&);
 void PulisciLista(std::list < Oggetto *>&);
 void Sync(SOCKET client, std::string nome);
+void Restore(SOCKET client, std::string nome);
 void Register(SOCKET client, string& nome);
 void Login(SOCKET client,string& nome);
 int ServeClient(SOCKET client);
@@ -162,6 +163,9 @@ int ServeClient(SOCKET client) {
 			else if (op == 20){
 				SendLastconfig(client, nome);
 			}
+			else if (op == 50){
+				Restore(client, nome);
+			}
 			else if (op == 999){
 				break;
 			}
@@ -211,6 +215,7 @@ void Sync(SOCKET client, std::string nome){
 	sendInt(client, -10);
 	if (recInt(client) != -10){
 		printf("sync problem, not terminated correctly");
+		throw "sync problem, not terminated correctly";
 	}
 	else{
 		sendInt(client, -10);
@@ -335,11 +340,75 @@ void Register(SOCKET client,string& nome){
 
 		rc = sqlite3_step(stm);
 		rc = sqlite3_finalize(stm);
+		sqlite3_close(db);
 	}
 
 	sendInt(client, -30);
 	return;
 };
+
+void Restore(SOCKET client, std::string nome){
+	
+	char hash[DEFAULT_BUFLEN];
+	wchar_t path[DEFAULT_BUFLEN];
+	
+	int Lhash= recInt(client);
+	recNbytes(client, Lhash, hash);
+	int Lpath = recInt(client);
+	recNbytes(client, Lpath,(char*) path);
+
+	int rc;
+	sqlite3* db = CreateDatabase(nome);
+	/* Create SQL statement */
+	std::string sql = "SELECT rowid from FILES where PATH=?1 and HASH=?2";
+
+	sqlite3_stmt* stm;
+	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	rc = sqlite3_bind_blob(stm, 1, path, wcslen(path)*sizeof(TCHAR), SQLITE_STATIC);
+	rc = sqlite3_bind_text(stm, 2, hash, strlen(hash), SQLITE_STATIC);
+	rc = sqlite3_step(stm);
+	sqlite_int64 rowid = sqlite3_column_int64(stm, 0);
+	sqlite3_finalize(stm);
+
+	sqlite3_blob *BLOB;
+	rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
+	if (rc == 1){
+		cout << sqlite3_errmsg(db) << endl;
+	}
+	int size = sqlite3_blob_bytes(BLOB);
+	sendInt(client,size);
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int tot = 0;
+	while (tot < size){
+		if (tot + recvbuflen < size){
+			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf), recvbuflen, tot);
+			sendNbytes(client, recvbuf, recvbuflen);
+		}
+		else{
+			int read = sqlite3_blob_read(BLOB, recvbuf, size - tot, tot);
+			sendNbytes(client, recvbuf, size - tot);
+			tot += size - tot;
+			break;
+		}
+		tot += DEFAULT_BUFLEN;
+	}
+
+
+
+	sqlite3_blob_close(BLOB);
+	sqlite3_close(db);
+
+	sendInt(client, -50);
+	if (recInt(client) !=-50 ){
+		printf("error detected in the restore\n");
+		throw("error detected in the restore");
+	}
+	else{
+		printf("restore successfully completed\n");
+	}
+	sendInt(client, -50);
+}
 
 void Login(SOCKET client,string& nome){
 	
@@ -382,6 +451,7 @@ void Login(SOCKET client,string& nome){
 			throw "wrong password ";
 		}
 		rc = sqlite3_finalize(stm);
+		sqlite3_close(db);
 	}
 	else{
 		sendInt(client, 999);

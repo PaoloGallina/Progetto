@@ -151,10 +151,11 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 	sqlite3_finalize(stm);
 
 
-	std::string sql2 = "SELECT ROWID FROM FILES WHERE HASH=?1;";
+	std::string sql2 = "SELECT ROWID FROM FILES WHERE HASH=?1 and PATH=?2;";
 	sqlite3_stmt* stm2 = NULL;
 	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
 	rc = sqlite3_bind_text(stm2, 1, hash.c_str(), hash.size(), SQLITE_STATIC);
+	rc = sqlite3_bind_blob(stm, 2, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
 	rc = sqlite3_step(stm2);
 	sqlite_int64 rowid = sqlite3_column_int64(stm2, 0);
 	sqlite3_finalize(stm2);
