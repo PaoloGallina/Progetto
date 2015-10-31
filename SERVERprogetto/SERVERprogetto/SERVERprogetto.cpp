@@ -369,11 +369,12 @@ void Restore(SOCKET client, std::string nome){
 	rc = sqlite3_step(stm);
 	sqlite_int64 rowid = sqlite3_column_int64(stm, 0);
 	sqlite3_finalize(stm);
-
+	
 	sqlite3_blob *BLOB;
 	rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
 	if (rc == 1){
 		cout << sqlite3_errmsg(db) << endl;
+		throw "invalid rowid";
 	}
 	int size = sqlite3_blob_bytes(BLOB);
 	sendInt(client,size);
@@ -382,7 +383,7 @@ void Restore(SOCKET client, std::string nome){
 	int tot = 0;
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf), recvbuflen, tot);
+			int read = sqlite3_blob_read(BLOB, recvbuf, recvbuflen, tot);
 			sendNbytes(client, recvbuf, recvbuflen);
 		}
 		else{

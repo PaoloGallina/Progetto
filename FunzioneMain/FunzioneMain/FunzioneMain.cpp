@@ -19,8 +19,10 @@ void sync(SOCKET client,wstring* cartella);
 list<Oggetto*> GetLastConfig(SOCKET server);
 void SerializeList(SOCKET server, list<Oggetto*> daser);
 list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig);
+void Restore(SOCKET server, wstring wpath, string hash);
 int Register(SOCKET server);
 int Login(SOCKET server);
+
 int _tmain(){
 	
 	SOCKET server = ConnectClient();
@@ -43,8 +45,13 @@ int _tmain(){
 		//effettuo una sync
 		wstring *cartella = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
 		sync(server, cartella);
-		delete cartella;
 		this_thread::sleep_for(chrono::seconds(10));
+		delete cartella;
+		
+		auto debug =GetLastConfig(server);
+		Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
+
+		
 		system("cls");
 	}
 
@@ -109,10 +116,10 @@ void sync(SOCKET server,wstring* cartella){
 	}
 	sendInt(server, -10);
 	if (recInt(server) == -10){
-		printf("Sync terminated, no more file needed");
+		printf("Sync terminated, no more file needed\n");
 	}
 	else{
-		printf("ERROR during sync termination");
+		printf("ERROR during sync termination\n");
 	}
 
 	//pulizia
@@ -122,8 +129,76 @@ void sync(SOCKET server,wstring* cartella){
 	PulisciLista(missingfiles);
 }
 
+void Restore(SOCKET server, wstring wpath,string hash){
+	
+	//sarebbe da aggiungere un controllo se il file esiste o meno
+	
+	printf("\nStarting the restore\n");
+	sendInt(server, 50);
+	
+	sendInt(server, hash.size() + 1);
+	sendNbytes(server, (char *)hash.c_str(), hash.size() + 1);
+	sendInt(server, (wpath.size() + 1)*sizeof(wchar_t));
+	sendNbytes(server, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
+
+
+	wstring temp(wpath);
+	temp.append(L".tempandhidden");
+	//Se non esiste la cartella?
+	HANDLE handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_HIDDEN, NULL);
+	if (handle == INVALID_HANDLE_VALUE){
+		throw "the file in the restore has not been created";
+	}
+	int size = recInt(server);
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int tot = 0;
+	DWORD read;
+	while (tot < (int)size){
+		if (tot + recvbuflen < size){
+			(char*)recNbytes(server, recvbuflen, recvbuf);
+			WriteFile(handle, recvbuf, recvbuflen, &read, NULL);
+		}
+		else{
+			(char*)recNbytes(server, size - tot, recvbuf);
+			WriteFile(handle, recvbuf, size - tot, &read, NULL);
+			tot += size - tot;
+			break;
+		}
+		tot += DEFAULT_BUFLEN;
+	}
+	if (DeleteFileW(wpath.c_str()) == 0 && GetLastError()!=ERROR_FILE_NOT_FOUND){
+		printf("deletetion error");
+		CloseHandle(handle);
+		DeleteFileW(temp.c_str());
+		throw "RESTORE: impossibile eliminare il vecchio file";
+	}
+
+	CloseHandle(handle);
+	MoveFileW(temp.c_str(), wpath.c_str());
+	SetFileAttributesW(wpath.c_str(),FILE_ATTRIBUTE_NORMAL);
+	
+
+	if (recInt(server) == -50){
+		sendInt(server, -50);
+		if (recInt(server) == -50){
+			printf("restore successfully completed\n");
+		}
+		else{
+			printf("error detected in the restore\n");
+			throw("error detected in the restore");
+		}
+	}
+	else{
+		printf("error detected in the restore\n");
+		throw("error detected in the restore");
+	}
+	
+	return;
+}
+
 list<Oggetto*> GetLastConfig(SOCKET server){
-	printf("I send the #20 requested last config");
+	printf("I send the #20 requested last config\n");
 	sendInt(server, 20);
 	list<Oggetto*>last;
 	printf("I get the number of files in the last config\n");
@@ -149,7 +224,7 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	::free(PathNameLast);
 
 	if (recInt(server)!=-20){
-		printf("An error occurred while receiving last config");
+		printf("\nAn error occurred while receiving last config");
 	}
 	return last;
 }

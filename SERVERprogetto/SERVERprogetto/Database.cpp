@@ -155,7 +155,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 	sqlite3_stmt* stm2 = NULL;
 	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
 	rc = sqlite3_bind_text(stm2, 1, hash.c_str(), hash.size(), SQLITE_STATIC);
-	rc = sqlite3_bind_blob(stm, 2, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
+	rc = sqlite3_bind_blob(stm2, 2, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
 	rc = sqlite3_step(stm2);
 	sqlite_int64 rowid = sqlite3_column_int64(stm2, 0);
 	sqlite3_finalize(stm2);
@@ -248,7 +248,7 @@ void ReadFILES(sqlite3*db){
 		//std::ofstream ifs(path + L".wmv", std::ios::binary);
 		//ifs << file;
 
-		std::wcout <<ver<<" : "<< path.c_str()<< endl ;
+		std::wcout <<ver<<" : "<< hash.c_str()<< endl ;
 		rc = sqlite3_step(stm);
 	}
 
@@ -283,8 +283,8 @@ void ReadVERSIONE(sqlite3 *db, int versione){
 		ver = sqlite3_column_int(stm, 1);
 		hash = std::string((char*)sqlite3_column_text(stm, 2));
 
-		wcout << path  << endl;
-	//	wcout << L"    HASH    " << hash.c_str() << endl;
+	//	wcout << path  << endl;
+		wcout << L"    HASH    " << hash.c_str() << endl;
 
 		rc = sqlite3_step(stm);
 
