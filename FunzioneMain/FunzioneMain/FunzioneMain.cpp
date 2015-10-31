@@ -131,8 +131,9 @@ void sync(SOCKET server,wstring* cartella){
 
 void Restore(SOCKET server, wstring wpath,string hash){
 	
-	//sarebbe da aggiungere un controllo se il file esiste o meno
-	
+	//se il path è troppo lungo?
+	//Se non esiste la cartella?
+
 	printf("\nStarting the restore\n");
 	sendInt(server, 50);
 	
@@ -144,10 +145,13 @@ void Restore(SOCKET server, wstring wpath,string hash){
 
 	wstring temp(wpath);
 	temp.append(L".tempandhidden");
-	//Se non esiste la cartella?
 	HANDLE handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_HIDDEN, NULL);
 	if (handle == INVALID_HANDLE_VALUE){
 		throw "the file in the restore has not been created";
+	}
+	if (recInt(server) == 999){
+		printf("\n\n\ninvalid file name\n\n\n");
+		throw "RESTORE invalid file name";
 	}
 	int size = recInt(server);
 	char recvbuf[DEFAULT_BUFLEN];
