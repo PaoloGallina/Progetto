@@ -8,8 +8,10 @@
 #include <iostream>
 #include <thread>
 #include <chrono>
-#include "Folder.h"
+#include "Cartella.h"
 #include "Sha.h"
+#include <Shlobj.h>
+#include <Shlwapi.h>
 
 #define _CRTDBG_MAP_ALLOC
 using namespace std;
@@ -24,7 +26,6 @@ int Register(SOCKET server);
 int Login(SOCKET server);
 
 int _tmain(){
-	
 	SOCKET server = ConnectClient();
 	int c;
 
@@ -50,7 +51,6 @@ int _tmain(){
 		
 		auto debug =GetLastConfig(server);
 		Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
-
 		
 		system("cls");
 	}
@@ -66,7 +66,7 @@ void sync(SOCKET server,wstring* cartella){
 	
 	std::list <Oggetto*> newconfig, lastconfig, missingfiles;
 
-	Folder cartelle(cartella, newconfig);
+	Cartella cartelle(cartella, newconfig);
 
 	printf("\nI get from the server the last configuration\n");
 	lastconfig = GetLastConfig(server);
@@ -130,9 +130,6 @@ void sync(SOCKET server,wstring* cartella){
 }
 
 void Restore(SOCKET server, wstring wpath,string hash){
-	
-	//se il path è troppo lungo?
-	//Se non esiste la cartella?
 
 	printf("\nStarting the restore\n");
 	sendInt(server, 50);
@@ -143,7 +140,13 @@ void Restore(SOCKET server, wstring wpath,string hash){
 	sendNbytes(server, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
 
 
-	wstring temp(wpath);
+	wchar_t* temp2= (wchar_t*)malloc((MAX_PATH)*sizeof(wchar_t));
+	memcpy(temp2, wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
+	PathRemoveFileSpec(temp2);
+	SHCreateDirectoryExW(NULL, temp2, NULL);
+	::free(temp2);
+
+	std::wstring temp(wpath);
 	temp.append(L".tempandhidden");
 	HANDLE handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_HIDDEN, NULL);
 	if (handle == INVALID_HANDLE_VALUE){
@@ -171,6 +174,7 @@ void Restore(SOCKET server, wstring wpath,string hash){
 		}
 		tot += DEFAULT_BUFLEN;
 	}
+
 	if (DeleteFileW(wpath.c_str()) == 0 && GetLastError()!=ERROR_FILE_NOT_FOUND){
 		printf("deletetion error");
 		CloseHandle(handle);

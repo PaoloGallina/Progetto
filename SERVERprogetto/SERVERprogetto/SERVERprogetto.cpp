@@ -2,7 +2,6 @@
 #include "Sock.h"
 #include "Datab.h"
 #include "Oggetto.h"
-#include "Folder.h"
 #include <iostream>
 #include <list>
 #include <fcntl.h>
@@ -36,12 +35,12 @@ void TxtToList(SOCKET, std::list < Oggetto *>&);
 void PulisciLista(std::list < Oggetto *>&);
 void Sync(SOCKET client, std::string nome);
 void Restore(SOCKET client, std::string nome);
-void Register(SOCKET client, string& nome);
-void Login(SOCKET client,string& nome);
+void Register(SOCKET client, std::string& nome);
+void Login(SOCKET client,std::string& nome);
 int ServeClient(SOCKET client);
 void SendLastconfig(SOCKET client, std::string nome);
-list<string> clients;
-mutex m;
+std::list<std::string> clients;
+std::mutex m;
 
 
 int _tmain(int argc, _TCHAR* argv[])
@@ -119,7 +118,7 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			printf("SERVER a connection is settled\n");
 			
-			thread  cliente(ServeClient,ClientSocket);	
+			std::thread  cliente(ServeClient, ClientSocket);
 			cliente.detach();
 		//	ServeClient( ClientSocket);
 			ClientSocket = INVALID_SOCKET;
@@ -140,7 +139,7 @@ int _tmain(int argc, _TCHAR* argv[])
 }
 
 int ServeClient(SOCKET client) {
-	string nome;
+	std::string nome;
 	try{
 		int op = opRichiesta(client);
 		if (op == 30){
@@ -173,7 +172,7 @@ int ServeClient(SOCKET client) {
 	}
 	catch (...){
 		printf("logout of a client due to an error");
-		lock_guard<mutex> LG(m);
+		std::lock_guard<std::mutex> LG(m);
 		if (nome.length()!=0)
 		{
 			clients.remove(nome);
@@ -183,7 +182,7 @@ int ServeClient(SOCKET client) {
 		return -1;
 	}
 
-	lock_guard<mutex> LG(m);
+	std::lock_guard<std::mutex> LG(m);
 	clients.remove(nome);
 	closeConn(client);
 	printf("logout of a client");
@@ -202,7 +201,7 @@ void Sync(SOCKET client, std::string nome){
 		nuovaVersione(db, client, newconfig, missingfiles);
 	}
 	else{
-		wcout << L"\nThe database is updated\n" << endl;
+		std::wcout << L"\nThe database is updated\n" << std::endl;
 	}
 	for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
 		ReadVERSIONE(db, i);
@@ -222,18 +221,18 @@ void Sync(SOCKET client, std::string nome){
 		printf("sync is terminated no more files are needed");
 	}
 
-	this_thread::sleep_for(chrono::seconds(10));
+	std::this_thread::sleep_for(std::chrono::seconds(10));
 	system("cls");
 
 }
 
 void SendLastconfig(SOCKET client,  std::string nome){
 	sqlite3 *db = CreateDatabase(nome);
-	list<Oggetto*> last = LastVersion(db);
+	std::list<Oggetto*> last = LastVersion(db);
 	
 	//serialize list of files
-	stringstream c;
-	wstringstream b;
+	std::stringstream c;
+	std::wstringstream b;
 
 	for (std::list<Oggetto*>::iterator it = last.begin(); it != last.end(); ++it){
 		Oggetto IT = *it;
@@ -259,15 +258,15 @@ void SendLastconfig(SOCKET client,  std::string nome){
 	sendInt(client,-20);
 }
 
-void TxtToList(SOCKET client, list < Oggetto *>& listaobj){
+void TxtToList(SOCKET client, std::list < Oggetto *>& listaobj){
 
 	printf("I get the number of obj in the list\n");
 	int n = recInt(client);
 
 	char* Hash = recvFile(client);
 	wchar_t* PathNameLast = (wchar_t*)recvFile(client);
-	istringstream c(Hash);
-	wistringstream b(PathNameLast);
+	std::istringstream c(Hash);
+	std::wistringstream b(PathNameLast);
 
 
 	int t = 0;
@@ -296,21 +295,21 @@ void PulisciLista(std::list < Oggetto *>& a){
 	}
 };
 
-void Register(SOCKET client,string& nome){
+void Register(SOCKET client,std::string& nome){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 
 	int sizename = recInt(client);
-	nome = string((char*)recNbytes(client, sizename, recvbuf));
+	nome = std::string((char*)recNbytes(client, sizename, recvbuf));
 
 	int sizepass = recInt(client);
-	string pass = sha256(string((char*)recNbytes(client, sizepass, recvbuf)));
+	std::string pass = sha256(std::string((char*)recNbytes(client, sizepass, recvbuf)));
 	
 	{
 
-		lock_guard<mutex> LG(m);
-		for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
-			string IT = *it;
+		std::lock_guard<std::mutex> LG(m);
+		for (std::list<std::string>::iterator it = clients.begin(); it != clients.end(); ++it){
+			std::string IT = *it;
 			if (!IT.compare(nome)){
 				sendInt(client, 999);
 				closeConn(client);
@@ -320,7 +319,7 @@ void Register(SOCKET client,string& nome){
 		clients.push_back(nome);
 	}
 	
-	ifstream my_file(nome);
+	std::ifstream my_file(nome);
 	if (my_file)
 	{
 		sendInt(client, 999);
@@ -373,10 +372,11 @@ void Restore(SOCKET client, std::string nome){
 	sqlite3_blob *BLOB;
 	rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
 	if (rc == 1){
-		cout << sqlite3_errmsg(db) << endl;
+		std::cout << sqlite3_errmsg(db) << std::endl;
 		sendInt(client, 999);
 		throw "invalid rowid";
 	}
+	else{ sendInt(client, 0); }
 	
 	int size = sqlite3_blob_bytes(BLOB);
 	sendInt(client,size);
@@ -413,22 +413,22 @@ void Restore(SOCKET client, std::string nome){
 	sendInt(client, -50);
 }
 
-void Login(SOCKET client,string& nome){
+void Login(SOCKET client, std::string& nome){
 	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 
 	int sizename = recInt(client);
-	nome = string((char*)recNbytes(client, sizename, recvbuf));
+	nome = std::string((char*)recNbytes(client, sizename, recvbuf));
 
 	int sizepass = recInt(client);
-	string pass = sha256(string((char*)recNbytes(client, sizepass, recvbuf)));
+	std::string pass = sha256(std::string((char*)recNbytes(client, sizepass, recvbuf)));
 
 	{
 
-		lock_guard<mutex> LG(m);
-		for (std::list<string>::iterator it = clients.begin(); it != clients.end(); ++it){
-			string IT = *it;
+		std::lock_guard<std::mutex> LG(m);
+		for (std::list<std::string>::iterator it = clients.begin(); it != clients.end(); ++it){
+			std::string IT = *it;
 			if (!IT.compare(nome)){
 				sendInt(client, 999);
 				closeConn(client);
@@ -438,7 +438,7 @@ void Login(SOCKET client,string& nome){
 		clients.push_back(nome);
 	}
 
-	ifstream my_file(nome);
+	std::ifstream my_file(nome);
 	if (my_file)
 	{	
 		my_file.close();
@@ -448,7 +448,7 @@ void Login(SOCKET client,string& nome){
 		int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 		rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
 		rc = sqlite3_step(stm);
-		string passD=string ((char*)sqlite3_column_text(stm, 0));
+		std::string passD = std::string((char*)sqlite3_column_text(stm, 0));
 		if (passD.compare(pass)!=0){
 			sendInt(client, 999);
 			throw "wrong password ";

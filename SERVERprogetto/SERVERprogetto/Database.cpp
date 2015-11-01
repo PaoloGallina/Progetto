@@ -142,7 +142,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 	rc = sqlite3_step(stm);
 
 	if (rc != SQLITE_DONE){
-		fprintf(stderr, "SQL error: %d... 19? maybe you insered twice same entry!\n",rc);
+		fprintf(stderr, " This file was already present in the database!\n",rc);
 	}
 	else{
 		fprintf(stdout, "Record FILE created successfully\n");

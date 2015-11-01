@@ -10,13 +10,13 @@
 #include <list>
 #include <chrono>
 #include <strsafe.h>
-#include "Folder.h"
+#include "Cartella.h"
 #include <windows.h>
 
 using namespace std;
 
 
-Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
+Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
 {
 	SetLastError(0);
 	wstring desk(L"desktop.ini");
@@ -35,7 +35,7 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 		
 		if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(find_file_data.cFileName, L"..") != 0 && wcscmp(find_file_data.cFileName, L".") != 0){
 				
-			this->contains.push_front(new Folder(&filepath, allthefiles));
+			this->contains.push_front(new Cartella(&filepath, allthefiles));
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
@@ -76,9 +76,9 @@ Folder::Folder(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles
 	FindClose(Ffile); //ricordati di chiudere sempre le HANDLE
 }
 
-Folder::~Folder()
+Cartella::~Cartella()
 {
-	Folder* p;
+	Cartella* p;
 	while (!this->contains.empty()){
 		p = this->contains.front();
 		this->contains.pop_front();
