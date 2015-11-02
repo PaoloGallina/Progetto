@@ -9,42 +9,29 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.DirectoryServices;
+using System.IO;
+using System.IO.Pipes;
 
+         
 
 namespace PrimaGUI
 {
     public partial class Form1 : Form
     {
         public AutoResetEvent T = new AutoResetEvent(false);
+        private NamedPipeServerStream PServer1 = null;
+        private StreamReader St=null;
         public Form1()
         {
             InitializeComponent();
             this.Text = "Benvenuto " + Program.userName+" controllando "+Program.path;
         }
 
-        private void label1_Click(object sender, EventArgs e)
-        {
-        }
-
-        private void button1_KeyDown(object sender, KeyEventArgs e)
-        {
-        }
-
         private void sviluppatoreToolStripMenuItem_Click(object sender, EventArgs e)
         {
-            
-            pictureBox1.Visible = true;
-            pictureBox2.Visible = true;
-            label1.Visible = true;
-            label1.Text = "Sono uno studente del politcnico di Torino\nAttualmente frequento il secondo anno della laurea in ingegneria informatica\n"
-            +"Questo progetto è sviluppato per conto di un progetto all'interti del corso Programmazione di sistema";
-            
+              
         }
 
-        private void pictureBox1_Click(object sender, EventArgs e)
-        {
-
-        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
@@ -78,6 +65,32 @@ namespace PrimaGUI
 
         private void scegliCartellaDaControllareToolStripMenuItem_Click(object sender, EventArgs e)
         {
+        }
+
+
+
+        private void flowLayoutPanel1_DoubleClick(object sender, EventArgs e)
+        {
+            
+        while (this.PServer1 ==null||St==null){
+                PServer1 = new NamedPipeServerStream("myNamedPipe1", System.IO.Pipes.PipeDirection.InOut);
+                PServer1.WaitForConnection();
+                this.St = new StreamReader(PServer1,System.Text.Encoding.Unicode);
+            }
+
+            while (true) {
+                string nuovo_path=St.ReadLine();
+                if (nuovo_path.CompareTo(@"stop") == 0)
+                {
+                    break;
+                }
+                Label a = new Label();
+                a.AutoSize = true;
+                a.Text = nuovo_path;
+                flowLayoutPanel1.Controls.Add(a);
+                
+            }
+
         }
 
 

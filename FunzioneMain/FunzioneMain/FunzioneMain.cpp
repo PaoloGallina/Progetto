@@ -1,4 +1,4 @@
-
+﻿
 #include "stdafx.h"
 #include "Sock.h"
 #include <fstream>
@@ -16,6 +16,8 @@
 #define _CRTDBG_MAP_ALLOC
 using namespace std;
 
+HANDLE hpipe;
+
 void PulisciLista(std::list < Oggetto *>& a);
 void sync(SOCKET client,wstring* cartella);
 list<Oggetto*> GetLastConfig(SOCKET server);
@@ -24,8 +26,20 @@ list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig
 void Restore(SOCKET server, wstring wpath, string hash);
 int Register(SOCKET server);
 int Login(SOCKET server);
+void Talk();
 
 int _tmain(){
+
+	hpipe = CreateFile( TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+
+	if (hpipe == INVALID_HANDLE_VALUE){
+		while (hpipe == INVALID_HANDLE_VALUE){
+			_tprintf(TEXT("INVALID CLIENT ERROR::%d\n"), GetLastError());
+			this_thread::sleep_for(chrono::milliseconds(2000));
+			hpipe = CreateFile(TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		}
+	}
+	
 	SOCKET server = ConnectClient();
 	int c;
 
@@ -217,16 +231,24 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	istringstream fhash(Hash);
 	wistringstream fpath(PathNameLast);
 
+	DWORD NuByRe;
+	
 
 	int t = 0;
 	while (t<n){
-		wchar_t buf1[512];
-		char buf4[512];
-		fpath.getline(buf1, 512);
-		fhash.getline(buf4, 512);
+		wchar_t buf1[DEFAULT_BUFLEN];
+		char buf4[DEFAULT_BUFLEN];
+		fpath.getline(buf1, DEFAULT_BUFLEN);
+		fhash.getline(buf4, DEFAULT_BUFLEN);
 		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
+		
+		WriteFile(hpipe, buf1, wcslen(buf1)*sizeof(wchar_t), &NuByRe, NULL);
+		WriteFile(hpipe,L"\n",sizeof(wchar_t), &NuByRe, NULL);
+
 		t++;
 	}
+	WriteFile(hpipe, L"stop", 4*sizeof(wchar_t), &NuByRe, NULL);
+	WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
 
 	::free(Hash);
 	::free(PathNameLast);

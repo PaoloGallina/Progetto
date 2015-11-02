@@ -39,13 +39,9 @@
             this.internetToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.sviluppatoreToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.label1 = new System.Windows.Forms.Label();
-            this.pictureBox2 = new System.Windows.Forms.PictureBox();
-            this.pictureBox1 = new System.Windows.Forms.PictureBox();
             this.imageList2 = new System.Windows.Forms.ImageList(this.components);
+            this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.menuStrip1.SuspendLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
             this.SuspendLayout();
             // 
             // menuStrip1
@@ -130,47 +126,23 @@
             this.sviluppatoreToolStripMenuItem.Text = "Sviluppatore";
             this.sviluppatoreToolStripMenuItem.Click += new System.EventHandler(this.sviluppatoreToolStripMenuItem_Click);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Font = new System.Drawing.Font("Verdana", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(12, 42);
-            this.label1.MaximumSize = new System.Drawing.Size(372, 500);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(352, 36);
-            this.label1.TabIndex = 4;
-            this.label1.Text = "Sono uno studente del politcnico di Torino\\nAttualmente frequento il secondo";
-            this.label1.Visible = false;
-            // 
-            // pictureBox2
-            // 
-            this.pictureBox2.Image = global::PrimaGUI.Properties.Resources.logo_polito;
-            this.pictureBox2.Location = new System.Drawing.Point(15, 224);
-            this.pictureBox2.Name = "pictureBox2";
-            this.pictureBox2.Size = new System.Drawing.Size(162, 154);
-            this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox2.TabIndex = 5;
-            this.pictureBox2.TabStop = false;
-            this.pictureBox2.Visible = false;
-            this.pictureBox2.Click += new System.EventHandler(this.pictureBox2_Click);
-            // 
-            // pictureBox1
-            // 
-            this.pictureBox1.Image = global::PrimaGUI.Properties.Resources.stagejob_cv;
-            this.pictureBox1.Location = new System.Drawing.Point(408, 42);
-            this.pictureBox1.Name = "pictureBox1";
-            this.pictureBox1.Size = new System.Drawing.Size(166, 160);
-            this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
-            this.pictureBox1.TabIndex = 3;
-            this.pictureBox1.TabStop = false;
-            this.pictureBox1.Visible = false;
-            this.pictureBox1.Click += new System.EventHandler(this.pictureBox1_Click);
-            // 
             // imageList2
             // 
             this.imageList2.ColorDepth = System.Windows.Forms.ColorDepth.Depth8Bit;
             this.imageList2.ImageSize = new System.Drawing.Size(16, 16);
             this.imageList2.TransparentColor = System.Drawing.Color.Transparent;
+            // 
+            // flowLayoutPanel1
+            // 
+            this.flowLayoutPanel1.AutoScroll = true;
+            this.flowLayoutPanel1.AutoSizeMode = System.Windows.Forms.AutoSizeMode.GrowAndShrink;
+            this.flowLayoutPanel1.FlowDirection = System.Windows.Forms.FlowDirection.TopDown;
+            this.flowLayoutPanel1.Location = new System.Drawing.Point(12, 27);
+            this.flowLayoutPanel1.MinimumSize = new System.Drawing.Size(400, 300);
+            this.flowLayoutPanel1.Name = "flowLayoutPanel1";
+            this.flowLayoutPanel1.Size = new System.Drawing.Size(400, 344);
+            this.flowLayoutPanel1.TabIndex = 3;
+            this.flowLayoutPanel1.DoubleClick += new System.EventHandler(this.flowLayoutPanel1_DoubleClick);
             // 
             // Form1
             // 
@@ -180,10 +152,8 @@
             this.BackgroundImage = global::PrimaGUI.Properties.Resources.sfondoAzzurrino;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(686, 388);
-            this.Controls.Add(this.pictureBox2);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.flowLayoutPanel1);
             this.Controls.Add(this.menuStrip1);
-            this.Controls.Add(this.pictureBox1);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -192,8 +162,6 @@
             this.Load += new System.EventHandler(this.Form1_Load);
             this.menuStrip1.ResumeLayout(false);
             this.menuStrip1.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -209,12 +177,10 @@
         private System.Windows.Forms.ToolStripMenuItem problemiComuniToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem aboutToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem sviluppatoreToolStripMenuItem;
-        private System.Windows.Forms.PictureBox pictureBox1;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.PictureBox pictureBox2;
         private System.Windows.Forms.ToolStripMenuItem internetToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem scegliCartellaDaControllareToolStripMenuItem;
         private System.Windows.Forms.ImageList imageList2;
+        private System.Windows.Forms.FlowLayoutPanel flowLayoutPanel1;
     }
 }
 
