@@ -23,54 +23,29 @@ namespace PrimaGUI
         {
             InitializeComponent();
             this.Text = "Benvenuto " + Program.userName+" controllando "+Program.path;
+            this.FormBorderStyle = FormBorderStyle.None;
         }
 
-        private void sviluppatoreToolStripMenuItem_Click(object sender, EventArgs e)
+        private void button1_Click(object sender, EventArgs e)
         {
-              
+            if (dataGridView1.Visible == false)
+            {
+                dataGridView1.Visible = true;
+                dataGridView2.Visible = true;
+            }
+            else
+            {
+                dataGridView1.Visible = false;
+                dataGridView2.Visible = false; 
+            }
         }
 
-
-        private void Form1_Load(object sender, EventArgs e)
+        private void button2_Click(object sender, EventArgs e)
         {
-
+            folderBrowserDialog1.ShowDialog();
+            Program.path = folderBrowserDialog1.SelectedPath;
         }
 
-        private void menuStrip1_ItemClicked(object sender, ToolStripItemClickedEventArgs e)
-        {
-
-        }
-
-        private void pictureBox2_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void chiudiToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-
-        }
-
-        private void process1_Exited(object sender, EventArgs e)
-        {
-
-        }
-
-        private void internetToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-     
-        }
-
-        private void scegliCartellaDaControllareToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-        }
-
-
-
-        private void flowLayoutPanel1_DoubleClick(object sender, EventArgs e)
-        {
-        
-        }
 
 
     }

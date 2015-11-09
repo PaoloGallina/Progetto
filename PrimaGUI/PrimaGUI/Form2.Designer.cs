@@ -42,7 +42,6 @@
             this.Help = new System.Windows.Forms.Button();
             this.About = new System.Windows.Forms.Button();
             this.infoLabel = new System.Windows.Forms.Label();
-            this.portatext = new System.Windows.Forms.TextBox();
             this.iptext = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
@@ -83,7 +82,7 @@
             this.textBox1.BackColor = System.Drawing.SystemColors.InactiveBorder;
             this.textBox1.Font = new System.Drawing.Font("Arial", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.textBox1.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.textBox1.Location = new System.Drawing.Point(11, 168);
+            this.textBox1.Location = new System.Drawing.Point(11, 178);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(278, 25);
             this.textBox1.TabIndex = 0;
@@ -97,7 +96,7 @@
             this.textBox2.BackColor = System.Drawing.SystemColors.InactiveBorder;
             this.textBox2.Font = new System.Drawing.Font("Arial", 10.25F);
             this.textBox2.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.textBox2.Location = new System.Drawing.Point(11, 206);
+            this.textBox2.Location = new System.Drawing.Point(11, 227);
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(278, 23);
             this.textBox2.TabIndex = 1;
@@ -177,7 +176,7 @@
             this.label4.BackColor = System.Drawing.Color.Transparent;
             this.label4.Font = new System.Drawing.Font("Arial", 12.25F);
             this.label4.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.label4.Location = new System.Drawing.Point(7, 136);
+            this.label4.Location = new System.Drawing.Point(7, 146);
             this.label4.MaximumSize = new System.Drawing.Size(320, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(159, 19);
@@ -233,26 +232,12 @@
             this.infoLabel.Text = "ddddddddddddddddddddddddddddddddddd";
             this.infoLabel.Visible = false;
             // 
-            // portatext
-            // 
-            this.portatext.BackColor = System.Drawing.SystemColors.InactiveBorder;
-            this.portatext.Font = new System.Drawing.Font("Arial", 10.25F);
-            this.portatext.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.portatext.Location = new System.Drawing.Point(11, 246);
-            this.portatext.Name = "portatext";
-            this.portatext.Size = new System.Drawing.Size(278, 23);
-            this.portatext.TabIndex = 2;
-            this.portatext.Text = "Port Number";
-            this.portatext.Visible = false;
-            this.portatext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.portatext_MouseClick);
-            this.portatext.Enter += new System.EventHandler(this.portatext_Enter);
-            // 
             // iptext
             // 
             this.iptext.BackColor = System.Drawing.SystemColors.InactiveBorder;
             this.iptext.Font = new System.Drawing.Font("Arial", 10.25F);
             this.iptext.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.iptext.Location = new System.Drawing.Point(11, 281);
+            this.iptext.Location = new System.Drawing.Point(11, 274);
             this.iptext.Name = "iptext";
             this.iptext.Size = new System.Drawing.Size(278, 23);
             this.iptext.TabIndex = 3;
@@ -270,7 +255,6 @@
             this.ClientSize = new System.Drawing.Size(303, 424);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.iptext);
-            this.Controls.Add(this.portatext);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.button5);
             this.Controls.Add(this.textBox2);
@@ -310,7 +294,6 @@
         private System.Windows.Forms.Button Help;
         private System.Windows.Forms.Button About;
         private System.Windows.Forms.Label infoLabel;
-        private System.Windows.Forms.TextBox portatext;
         private System.Windows.Forms.TextBox iptext;
     }
 }

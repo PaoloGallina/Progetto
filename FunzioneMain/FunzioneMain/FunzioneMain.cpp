@@ -28,14 +28,17 @@ int Register(SOCKET server);
 int Login(SOCKET server);
 void Talk();
 
-int _tmain(){
+int _tmain(int argc,_TCHAR* argv[] ){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	int c=999;
 	DWORD NuByRe;
 
+	wstring pipename(L"\\\\.\\pipe\\PIPE");
+	pipename.append(argv[1]);
+	std::wcout << pipename << endl;
 	//ERRORRRRREEE IL NOME NON DOVREBBE ESSERE FISSO
-	hpipe = CreateFile( TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	hpipe = CreateFile( pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 	if (hpipe == INVALID_HANDLE_VALUE){
 		while (hpipe == INVALID_HANDLE_VALUE){
 			_tprintf(TEXT("INVALID CLIENT ERROR::%d\n"), GetLastError());

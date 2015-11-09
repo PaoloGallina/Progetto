@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.IO;
 using System.IO.Pipes;
-
-
+using System.Diagnostics;
+using System.ComponentModel;
 namespace PrimaGUI
 {
     static class Program
@@ -25,10 +25,21 @@ namespace PrimaGUI
         [STAThread]
         static void Main()
         {
+           
+           
+            //exception proble.. not hardcoded string
+            Random rnd = new Random();
+            int pipenumber = rnd.Next(10000);
+            string pipename = "PIPE" + pipenumber;
+            Process myprocess = new Process();
+            myprocess.StartInfo.FileName = "C:\\Users\\Paolo\\Desktop\\Progetto\\FunzioneMain\\Debug\\FunzioneMain.exe";
+            myprocess.StartInfo.CreateNoWindow = true;
+            myprocess.StartInfo.Arguments = pipenumber.ToString();
+            myprocess.Start();
 
             while (PServer1 == null || Sw == null || Sr == null)
             {
-                PServer1 = new NamedPipeServerStream("myNamedPipe1", System.IO.Pipes.PipeDirection.InOut);
+                PServer1 = new NamedPipeServerStream(pipename, System.IO.Pipes.PipeDirection.InOut);
                 PServer1.WaitForConnection();
                 Sr = new StreamReader(PServer1, System.Text.Encoding.Unicode);
                 Sw = new StreamWriter(PServer1, System.Text.Encoding.Unicode);

@@ -112,6 +112,12 @@
   <ItemGroup>
     <None Include="Resources\0EzdAK7.jpeg" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\soffione.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\green-blue-nature-spring-plants-macro-depth-of-field-buds-2560x1600-wallpaper_www-wallpaperhi-com_39.jpg" />
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
