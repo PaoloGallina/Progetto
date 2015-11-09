@@ -29,7 +29,7 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form2));
-            this.button1 = new System.Windows.Forms.Button();
+            this.Login = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.textBox1 = new System.Windows.Forms.TextBox();
             this.textBox2 = new System.Windows.Forms.TextBox();
@@ -46,21 +46,21 @@
             this.iptext = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
-            // button1
+            // Login
             // 
-            this.button1.BackColor = System.Drawing.Color.Transparent;
-            this.button1.FlatAppearance.BorderSize = 2;
-            this.button1.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Khaki;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Arial", 12.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.SystemColors.HotTrack;
-            this.button1.Location = new System.Drawing.Point(90, 246);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(121, 42);
-            this.button1.TabIndex = 0;
-            this.button1.Text = "Login";
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.Login.BackColor = System.Drawing.Color.Transparent;
+            this.Login.FlatAppearance.BorderSize = 2;
+            this.Login.FlatAppearance.MouseOverBackColor = System.Drawing.Color.Khaki;
+            this.Login.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.Login.Font = new System.Drawing.Font("Arial", 12.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.Login.ForeColor = System.Drawing.SystemColors.HotTrack;
+            this.Login.Location = new System.Drawing.Point(90, 246);
+            this.Login.Name = "Login";
+            this.Login.Size = new System.Drawing.Size(121, 42);
+            this.Login.TabIndex = 5;
+            this.Login.Text = "Login";
+            this.Login.UseVisualStyleBackColor = false;
+            this.Login.Click += new System.EventHandler(this.button1_Click);
             // 
             // button2
             // 
@@ -73,7 +73,7 @@
             this.button2.Location = new System.Drawing.Point(89, 168);
             this.button2.Name = "button2";
             this.button2.Size = new System.Drawing.Size(122, 42);
-            this.button2.TabIndex = 1;
+            this.button2.TabIndex = 4;
             this.button2.Text = "Registrati";
             this.button2.UseVisualStyleBackColor = false;
             this.button2.Click += new System.EventHandler(this.button2_Click);
@@ -86,10 +86,11 @@
             this.textBox1.Location = new System.Drawing.Point(11, 168);
             this.textBox1.Name = "textBox1";
             this.textBox1.Size = new System.Drawing.Size(278, 25);
-            this.textBox1.TabIndex = 4;
+            this.textBox1.TabIndex = 0;
             this.textBox1.Text = "Username";
             this.textBox1.Visible = false;
-            this.textBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.textBox1_TextChanged);
+            this.textBox1.MouseClick += new System.Windows.Forms.MouseEventHandler(this.textBox1_MouseClick);
+            this.textBox1.Enter += new System.EventHandler(this.textBox1_Enter);
             // 
             // textBox2
             // 
@@ -99,10 +100,11 @@
             this.textBox2.Location = new System.Drawing.Point(11, 206);
             this.textBox2.Name = "textBox2";
             this.textBox2.Size = new System.Drawing.Size(278, 23);
-            this.textBox2.TabIndex = 5;
+            this.textBox2.TabIndex = 1;
             this.textBox2.Text = "Password";
             this.textBox2.Visible = false;
             this.textBox2.MouseClick += new System.Windows.Forms.MouseEventHandler(this.textBox2_MouseClick);
+            this.textBox2.Enter += new System.EventHandler(this.textBox2_Enter);
             // 
             // label3
             // 
@@ -162,7 +164,7 @@
             this.button5.Location = new System.Drawing.Point(90, 323);
             this.button5.Name = "button5";
             this.button5.Size = new System.Drawing.Size(121, 48);
-            this.button5.TabIndex = 9;
+            this.button5.TabIndex = 6;
             this.button5.Text = "Cartella da sincronizzare";
             this.button5.UseCompatibleTextRendering = true;
             this.button5.UseVisualStyleBackColor = false;
@@ -239,10 +241,11 @@
             this.portatext.Location = new System.Drawing.Point(11, 246);
             this.portatext.Name = "portatext";
             this.portatext.Size = new System.Drawing.Size(278, 23);
-            this.portatext.TabIndex = 18;
+            this.portatext.TabIndex = 2;
             this.portatext.Text = "Port Number";
             this.portatext.Visible = false;
             this.portatext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.portatext_MouseClick);
+            this.portatext.Enter += new System.EventHandler(this.portatext_Enter);
             // 
             // iptext
             // 
@@ -252,11 +255,11 @@
             this.iptext.Location = new System.Drawing.Point(11, 281);
             this.iptext.Name = "iptext";
             this.iptext.Size = new System.Drawing.Size(278, 23);
-            this.iptext.TabIndex = 19;
+            this.iptext.TabIndex = 3;
             this.iptext.Text = "Ip address";
             this.iptext.Visible = false;
             this.iptext.MouseClick += new System.Windows.Forms.MouseEventHandler(this.iptext_MouseClick);
-            this.iptext.TextChanged += new System.EventHandler(this.iptext_TextChanged);
+            this.iptext.Enter += new System.EventHandler(this.iptext_Enter);
             // 
             // Form2
             // 
@@ -272,7 +275,7 @@
             this.Controls.Add(this.button5);
             this.Controls.Add(this.textBox2);
             this.Controls.Add(this.textBox1);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.Login);
             this.Controls.Add(this.button2);
             this.Controls.Add(this.Help);
             this.Controls.Add(this.infoLabel);
@@ -284,7 +287,9 @@
             this.MaximizeBox = false;
             this.Name = "Form2";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
-            this.Text = "Benvenuto";
+            this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseDown);
+            this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseMove);
+            this.MouseUp += new System.Windows.Forms.MouseEventHandler(this.panel2_MouseUp);
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -292,7 +297,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button Login;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.TextBox textBox1;
         private System.Windows.Forms.TextBox textBox2;

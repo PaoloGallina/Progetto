@@ -29,9 +29,13 @@ int Login(SOCKET server);
 void Talk();
 
 int _tmain(){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int c=999;
+	DWORD NuByRe;
 
+	//ERRORRRRREEE IL NOME NON DOVREBBE ESSERE FISSO
 	hpipe = CreateFile( TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
-
 	if (hpipe == INVALID_HANDLE_VALUE){
 		while (hpipe == INVALID_HANDLE_VALUE){
 			_tprintf(TEXT("INVALID CLIENT ERROR::%d\n"), GetLastError());
@@ -39,22 +43,45 @@ int _tmain(){
 			hpipe = CreateFile(TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 		}
 	}
-	
-	SOCKET server = ConnectClient();
-	int c;
 
-	char*a = (char*)malloc(50);
-	gets(a);
-		if (strcmp(a,"login")==0){ 
-			c = Login(server); }
-		else{ 
-			c = Register(server); }
+	SOCKET server=INVALID_SOCKET;
 
-	if (c==999){
-		closeConn(server);
-		WSACleanup();
-		return 0;
+	while (c == 999){
+		server = ConnectClient();
+
+		int size;
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
+		
+		ReadFile(hpipe, recvbuf, 1, &NuByRe, NULL);
+		ReadFile(hpipe, recvbuf, size, &NuByRe, NULL);
+		recvbuf[NuByRe] = '\0';
+		
+
+		if (strcmp(recvbuf, "login") == 0){
+			c = Login(server);
+		}
+		else if(strcmp(recvbuf, "register")==0){
+			c = Register(server);
+		}
+		else{
+			closeConn(server);
+			return -1;
+		}
+		if (c == 999){
+			WriteFile(hpipe, L"errore\n", 7 * sizeof(wchar_t), &NuByRe, NULL);		
+		}
+		else{
+			WriteFile(hpipe, L"OK\n", 7 * sizeof(wchar_t), &NuByRe, NULL);
+
+		}
+		if (c == 999){
+			closeConn(server);
+		}
 	}
+
+
+
 	while (1){
 
 		//effettuo una sync
@@ -231,8 +258,7 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	istringstream fhash(Hash);
 	wistringstream fpath(PathNameLast);
 
-	DWORD NuByRe;
-	
+
 
 	int t = 0;
 	while (t<n){
@@ -242,13 +268,8 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 		fhash.getline(buf4, DEFAULT_BUFLEN);
 		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
 		
-		WriteFile(hpipe, buf1, wcslen(buf1)*sizeof(wchar_t), &NuByRe, NULL);
-		WriteFile(hpipe,L"\n",sizeof(wchar_t), &NuByRe, NULL);
-
 		t++;
 	}
-	WriteFile(hpipe, L"stop", 4*sizeof(wchar_t), &NuByRe, NULL);
-	WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
 
 	::free(Hash);
 	::free(PathNameLast);
@@ -320,25 +341,54 @@ list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig
 
 int Register(SOCKET server){
 	sendInt(server, 30);
-	char nome[50];
-	gets(nome);
-	sendInt(server, strlen(nome)+1);
-	sendNbytes(server, nome, strlen(nome)+1);
-	char pass[50];
-	gets(pass);
-	sendInt(server, strlen(pass)+1);
-	sendNbytes(server, pass, strlen(pass)+1);
+
+
+	int c;
+	DWORD read;
+	char nome[500];
+	char pass[500];
+
+	ReadFile(hpipe, nome, 4, &read, NULL);
+	c = *((int*)nome);
+	ReadFile(hpipe, nome, 1, &read, NULL);
+	ReadFile(hpipe, nome, c, &read, NULL);
+	nome[read] = '\0';
+
+	sendInt(server, strlen(nome) + 1);
+	sendNbytes(server, nome, strlen(nome) + 1);
+
+	ReadFile(hpipe, pass, 4, &read, NULL);
+	c = *((int*)pass);
+	ReadFile(hpipe, pass, 1, &read, NULL);
+	ReadFile(hpipe, pass, c, &read, NULL);
+	pass[read] = '\0';
+	sendInt(server, strlen(pass) + 1);
+	sendNbytes(server, pass, strlen(pass) + 1);
+
 	return recInt(server);
 }
 
 int Login(SOCKET server){
 	sendInt(server, 40);
-	char nome[50];
-	gets(nome);
+	
+	int c;
+	DWORD read;
+	char nome[500];
+	char pass[500];
+
+	ReadFile(hpipe, nome, 4, &read, NULL);
+	c = *((int*)nome);
+	ReadFile(hpipe, nome, 1, &read, NULL);
+	ReadFile(hpipe, nome, c, &read, NULL);
+	nome[read] = '\0';
 	sendInt(server, strlen(nome)+1);
 	sendNbytes(server, nome, strlen(nome)+1);
-	char pass[50];
-	gets(pass);
+	
+	ReadFile(hpipe, pass, 4, &read, NULL);
+	c = *((int*)pass);
+	ReadFile(hpipe, pass, 1, &read, NULL);
+	ReadFile(hpipe, pass, c, &read, NULL);
+	pass[read] = '\0';
 	sendInt(server, strlen(pass)+1);
 	sendNbytes(server, pass, strlen(pass)+1);
 	return recInt(server);

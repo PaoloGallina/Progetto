@@ -12,15 +12,21 @@ namespace PrimaGUI
 {
     public partial class Form2 : Form
     {
+        private bool _dragging = false;
+        private Point _offset;
+        private Point _start_point = new Point(0, 0);
+
         public Form2()
         {
+            
             InitializeComponent();
+            this.FormBorderStyle = FormBorderStyle.None;
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
             this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
-            button1.Visible = false;
+            Login.Visible = false;
             button2.Visible = false;
             button3.Visible = true;
             button4.Visible = true;
@@ -31,15 +37,15 @@ namespace PrimaGUI
             textBox1.Visible = true;
             textBox2.Visible = true;
             iptext.Visible = true;
-
             portatext.Visible = true;
+
         }
 
         private void button2_Click(object sender, EventArgs e)
         {
 
             this.BackgroundImage = global::PrimaGUI.Properties.Resources.rZWcYhh; 
-            button1.Visible = false;
+            Login.Visible = false;
             button2.Visible = false;
             button3.Visible = true;
             button4.Visible = true;
@@ -52,12 +58,13 @@ namespace PrimaGUI
             textBox2.Visible = true;
             iptext.Visible = true;
             portatext.Visible = true;
+
         }
 
         private void button4_Click(object sender, EventArgs e)
         {
             this.BackgroundImage = global::PrimaGUI.Properties.Resources.x5j8KEF;
-            button1.Visible = true;
+            Login.Visible = true;
             button2.Visible = true;
             button3.Visible = false;
             button4.Visible = false;
@@ -85,8 +92,26 @@ namespace PrimaGUI
                 }
                 label4.ForeColor = System.Drawing.Color.Red;
                 return;
+            } 
+            
+            string temp = "login";
+            if (button5.Visible == true) {
+                 temp = "register";
             }
-            // Questo attualmente è solo uno stub! naturalmente oltre a controllare che siano campi vuoti bisogna fare un check della correttezza
+
+            Program.Bin.Write(temp.Length);
+            Program.Bin.Write(temp);
+            Program.Bin.Write(textBox1.Text.Length);
+            Program.Bin.Write(textBox1.Text);
+            Program.Bin.Write(textBox2.Text.Length);
+            Program.Bin.Write(textBox2.Text);
+            
+            temp=Program.Sr.ReadLine();
+            if (temp.CompareTo("errore")==0) {
+                label4.Text = "errore";
+                label4.ForeColor = System.Drawing.Color.Red;
+                return;
+            }
 
             Program.userName = textBox1.Text;
             Program.Password = textBox2.Text;
@@ -101,10 +126,11 @@ namespace PrimaGUI
 
         private void About_Click(object sender, EventArgs e)
         {
-            Form1 f=new Form1();
-            f.ShowDialog();
+        //  Form1 f=new Form1();
+        //  f.ShowDialog();
+        //  f.Close();
             this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
-            button1.Visible = false;
+            Login.Visible = false;
             button2.Visible = false;
             button3.Visible = false;
             button4.Visible = true;
@@ -125,7 +151,7 @@ namespace PrimaGUI
         {
 
             this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
-            button1.Visible = false;
+            Login.Visible = false;
             button2.Visible = false;
             button3.Visible = false;
             button4.Visible = true;
@@ -142,50 +168,78 @@ namespace PrimaGUI
             infoLabel.Text = "Stai visualizzando la procedura di login del programma.\n\nSe non lo hai già fatto puoi procedere alla registrazione attraverso il corrispondente pannello scegliendo uno username, una password e la cartellla da sincronizzare.\n\nAl contrario puoi procedere al login.\n\nSe hai dimenticato le credenziali contatta lo Sviluppatore.";
         }
 
-        private void textBox1_TextChanged(object sender, MouseEventArgs e)
+        private void textBox1_MouseClick(object sender, MouseEventArgs e)
         {
-            if (textBox1.Text == "Username")
-            {
+
                 textBox1.Text = "";
                 textBox1.ForeColor = SystemColors.WindowText;
-            }
         }
+        
 
         private void textBox2_MouseClick(object sender, MouseEventArgs e)
         {
-            if (textBox2.Text == "Password")
-            {
+
                 textBox2.Text = "";
                 textBox2.UseSystemPasswordChar = true;
                 textBox2.ForeColor = SystemColors.WindowText;
-            }
         }
 
         private void portatext_MouseClick(object sender, MouseEventArgs e)
         {
-            if (portatext.Text == "Port Number")
-            {
                 portatext.Text = "";
                 portatext.ForeColor = SystemColors.WindowText;
-            }
         }
 
         private void iptext_MouseClick(object sender, MouseEventArgs e)
         {
-            if (iptext.Text == "Ip address")
-            {
                 iptext.Text = "";
                 iptext.ForeColor = SystemColors.WindowText;
+        }
+
+
+        private void panel2_MouseDown(object sender, MouseEventArgs e)
+        {
+            _dragging = true;  // _dragging is your variable flag
+            _start_point = new Point(e.X, e.Y);
+        }
+
+        private void panel2_MouseUp(object sender, MouseEventArgs e)
+        {
+            _dragging = false;
+        }
+
+        private void panel2_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_dragging)
+            {
+                Point p = PointToScreen(e.Location);
+                Location = new Point(p.X - this._start_point.X, p.Y - this._start_point.Y);
             }
         }
 
-        private void iptext_TextChanged(object sender, EventArgs e)
+        private void textBox1_Enter(object sender, EventArgs e)
         {
+            textBox1.ForeColor = SystemColors.WindowText;
+            
+        }
+
+        private void textBox2_Enter(object sender, EventArgs e)
+        {
+            textBox2.UseSystemPasswordChar = true;
+            textBox2.ForeColor = SystemColors.WindowText;
 
         }
 
+        private void portatext_Enter(object sender, EventArgs e)
+        {
+            portatext.ForeColor = SystemColors.WindowText;
 
+        }
 
-    
+        private void iptext_Enter(object sender, EventArgs e)
+        {  
+            iptext.ForeColor = SystemColors.WindowText;
+        }
+
     }
 }
