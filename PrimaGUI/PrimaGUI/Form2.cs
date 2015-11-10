@@ -25,7 +25,6 @@ namespace PrimaGUI
 
         private void button1_Click(object sender, EventArgs e)
         {
-            this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
             Login.Visible = false;
             button2.Visible = false;
             button3.Visible = true;
@@ -43,8 +42,6 @@ namespace PrimaGUI
 
         private void button2_Click(object sender, EventArgs e)
         {
-
-            this.BackgroundImage = global::PrimaGUI.Properties.Resources.rZWcYhh; 
             Login.Visible = false;
             button2.Visible = false;
             button3.Visible = true;
@@ -63,7 +60,6 @@ namespace PrimaGUI
 
         private void button4_Click(object sender, EventArgs e)
         {
-            this.BackgroundImage = global::PrimaGUI.Properties.Resources.x5j8KEF;
             Login.Visible = true;
             button2.Visible = true;
             button3.Visible = false;
@@ -81,16 +77,9 @@ namespace PrimaGUI
 
         private void button3_Click(object sender, EventArgs e)
         {
-            if (textBox1.Text == "Username" || ! IsValidIP(iptext.Text) || textBox2.Text == "Password" || (Program.path == "" && button5.Visible == true))
-            {
-                
-                if (button5.Visible == false)
-                {
-                    label4.Text = "Inserisci tutti i campi";
-                }
-                else {
-                    label4.Text = "Inserisci tutti i campi";
-                }
+            if (textBox1.Text == "Username" ||!IsValidalfa(textBox1.Text)||!IsValidalfa(textBox2.Text)|| ! IsValidIP(iptext.Text) || textBox2.Text == "Password" || (Program.path == "" && button5.Visible == true))
+            { 
+                label4.Text = "Inserisci tutti i campi. ASCII ONLY";
                 label4.ForeColor = System.Drawing.Color.Red;
                 return;
                 
@@ -128,7 +117,6 @@ namespace PrimaGUI
 
         private void About_Click(object sender, EventArgs e)
         {
-            this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
             Login.Visible = false;
             button2.Visible = false;
             button3.Visible = false;
@@ -142,13 +130,12 @@ namespace PrimaGUI
             textBox2.Visible = false;
             iptext.Visible = false;
             infoLabel.Visible = true;
-            infoLabel.Text = "Questo programma è stato sviluppato interamente da Paolo Gallina come progetto del corso di Programmazione di Sistema\n\nIl core del programma è scritto in c++ la gui in c#, sono state utilizzate librerie open source di terze parti per calcolare l'hash e per gestire il database interno.\n\nL'intento è creare un servizio di backup e versioning automatico di una cartella che permetta di recuperare versioni passate o file cancellati.";
+            infoLabel.Text = "Il core del programma è scritto in c++ la GUI in c#, sono state utilizzate librerie open source di terze parti per calcolare l'hash e per gestire il database interno.\nL'intento è creare un servizio di backup e versioning automatico di una cartella che permetta di recuperare versioni passate o file cancellati.";
         }
 
         private void Help_Click(object sender, EventArgs e)
         {
 
-            this.BackgroundImage = global::PrimaGUI.Properties.Resources._9ToJXnJ;
             Login.Visible = false;
             button2.Visible = false;
             button3.Visible = false;
@@ -162,30 +149,7 @@ namespace PrimaGUI
             textBox2.Visible = false;
             iptext.Visible = false;
             infoLabel.Visible = true;
-            infoLabel.Text = "Stai visualizzando la procedura di login del programma.\n\nSe non lo hai già fatto puoi procedere alla registrazione attraverso il corrispondente pannello scegliendo uno username, una password e la cartellla da sincronizzare.\n\nAl contrario puoi procedere al login.\n\nSe hai dimenticato le credenziali contatta lo Sviluppatore.";
-        }
-
-        private void textBox1_MouseClick(object sender, MouseEventArgs e)
-        {
-
-                textBox1.SelectAll();
-                textBox1.ForeColor = SystemColors.WindowText;
-        }
-        
-
-        private void textBox2_MouseClick(object sender, MouseEventArgs e)
-        {
-
-                textBox2.SelectAll();
-                textBox2.UseSystemPasswordChar = true;
-                textBox2.ForeColor = SystemColors.WindowText;
-        }
-
-
-        private void iptext_MouseClick(object sender, MouseEventArgs e)
-        {
-                iptext.SelectAll();
-                iptext.ForeColor = SystemColors.WindowText;
+            infoLabel.Text = "Stai visualizzando la procedura di login del programma.\n\nSe non lo hai già fatto puoi procedere alla registrazione attraverso il corrispondente pannello scegliendo uno username, una password e la cartellla da sincronizzare.\nAl contrario puoi procedere al login.\n";
         }
 
 
@@ -209,46 +173,74 @@ namespace PrimaGUI
             }
         }
 
-        private void textBox1_Enter(object sender, EventArgs e)
-        {
-            textBox1.ForeColor = SystemColors.WindowText;
-            
-        }
 
-        private void textBox2_Enter(object sender, EventArgs e)
-        {
-            textBox2.UseSystemPasswordChar = true;
-            textBox2.ForeColor = SystemColors.WindowText;
-
-        }
-
-
-        private void iptext_Enter(object sender, EventArgs e)
-        {  
-            iptext.ForeColor = SystemColors.WindowText;
-        }
         public bool IsValidIP(string addr)
         {
-            //create our match pattern
+            
             string pattern = @"^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$";
-            //create our Regular Expression object
             Regex check = new Regex(pattern);
-            //boolean variable to hold the status
             bool valid = false;
-            //check to make sure an ip address was provided
             if (addr == "")
             {
-                //no address provided so return false
                 valid = false;
             }
             else
             {
-                //address provided so use the IsMatch Method
-                //of the Regular Expression object
+
                 valid = check.IsMatch(addr, 0);
             }
-            //return the results
             return valid;
         }
+
+        public bool IsValidalfa(string addr)
+        {
+
+            string pattern = @"[a-zA-Z0-9]+$";
+            Regex check = new Regex(pattern);
+            bool valid = false;
+            if (addr == "")
+            {
+                valid = false;
+            }
+            else
+            {
+
+                valid = check.IsMatch(addr, 0);
+            }
+            return valid;
+        }
+
+        private void textBox1_TextChanged(object sender, EventArgs e)
+        {
+            textBox1.ForeColor = SystemColors.WindowText;
+        }
+
+        private void textBox2_TextChanged(object sender, EventArgs e)
+        {
+            textBox2.ForeColor = SystemColors.WindowText;
+            textBox2.UseSystemPasswordChar = true;
+        }
+
+        private void iptext_TextChanged(object sender, EventArgs e)
+        {
+            iptext.ForeColor = SystemColors.WindowText;
+        }
+
+        private void textBox1_MouseClick(object sender, MouseEventArgs e)
+        {
+            textBox1.SelectAll();
+        }
+
+        private void textBox2_MouseClick(object sender, MouseEventArgs e)
+        {
+            textBox2.SelectAll();
+        }
+
+        private void iptext_MouseClick(object sender, MouseEventArgs e)
+        {
+            iptext.SelectAll();
+        }
+
+
     }
 }

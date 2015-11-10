@@ -83,6 +83,26 @@ namespace PrimaGUI.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap a {
+            get {
+                object obj = ResourceManager.GetObject("a", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap b {
+            get {
+                object obj = ResourceManager.GetObject("b", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap green_blue_nature_spring_plants_macro_depth_of_field_buds_2560x1600_wallpaper_www_wallpaperhi_com_39 {
             get {
                 object obj = ResourceManager.GetObject("green-blue-nature-spring-plants-macro-depth-of-field-buds-2560x1600-wallpaper_www" +
@@ -137,6 +157,16 @@ namespace PrimaGUI.Properties {
         internal static System.Drawing.Bitmap soffione {
             get {
                 object obj = ResourceManager.GetObject("soffione", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap soffioneR {
+            get {
+                object obj = ResourceManager.GetObject("soffioneR", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

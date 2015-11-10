@@ -320,6 +320,7 @@ void Register(SOCKET client,std::string& nome){
 	}
 	
 	std::ifstream my_file(nome);
+	
 	if (my_file)
 	{
 		sendInt(client, 999);
