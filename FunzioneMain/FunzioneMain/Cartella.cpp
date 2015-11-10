@@ -26,7 +26,7 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 	
 	if (Ffile == INVALID_HANDLE_VALUE){
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
-		
+		throw "La cartella selezionata non esiste";
 	}
 
 	for (bool i; GetLastError() != ERROR_NO_MORE_FILES;i=FindNextFile(Ffile, &find_file_data)){

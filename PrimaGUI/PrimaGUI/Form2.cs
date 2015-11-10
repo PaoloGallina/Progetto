@@ -13,6 +13,7 @@ namespace PrimaGUI
 {
     public partial class Form2 : Form
     {
+        private bool flag = false;
         private bool _dragging = false;
         private Point _start_point = new Point(0, 0);
 
@@ -23,93 +24,94 @@ namespace PrimaGUI
             this.FormBorderStyle = FormBorderStyle.None;
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void Login_Click(object sender, EventArgs e)
         {
-            Login.Visible = false;
-            button2.Visible = false;
-            button3.Visible = true;
-            button4.Visible = true;
-            Help.Visible = false;
-            About.Visible = false;
+            LoginButton.Visible = false;
+            RegisterButton.Visible = false;
+            OkButton.Visible = true;
+            IndietroButton.Visible = true;
+            HelpButtonN.Visible = false;
+            AboutButton.Visible = false;
             label3.Visible = false;
             label4.Visible = true;
-            textBox1.Visible = true;
-            textBox2.Visible = true;
-            iptext.Visible = true;
+            UsernameText.Visible = true;
+            PasswordText.Visible = true;
+            IpAddressText.Visible = true;
            
 
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        private void register_Click(object sender, EventArgs e)
         {
-            Login.Visible = false;
-            button2.Visible = false;
-            button3.Visible = true;
-            button4.Visible = true;
-            Help.Visible = false;
-            About.Visible = false;
-            button5.Visible = true;
+            LoginButton.Visible = false;
+            RegisterButton.Visible = false;
+            OkButton.Visible = true;
+            IndietroButton.Visible = true;
+            HelpButtonN.Visible = false;
+            AboutButton.Visible = false;
+            CartDaSyncButton.Visible = true;
             label3.Visible = false;
             label4.Visible = true;
-            textBox1.Visible = true;
-            textBox2.Visible = true;
-            iptext.Visible = true;
+            UsernameText.Visible = true;
+            PasswordText.Visible = true;
+            IpAddressText.Visible = true;
      
 
         }
 
-        private void button4_Click(object sender, EventArgs e)
+        private void Indietro_Click(object sender, EventArgs e)
         {
-            Login.Visible = true;
-            button2.Visible = true;
-            button3.Visible = false;
-            button4.Visible = false;
-            button5.Visible = false;
-            Help.Visible = true;
-            About.Visible = true;
+            LoginButton.Visible = true;
+            RegisterButton.Visible = true;
+            OkButton.Visible = false;
+            IndietroButton.Visible = false;
+            CartDaSyncButton.Visible = false;
+            HelpButtonN.Visible = true;
+            AboutButton.Visible = true;
             label3.Visible = true;
             label4.Visible = false;
             infoLabel.Visible = false;
-            textBox1.Visible = false;
-            textBox2.Visible = false;
-            iptext.Visible = false;
+            UsernameText.Visible = false;
+            PasswordText.Visible = false;
+            IpAddressText.Visible = false;
         }
 
-        private void button3_Click(object sender, EventArgs e)
+        private void OK_Click(object sender, EventArgs e)
         {
-            if (textBox1.Text == "Username" ||!IsValidalfa(textBox1.Text)||!IsValidalfa(textBox2.Text)|| ! IsValidIP(iptext.Text) || textBox2.Text == "Password" || (Program.path == "" && button5.Visible == true))
+            if (UsernameText.Text == "Username" ||!IsValidalfa(UsernameText.Text)||!IsValidalfa(PasswordText.Text)|| ! IsValidIP(IpAddressText.Text) || PasswordText.Text == "Password" || (Program.path == "" && CartDaSyncButton.Visible == true))
             { 
-                label4.Text = "Inserisci tutti i campi. ASCII ONLY";
+                label4.Text = "Inserisci tutti i campi.";
                 label4.ForeColor = System.Drawing.Color.Red;
-                return;
-                
+                return;     
             } 
             
-            string temp = "login";
-            if (button5.Visible == true) {
-                 temp = "register";
+            int logORreg = 40;
+            if (CartDaSyncButton.Visible == true) {
+                logORreg = 30;
             }
 
-            Program.Bin.Write(temp.Length);
-            Program.Bin.Write(temp);
-            Program.Bin.Write(textBox1.Text.Length);
-            Program.Bin.Write(textBox1.Text);
-            Program.Bin.Write(textBox2.Text.Length);
-            Program.Bin.Write(textBox2.Text);
+            Program.Bin.Write(logORreg);
+            Program.Bin.Write(UsernameText.Text.Length);
+            Program.Bin.Write(UsernameText.Text);
+            Program.Bin.Write(PasswordText.Text.Length);
+            Program.Bin.Write(PasswordText.Text);
             
-            temp=Program.Sr.ReadLine();
+            string temp=Program.Sr.ReadLine();
             if (temp.CompareTo("errore")==0) {
-                label4.Text = "errore";
+                label4.Text = "Errore Nella Procedura";
                 label4.ForeColor = System.Drawing.Color.Red;
                 return;
             }
 
-            Program.userName = textBox1.Text;
-            Program.Password = textBox2.Text;
+            Program.userName = UsernameText.Text;
+            Program.Password = PasswordText.Text;
+            Program.path     = folderBrowserDialog1.SelectedPath;
+            flag = true;
             this.Close();
+            
         }
 
-        private void button5_Click(object sender, EventArgs e)
+        private void ChooseFolder_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.ShowDialog();
             Program.path = folderBrowserDialog1.SelectedPath;
@@ -117,18 +119,18 @@ namespace PrimaGUI
 
         private void About_Click(object sender, EventArgs e)
         {
-            Login.Visible = false;
-            button2.Visible = false;
-            button3.Visible = false;
-            button4.Visible = true;
-            button5.Visible = false;
-            Help.Visible = false;
-            About.Visible = false;
+            LoginButton.Visible = false;
+            RegisterButton.Visible = false;
+            OkButton.Visible = false;
+            IndietroButton.Visible = true;
+            CartDaSyncButton.Visible = false;
+            HelpButtonN.Visible = false;
+            AboutButton.Visible = false;
             label3.Visible = false;
             label4.Visible = false;
-            textBox1.Visible = false;
-            textBox2.Visible = false;
-            iptext.Visible = false;
+            UsernameText.Visible = false;
+            PasswordText.Visible = false;
+            IpAddressText.Visible = false;
             infoLabel.Visible = true;
             infoLabel.Text = "Il core del programma è scritto in c++ la GUI in c#, sono state utilizzate librerie open source di terze parti per calcolare l'hash e per gestire il database interno.\nL'intento è creare un servizio di backup e versioning automatico di una cartella che permetta di recuperare versioni passate o file cancellati.";
         }
@@ -136,23 +138,71 @@ namespace PrimaGUI
         private void Help_Click(object sender, EventArgs e)
         {
 
-            Login.Visible = false;
-            button2.Visible = false;
-            button3.Visible = false;
-            button4.Visible = true;
-            button5.Visible = false;
-            Help.Visible = false;
-            About.Visible = false;
+            LoginButton.Visible = false;
+            RegisterButton.Visible = false;
+            OkButton.Visible = false;
+            IndietroButton.Visible = true;
+            CartDaSyncButton.Visible = false;
+            HelpButtonN.Visible = false;
+            AboutButton.Visible = false;
             label3.Visible = false;
             label4.Visible = false;
-            textBox1.Visible = false;
-            textBox2.Visible = false;
-            iptext.Visible = false;
+            UsernameText.Visible = false;
+            PasswordText.Visible = false;
+            IpAddressText.Visible = false;
             infoLabel.Visible = true;
             infoLabel.Text = "Stai visualizzando la procedura di login del programma.\n\nSe non lo hai già fatto puoi procedere alla registrazione attraverso il corrispondente pannello scegliendo uno username, una password e la cartellla da sincronizzare.\nAl contrario puoi procedere al login.\n";
         }
+        
+        private void UserText_TextChanged(object sender, EventArgs e)
+        {
+            UsernameText.ForeColor = SystemColors.WindowText;
+        }
 
+        private void PassText_TextChanged(object sender, EventArgs e)
+        {
+            PasswordText.ForeColor = SystemColors.WindowText;
+            PasswordText.UseSystemPasswordChar = true;
+        }
 
+        private void Iptext_TextChanged(object sender, EventArgs e)
+        {
+            IpAddressText.ForeColor = SystemColors.WindowText;
+        }
+
+        private void UserText_MouseClick(object sender, MouseEventArgs e)
+        {
+            UsernameText.SelectAll();
+        }
+
+        private void PassText_MouseClick(object sender, MouseEventArgs e)
+        {
+            PasswordText.SelectAll();
+        }
+
+        private void Iptext_MouseClick(object sender, MouseEventArgs e)
+        {
+            IpAddressText.SelectAll();
+        }
+
+        private void ControlloEnter_KeyPress(object sender, KeyPressEventArgs e)
+        {
+            if (e.KeyChar==(char)13) {
+                OK_Click(sender, e);
+            }
+        }
+
+        //Necessario per la chiusura del processo client C++
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            if (flag == false)
+            {
+                Program.myprocess.Kill();
+            }
+            base.OnClosing(e);
+        }
+
+        //I tre metodi per rendere spostabile il pannello
         private void panel2_MouseDown(object sender, MouseEventArgs e)
         {
             _dragging = true;  // _dragging is your variable flag
@@ -173,10 +223,10 @@ namespace PrimaGUI
             }
         }
 
-
+        //I due metodi per controllare i pattern
         public bool IsValidIP(string addr)
         {
-            
+
             string pattern = @"^([1-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])(\.([0-9]|[1-9][0-9]|1[0-9][0-9]|2[0-4][0-9]|25[0-5])){3}$";
             Regex check = new Regex(pattern);
             bool valid = false;
@@ -208,37 +258,6 @@ namespace PrimaGUI
                 valid = check.IsMatch(addr, 0);
             }
             return valid;
-        }
-
-        private void textBox1_TextChanged(object sender, EventArgs e)
-        {
-            textBox1.ForeColor = SystemColors.WindowText;
-        }
-
-        private void textBox2_TextChanged(object sender, EventArgs e)
-        {
-            textBox2.ForeColor = SystemColors.WindowText;
-            textBox2.UseSystemPasswordChar = true;
-        }
-
-        private void iptext_TextChanged(object sender, EventArgs e)
-        {
-            iptext.ForeColor = SystemColors.WindowText;
-        }
-
-        private void textBox1_MouseClick(object sender, MouseEventArgs e)
-        {
-            textBox1.SelectAll();
-        }
-
-        private void textBox2_MouseClick(object sender, MouseEventArgs e)
-        {
-            textBox2.SelectAll();
-        }
-
-        private void iptext_MouseClick(object sender, MouseEventArgs e)
-        {
-            iptext.SelectAll();
         }
 
 

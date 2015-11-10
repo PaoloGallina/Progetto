@@ -18,12 +18,13 @@ namespace PrimaGUI
     public partial class Form1 : Form
     {
         public AutoResetEvent T = new AutoResetEvent(false);
-
+        private bool _dragging = false;
+        private Point _start_point = new Point(0, 0);
         public Form1()
         {
             InitializeComponent();
-            this.Text = "Benvenuto " + Program.userName+" controllando "+Program.path;
             this.FormBorderStyle = FormBorderStyle.None;
+            
         }
 
         private void button1_Click(object sender, EventArgs e)
@@ -31,13 +32,25 @@ namespace PrimaGUI
             if (dataGridView1.Visible == false)
             {
                 dataGridView1.Visible = true;
-                dataGridView2.Visible = true;
+                int index = 0;
+                Program.Sr.DiscardBufferedData();
+                Program.Bin.Write(20);
+                while (true)
+                {
+                    string path = Program.Sr.ReadLine();
+                    if (path.CompareTo(@"end") == 0) {
+                        break;
+                    }
+                   
+                    this.dataGridView1.Rows.Add();
+                    this.dataGridView1.Rows[index].Cells[0].Value = path;
+                    index++;
+                }
             }
             else
             {
                 dataGridView1.Visible = false;
-                dataGridView2.Visible = false; 
-            }
+                }
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -46,7 +59,43 @@ namespace PrimaGUI
             Program.path = folderBrowserDialog1.SelectedPath;
         }
 
+        //Bisogna fare un controllo sulla buona riuscita della sync e magari far apparire un messaggio fino alla terminazione della stessa
+        private void SYNC_Click(object sender, EventArgs e)
+        {
+            Program.Bin.Write(10);
+            Program.Bin.Write(Program.path.Length);
+            Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
+           
+            
+        }
 
+        //Necessario per la chiusura del processo client C++
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            Program.myprocess.Kill();
+            base.OnClosing(e);
+        }
+
+        //Metodi per rendere spostabile la finestra
+        private void panel2_MouseDown(object sender, MouseEventArgs e)
+        {
+            _dragging = true;  // _dragging is your variable flag
+            _start_point = new Point(e.X, e.Y);
+        }
+
+        private void panel2_MouseUp(object sender, MouseEventArgs e)
+        {
+            _dragging = false;
+        }
+
+        private void panel2_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (_dragging)
+            {
+                Point p = PointToScreen(e.Location);
+                Location = new Point(p.X - this._start_point.X, p.Y - this._start_point.Y);
+            }
+        }
 
     }
 }

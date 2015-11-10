@@ -220,10 +220,7 @@ void Sync(SOCKET client, std::string nome){
 		sendInt(client, -10);
 		printf("sync is terminated no more files are needed");
 	}
-
-	std::this_thread::sleep_for(std::chrono::seconds(10));
-	system("cls");
-
+	printf("\n\n\n");
 }
 
 void SendLastconfig(SOCKET client,  std::string nome){

@@ -19,7 +19,7 @@ using namespace std;
 HANDLE hpipe;
 
 void PulisciLista(std::list < Oggetto *>& a);
-void sync(SOCKET client,wstring* cartella);
+void sync(SOCKET client);
 list<Oggetto*> GetLastConfig(SOCKET server);
 void SerializeList(SOCKET server, list<Oggetto*> daser);
 list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig);
@@ -35,9 +35,11 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	DWORD NuByRe;
 
 	wstring pipename(L"\\\\.\\pipe\\PIPE");
-	pipename.append(argv[1]);
+	//pipename.append(argv[1]);
+	pipename.append(L"1"); //DEBUG
+
 	std::wcout << pipename << endl;
-	//ERRORRRRREEE IL NOME NON DOVREBBE ESSERE FISSO
+
 	hpipe = CreateFile( pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 	if (hpipe == INVALID_HANDLE_VALUE){
 		while (hpipe == INVALID_HANDLE_VALUE){
@@ -51,52 +53,64 @@ int _tmain(int argc,_TCHAR* argv[] ){
 
 	while (c == 999){
 		server = ConnectClient();
+		try{
+			ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+			int choice = *((int*)recvbuf);
 
-		int size;
-		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-		size = *((int*)recvbuf);
-		
-		ReadFile(hpipe, recvbuf, 1, &NuByRe, NULL);
-		ReadFile(hpipe, recvbuf, size, &NuByRe, NULL);
-		recvbuf[NuByRe] = '\0';
-		
-
-		if (strcmp(recvbuf, "login") == 0){
-			c = Login(server);
+			if (choice == 40){
+				c = Login(server);
+			}
+			else if (choice == 30){
+				c = Register(server);
+			}
+			else{
+				closeConn(server);
+				return -1;
+			}
 		}
-		else if(strcmp(recvbuf, "register")==0){
-			c = Register(server);
-		}
-		else{
-			closeConn(server);
-			return -1;
+		catch (...){
+			c = 999;
 		}
 		if (c == 999){
 			WriteFile(hpipe, L"errore\n", 7 * sizeof(wchar_t), &NuByRe, NULL);		
+			closeConn(server);
 		}
 		else{
 			WriteFile(hpipe, L"OK\n", 7 * sizeof(wchar_t), &NuByRe, NULL);
-
-		}
-		if (c == 999){
-			closeConn(server);
 		}
 	}
 
-
+//DA AGGIUNGERE BLOCCHI TRY CATCH RISPOSTE ALLA GUI NEGATIVE/POSITIVE PER OGNI AZIONE
 
 	while (1){
+		int choice;
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		choice = *((int*)recvbuf);
 
-		//effettuo una sync
-		wstring *cartella = new wstring(L"C:\\Users\\Paolo\\Desktop\\PROVA2");
-		sync(server, cartella);
-		this_thread::sleep_for(chrono::seconds(10));
-		delete cartella;
-		
-		auto debug =GetLastConfig(server);
-		Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
-		
+		if (choice == 10){
+			sync(server);
+		}
+		if (choice == 20){
+			list<Oggetto*> debug = GetLastConfig(server);
+			for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+				Oggetto* temp = *it;
+				WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
+				WriteFile(hpipe,L"\n", sizeof(wchar_t), &NuByRe, NULL);
+			}
+			WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
+			
+			PulisciLista(debug);
+			}
+		if (choice == 30){
+			auto debug = GetLastConfig(server);
+			Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
+			PulisciLista(debug);
+		}
+		if (choice == 999){
+			break;
+		}
 		system("cls");
+		printf("wating for new commands\n");
 	}
 
 	closeConn(server);
@@ -106,8 +120,22 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	return 0;
 }
 
-void sync(SOCKET server,wstring* cartella){
-	
+void sync(SOCKET server){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	DWORD NuByRe;
+
+	int size;
+	ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+	size = *((int*)recvbuf);
+
+
+	ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+	recvbuf[NuByRe] = '\0';
+	recvbuf[NuByRe+1] = '\0';
+
+	wstring *cartella = new wstring((wchar_t*)recvbuf);
+
 	std::list <Oggetto*> newconfig, lastconfig, missingfiles;
 
 	Cartella cartelle(cartella, newconfig);
@@ -171,6 +199,7 @@ void sync(SOCKET server,wstring* cartella){
 	PulisciLista(newconfig);
 	PulisciLista(lastconfig);
 	PulisciLista(missingfiles);
+	delete cartella;
 }
 
 void Restore(SOCKET server, wstring wpath,string hash){
