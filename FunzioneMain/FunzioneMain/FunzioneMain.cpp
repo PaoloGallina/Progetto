@@ -44,7 +44,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	if (hpipe == INVALID_HANDLE_VALUE){
 		while (hpipe == INVALID_HANDLE_VALUE){
 			_tprintf(TEXT("INVALID CLIENT ERROR::%d\n"), GetLastError());
-			this_thread::sleep_for(chrono::milliseconds(2000));
+			this_thread::sleep_for(chrono::milliseconds(1000));
 			hpipe = CreateFile(TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 		}
 	}
@@ -92,7 +92,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 //DA AGGIUNGERE BLOCCHI TRY CATCH RISPOSTE ALLA GUI NEGATIVE/POSITIVE PER OGNI AZIONE
 
 	while (1){
-		
+		list<Oggetto*> debug;
+
 		int choice;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		choice = *((int*)recvbuf);
@@ -107,7 +108,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					sync(server);
 				}
 				if (choice == 20){
-					list<Oggetto*> debug = GetLastConfig(server);
+					 debug = GetLastConfig(server);
 					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
@@ -129,14 +130,15 @@ int _tmain(int argc,_TCHAR* argv[] ){
 				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 			}
 			catch (...){
+				PulisciLista(debug);
 				WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
 			}
 		}
 		else{
 			WriteFile(hpipe, L"Server non raggiungibile\n", 25 * sizeof(wchar_t), &NuByRe, NULL);
 		}
-		system("cls");
-		printf("wating for new commands\n");
+		//system("cls");
+		::printf("wating for new commands\n");
 	}
 	WSACleanup();
 	_CrtDumpMemoryLeaks();
@@ -144,81 +146,95 @@ int _tmain(int argc,_TCHAR* argv[] ){
 }
 
 void sync(SOCKET server){
+	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	DWORD NuByRe;
-
-	int size;
-	ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-	size = *((int*)recvbuf);
-
-
-	ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-	recvbuf[NuByRe] = '\0';
-	recvbuf[NuByRe+1] = '\0';
-
-	wstring *cartella = new wstring((wchar_t*)recvbuf);
-
 	std::list <Oggetto*> newconfig, lastconfig, missingfiles;
+	wstring *cartella;
 
-	Cartella cartelle(cartella, newconfig);
+	try{
 
-	printf("\nI get from the server the last configuration\n");
-	lastconfig = GetLastConfig(server);
-	missingfiles = FilesDaMandare(newconfig, lastconfig);
+		int size;
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
 
-	printf("I ask to the server to do 10 SYNC\n");
-	sendInt(server, 10);//the required operation is a sync
-	printf("\nI send to the server the new configuration\n");
-	SerializeList(server, newconfig);
-	printf("\nI send to the server the list of the missing files\n");
-	SerializeList(server, missingfiles);
 
-	//questa parte sarebbe carino metterla in una funzione a se
-	printf("\n\nI start sending to the server the file that are needed\n");
-	DWORD read;
-	int tot;
-	int lunghezza = recInt(server);
-	while (lunghezza != -10){
-		char recvbuf[DEFAULT_BUFLEN];
-		int recvbuflen = DEFAULT_BUFLEN;
+		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		recvbuf[NuByRe] = '\0';
+		recvbuf[NuByRe + 1] = '\0';
 
-		wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf));
+		cartella = new wstring((wchar_t*)recvbuf);
 
-		HANDLE file;
 		
-		for (std::list<Oggetto*>::iterator it = newconfig.begin(); it != newconfig.end(); ++it){
-			Oggetto IT = *it;
-			if (!IT.GetPath().compare(wpath)){
-				file = IT.GetHandle();
-				break;
+		Cartella cartelle(cartella, newconfig);
+
+		::printf("\nI get from the server the last configuration\n");
+		lastconfig = GetLastConfig(server);
+		missingfiles = FilesDaMandare(newconfig, lastconfig);
+
+		::printf("I ask to the server to do 10 SYNC\n");
+		sendInt(server, 10);//the required operation is a sync
+		::printf("\nI send to the server the new configuration\n");
+		SerializeList(server, newconfig);
+		::printf("\nI send to the server the list of the missing files\n");
+		SerializeList(server, missingfiles);
+
+		//questa parte sarebbe carino metterla in una funzione a se
+		::printf("\n\nI start sending to the server the file that are needed\n");
+		DWORD read;
+		int tot;
+		int lunghezza = recInt(server);
+		while (lunghezza != -10){
+			char recvbuf[DEFAULT_BUFLEN];
+			int recvbuflen = DEFAULT_BUFLEN;
+
+			wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf));
+
+			HANDLE file;
+
+			for (std::list<Oggetto*>::iterator it = newconfig.begin(); it != newconfig.end(); ++it){
+				Oggetto IT = *it;
+				if (!IT.GetPath().compare(wpath)){
+					file = IT.GetHandle();
+					break;
+				}
+
 			}
-			
-		}
-		tot = 0;
-		while (1){
-			ReadFile(file, recvbuf, recvbuflen, &read, NULL);
-			if (read != recvbuflen){
-				sendNbytes(server, recvbuf, read);
+			tot = 0;
+			while (1){
+				ReadFile(file, recvbuf, recvbuflen, &read, NULL);
+				if (read != recvbuflen){
+					sendNbytes(server, recvbuf, read);
+					tot += read;
+					break;
+				}
 				tot += read;
-				break;
+				sendNbytes(server, recvbuf, read);
 			}
-			tot += read;
-			sendNbytes(server, recvbuf, read);
+			lunghezza = recInt(server);
+			SetFilePointer(file, 0, 0, 0);
 		}
-		lunghezza = recInt(server);
-		SetFilePointer(file, 0, 0, 0);
+		sendInt(server, -10);
+		if (recInt(server) == -10){
+			::printf("Sync terminated, no more file needed\n");
+		}
+		else{
+			::printf("ERROR during sync termination\n");
+		}
+
+		//pulizia
 	}
-	sendInt(server, -10);
-	if (recInt(server) == -10){
-		printf("Sync terminated, no more file needed\n");
-	}
-	else{
-		printf("ERROR during sync termination\n");
+	catch(...){
+	
+		PulisciLista(newconfig);
+		PulisciLista(lastconfig);
+		PulisciLista(missingfiles);
+		delete cartella;
+		throw "errore generico sync";
+		
 	}
 
-	//pulizia
-	
 	PulisciLista(newconfig);
 	PulisciLista(lastconfig);
 	PulisciLista(missingfiles);
@@ -227,7 +243,7 @@ void sync(SOCKET server){
 
 void Restore(SOCKET server, wstring wpath,string hash){
 
-	printf("\nStarting the restore\n");
+	::printf("\nStarting the restore\n");
 	sendInt(server, 50);
 	
 	sendInt(server, hash.size() + 1);
@@ -249,7 +265,7 @@ void Restore(SOCKET server, wstring wpath,string hash){
 		throw "the file in the restore has not been created";
 	}
 	if (recInt(server) == 999){
-		printf("\n\n\ninvalid file name\n\n\n");
+		::printf("\n\n\ninvalid file name\n\n\n");
 		throw "RESTORE invalid file name";
 	}
 	int size = recInt(server);
@@ -272,7 +288,7 @@ void Restore(SOCKET server, wstring wpath,string hash){
 	}
 
 	if (DeleteFileW(wpath.c_str()) == 0 && GetLastError()!=ERROR_FILE_NOT_FOUND){
-		printf("deletetion error");
+		::printf("deletetion error");
 		CloseHandle(handle);
 		DeleteFileW(temp.c_str());
 		throw "RESTORE: impossibile eliminare il vecchio file";
@@ -286,15 +302,15 @@ void Restore(SOCKET server, wstring wpath,string hash){
 	if (recInt(server) == -50){
 		sendInt(server, -50);
 		if (recInt(server) == -50){
-			printf("restore successfully completed\n");
+			::printf("restore successfully completed\n");
 		}
 		else{
-			printf("error detected in the restore\n");
+			::printf("error detected in the restore\n");
 			throw("error detected in the restore");
 		}
 	}
 	else{
-		printf("error detected in the restore\n");
+		::printf("error detected in the restore\n");
 		throw("error detected in the restore");
 	}
 	
@@ -302,10 +318,10 @@ void Restore(SOCKET server, wstring wpath,string hash){
 }
 
 list<Oggetto*> GetLastConfig(SOCKET server){
-	printf("I send the #20 requested last config\n");
+	::printf("I send the #20 requested last config\n");
 	sendInt(server, 20);
 	list<Oggetto*>last;
-	printf("I get the number of files in the last config\n");
+	::printf("I get the number of files in the last config\n");
 	int n = recInt(server);
 
 	char* Hash = recvFile(server);
@@ -330,7 +346,7 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	::free(PathNameLast);
 
 	if (recInt(server)!=-20){
-		printf("\nAn error occurred while receiving last config");
+		::printf("\nAn error occurred while receiving last config");
 	}
 	return last;
 }
@@ -354,14 +370,14 @@ void SerializeList(SOCKET server,list<Oggetto*> daser){
 		b.write(IT.GetLastModified().c_str(), IT.GetLastModified().size());
 		b.write(L"\n", 1);
 	}
-	printf("I send the number of obj in the list\n");
+	::printf("I send the number of obj in the list\n");
 	sendInt(server, daser.size());
 
-	printf("I send the size of first file and the file\n");
+::	printf("I send the size of first file and the file\n");
 	sendInt(server, c.str().size());
 	invFile(server, (char*)c.str().c_str(), c.str().size());
 
-	printf("I send the size of second fileand the file\n");
+	::printf("I send the size of second fileand the file\n");
 	sendInt(server, b.str().size()*sizeof(wchar_t));
 	invFile(server, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
 
@@ -447,7 +463,7 @@ int Login(SOCKET server){
 
 void PulisciLista(std::list < Oggetto *>& a){
 	Oggetto* p2;
-	while (!a.empty()){
+	while (!a.empty() ){
 		p2 = a.front();
 		if (p2->GetHandle() != INVALID_HANDLE_VALUE){
 			if (!CloseHandle(p2->GetHandle())){

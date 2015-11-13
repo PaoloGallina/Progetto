@@ -42,10 +42,15 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 			if (desk.compare(find_file_data.cFileName)){
 			
 				HANDLE handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+				int t = 6;
 				while (handle == INVALID_HANDLE_VALUE&&GetLastError()!=ERROR_FILE_NOT_FOUND){
 					wcout << "non posso aprire il file " << filepath << endl;
-					this_thread::sleep_for(chrono::seconds(10));
+					this_thread::sleep_for(chrono::seconds(2));
 					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+					t--;
+					if (t < 0){
+						throw "a file cannot be accessed";
+					}
 				}
 				FILETIME ultimamodifica;
 				GetFileTime(handle, NULL, NULL, &ultimamodifica);

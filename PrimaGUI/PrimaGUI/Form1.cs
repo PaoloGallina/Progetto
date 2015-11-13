@@ -105,6 +105,18 @@ namespace PrimaGUI
         {
             folderBrowserDialog1.ShowDialog();
             Program.path = folderBrowserDialog1.SelectedPath;
+            try
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                {
+                    file.WriteLine(folderBrowserDialog1.SelectedPath);
+                }
+            }
+            catch
+            {
+                //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
+                //le credenziali
+            }
         }
 
         //Bisogna fare un controllo sulla buona riuscita della sync e magari far apparire un messaggio fino alla terminazione della stessa

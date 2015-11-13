@@ -380,6 +380,7 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 	catch (...){
 		wcout << L"ROLLBACK" << endl;
 		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+		throw "errore durante la creazione di una nuova versione";
 	}
 }
 
