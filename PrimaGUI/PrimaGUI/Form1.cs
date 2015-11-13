@@ -24,7 +24,35 @@ namespace PrimaGUI
         {
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None;
-            
+            try
+            {
+                using (System.IO.StreamReader file = new System.IO.StreamReader(@".\_" + Program.userName + @"_Config_.bin", System.Text.Encoding.Unicode))
+                {
+                    Program.path=file.ReadLine();
+                }
+            }
+            catch
+            {
+                while (Program.path.CompareTo(@"") == 0)
+                {
+                    folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
+                    folderBrowserDialog1.ShowDialog();
+                    Program.path = folderBrowserDialog1.SelectedPath;
+                }
+            }
+           
+            try
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                {
+                    file.WriteLine(folderBrowserDialog1.SelectedPath);
+                }
+            }
+            catch
+            {
+                //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
+                //le credenziali
+            }
         }
 
         private void button1_Click(object sender, EventArgs e)

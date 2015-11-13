@@ -22,17 +22,25 @@
 #define DEFAULT_PORT "8080"
 
 
-SOCKET __cdecl ConnectClient()
+SOCKET __cdecl ConnectClient(HANDLE hpipe)
 {
-	int argc = 2;
-	char* addr = "127.0.0.1";
-	
+
+	int c;
+	DWORD read;
+	DWORD NuByRe;
+	char addr[100];
+
+	ReadFile(hpipe, addr, 4, &read, NULL);
+	c = *((int*)addr);
+	ReadFile(hpipe, addr, c, &read, NULL);
+	addr[read] = '\0';
 
 	WSADATA wsaData;
 	SOCKET ConnectSocket = INVALID_SOCKET;
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
 	int iResult;
 
+	int flag = 3;
 	while (ConnectSocket == INVALID_SOCKET){
 		try{
 
@@ -86,10 +94,20 @@ SOCKET __cdecl ConnectClient()
 
 		}
 		catch (char* a){
-			std::this_thread::sleep_for(std::chrono::seconds(3));
+			std::this_thread::sleep_for(std::chrono::seconds(1));
+			flag--;
+			if (flag < 1){
+				break;
+			}
 		}
 	}
-	printf("Connection is settled!\n");
+	
+	if (ConnectSocket != INVALID_SOCKET){
+		printf("Connection is settled!\n");
+		WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
+
+	}
+
 	return ConnectSocket;
 }
 

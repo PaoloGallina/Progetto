@@ -22,7 +22,7 @@
 #define DEFAULT_BUFLEN 512
 #define DEFAULT_PORT "8080"
 
-SOCKET __cdecl ConnectClient();
+SOCKET __cdecl ConnectClient(HANDLE hpipe);
 void sendNbytes(SOCKET ConnectSocket, char*stringa, int size);
 void closeConn(SOCKET ConnectSocket);
 void sendInt(SOCKET ConnectSocket, int i);

@@ -17,6 +17,7 @@ namespace PrimaGUI
         public static string userName="";
         public static string Password="";
         public static string path="";
+        public static string ip = "";
         public static Process myprocess;
         
         [STAThread]

@@ -90,15 +90,25 @@ namespace PrimaGUI
                 logORreg = 30;
             }
 
+            Program.Bin.Write(IpAddressText.Text.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
+            string temp = Program.Sr.ReadLine();
+            if (temp.CompareTo("OK") != 0)
+            {
+                label4.Text = temp;
+                label4.ForeColor = System.Drawing.Color.Red;
+                return;
+            }
             Program.Bin.Write(logORreg);
             Program.Bin.Write(UsernameText.Text.Length);
-            Program.Bin.Write(UsernameText.Text);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
             Program.Bin.Write(PasswordText.Text.Length);
-            Program.Bin.Write(PasswordText.Text);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(PasswordText.Text));
             
-            string temp=Program.Sr.ReadLine();
-            if (temp.CompareTo("errore")==0) {
-                label4.Text = "Errore Nella Procedura";
+            
+            temp=Program.Sr.ReadLine();
+            if (temp.CompareTo("OK")!=0) {
+                label4.Text = temp;
                 label4.ForeColor = System.Drawing.Color.Red;
                 return;
             }
@@ -106,6 +116,22 @@ namespace PrimaGUI
             Program.userName = UsernameText.Text;
             Program.Password = PasswordText.Text;
             Program.path     = folderBrowserDialog1.SelectedPath;
+            Program.ip = IpAddressText.Text;
+
+            if (CartDaSyncButton.Visible == true){ // i.e. Ho effettuato la registrazione
+                try
+                {
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                    {
+                        file.WriteLine(folderBrowserDialog1.SelectedPath);
+                    }
+                }
+                catch { 
+                    //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
+                    //le credenziali
+                }
+            }
+
             flag = true;
             this.Close();
             

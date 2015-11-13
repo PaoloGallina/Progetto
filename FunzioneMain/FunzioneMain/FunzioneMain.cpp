@@ -52,31 +52,38 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	SOCKET server=INVALID_SOCKET;
 
 	while (c == 999){
-		server = ConnectClient();
-		try{
-			ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-			int choice = *((int*)recvbuf);
 
-			if (choice == 40){
-				c = Login(server);
+		server = ConnectClient(hpipe);
+		if (server != INVALID_SOCKET){
+			try{
+				ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+				int choice = *((int*)recvbuf);
+
+				if (choice == 40){
+					c = Login(server);
+				}
+				else if (choice == 30){
+					c = Register(server);
+				}
+				else{
+					closeConn(server);
+					return -1;
+				}
 			}
-			else if (choice == 30){
-				c = Register(server);
+			catch (...){
+				c = 999;
+			}
+
+			if (c == 999){
+				WriteFile(hpipe, L"errore nella procedura\n", 23 * sizeof(wchar_t), &NuByRe, NULL);
+				closeConn(server);
 			}
 			else{
-				closeConn(server);
-				return -1;
+				WriteFile(hpipe, L"OK\n", 7 * sizeof(wchar_t), &NuByRe, NULL);
 			}
 		}
-		catch (...){
-			c = 999;
-		}
-		if (c == 999){
-			WriteFile(hpipe, L"errore\n", 7 * sizeof(wchar_t), &NuByRe, NULL);		
-			closeConn(server);
-		}
 		else{
-			WriteFile(hpipe, L"OK\n", 7 * sizeof(wchar_t), &NuByRe, NULL);
+			WriteFile(hpipe, L"Server non raggiungibile\n", 25 * sizeof(wchar_t), &NuByRe, NULL);
 		}
 	}
 
@@ -101,21 +108,19 @@ int _tmain(int argc,_TCHAR* argv[] ){
 			
 			PulisciLista(debug);
 			}
-		if (choice == 30){
+		if (choice == 50){
 			auto debug = GetLastConfig(server);
 			Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
 			PulisciLista(debug);
 		}
-		if (choice == 999){
-			break;
-		}
+		
+		sendInt(server, 999);		
+		closeConn(server);
+
 		system("cls");
 		printf("wating for new commands\n");
 	}
-
-	closeConn(server);
 	WSACleanup();
-
 	_CrtDumpMemoryLeaks();
 	return 0;
 }
@@ -382,7 +387,6 @@ int Register(SOCKET server){
 
 	ReadFile(hpipe, nome, 4, &read, NULL);
 	c = *((int*)nome);
-	ReadFile(hpipe, nome, 1, &read, NULL);
 	ReadFile(hpipe, nome, c, &read, NULL);
 	nome[read] = '\0';
 
@@ -391,7 +395,6 @@ int Register(SOCKET server){
 
 	ReadFile(hpipe, pass, 4, &read, NULL);
 	c = *((int*)pass);
-	ReadFile(hpipe, pass, 1, &read, NULL);
 	ReadFile(hpipe, pass, c, &read, NULL);
 	pass[read] = '\0';
 	sendInt(server, strlen(pass) + 1);
@@ -410,7 +413,6 @@ int Login(SOCKET server){
 
 	ReadFile(hpipe, nome, 4, &read, NULL);
 	c = *((int*)nome);
-	ReadFile(hpipe, nome, 1, &read, NULL);
 	ReadFile(hpipe, nome, c, &read, NULL);
 	nome[read] = '\0';
 	sendInt(server, strlen(nome)+1);
@@ -418,7 +420,6 @@ int Login(SOCKET server){
 	
 	ReadFile(hpipe, pass, 4, &read, NULL);
 	c = *((int*)pass);
-	ReadFile(hpipe, pass, 1, &read, NULL);
 	ReadFile(hpipe, pass, c, &read, NULL);
 	pass[read] = '\0';
 	sendInt(server, strlen(pass)+1);
