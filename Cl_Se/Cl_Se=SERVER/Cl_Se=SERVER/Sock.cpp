@@ -84,14 +84,13 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 				break;
 			}
 
-			freeaddrinfo(result);
 
+			freeaddrinfo(result);
 			if (ConnectSocket == INVALID_SOCKET) {
 				printf("Unable to connect to server!\n");
 				WSACleanup();
 				throw "Unable to connect to server!\n";
 			}
-
 		}
 		catch (char* a){
 			std::this_thread::sleep_for(std::chrono::seconds(1));
@@ -107,6 +106,11 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 		WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 
 	}
+
+	struct timeval tv;
+	tv.tv_sec = 30000;  /* 30 Secs Timeout */
+	setsockopt(ConnectSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+	setsockopt(ConnectSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 
 	return ConnectSocket;
 }

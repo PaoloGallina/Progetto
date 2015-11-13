@@ -80,6 +80,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 			}
 			else{
 				WriteFile(hpipe, L"OK\n", 7 * sizeof(wchar_t), &NuByRe, NULL);
+				sendInt(server, 999);
+				closeConn(server);
 			}
 		}
 		else{
@@ -90,33 +92,49 @@ int _tmain(int argc,_TCHAR* argv[] ){
 //DA AGGIUNGERE BLOCCHI TRY CATCH RISPOSTE ALLA GUI NEGATIVE/POSITIVE PER OGNI AZIONE
 
 	while (1){
+		
 		int choice;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		choice = *((int*)recvbuf);
 
-		if (choice == 10){
-			sync(server);
-		}
-		if (choice == 20){
-			list<Oggetto*> debug = GetLastConfig(server);
-			for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
-				Oggetto* temp = *it;
-				WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
-				WriteFile(hpipe,L"\n", sizeof(wchar_t), &NuByRe, NULL);
-			}
-			WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
-			
-			PulisciLista(debug);
-			}
-		if (choice == 50){
-			auto debug = GetLastConfig(server);
-			Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
-			PulisciLista(debug);
-		}
-		
-		sendInt(server, 999);		
-		closeConn(server);
+		server = ConnectClient(hpipe);
+		if (server != INVALID_SOCKET){
+			try{
+				Login(server); //A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
 
+
+				if (choice == 10){
+					sync(server);
+				}
+				if (choice == 20){
+					list<Oggetto*> debug = GetLastConfig(server);
+					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+						Oggetto* temp = *it;
+						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+					}
+					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
+
+					PulisciLista(debug);
+				}
+				if (choice == 50){
+					auto debug = GetLastConfig(server);
+					Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
+					PulisciLista(debug);
+				}
+
+				
+				sendInt(server, 999);
+				closeConn(server);
+				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
+			}
+			catch (...){
+				WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
+			}
+		}
+		else{
+			WriteFile(hpipe, L"Server non raggiungibile\n", 25 * sizeof(wchar_t), &NuByRe, NULL);
+		}
 		system("cls");
 		printf("wating for new commands\n");
 	}

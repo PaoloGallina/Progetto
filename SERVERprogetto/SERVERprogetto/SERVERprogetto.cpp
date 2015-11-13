@@ -119,14 +119,15 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			printf("SERVER a connection is settled\n");
 			
-		//	std::thread  cliente(ServeClient, ClientSocket);
-		//	cliente.detach();
 			struct timeval tv;
 			tv.tv_sec = 30000;  /* 30 Secs Timeout */
 			setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
 			setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 
-			ServeClient( ClientSocket);
+			std::thread  cliente(ServeClient, ClientSocket);
+			cliente.detach();
+			
+		//	ServeClient( ClientSocket);
 			ClientSocket = INVALID_SOCKET;
 		//	break;
 			
@@ -191,7 +192,8 @@ int ServeClient(SOCKET client) {
 	std::lock_guard<std::mutex> LG(m);
 	clients.remove(nome);
 	closeConn(client);
-	printf("logout of a client");
+	printf("logout of a client %s",nome.c_str());
+
 	return 0;
 }
 

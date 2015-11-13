@@ -40,7 +40,12 @@ namespace PrimaGUI
                     Program.path = folderBrowserDialog1.SelectedPath;
                 }
             }
-           
+            while (Program.path.CompareTo(@"") == 0)
+            {
+                folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
+                folderBrowserDialog1.ShowDialog();
+                Program.path = folderBrowserDialog1.SelectedPath;
+            }
             try
             {
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
@@ -53,32 +58,47 @@ namespace PrimaGUI
                 //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
                 //le credenziali
             }
+
         }
 
         private void button1_Click(object sender, EventArgs e)
         {
+           
+
             if (dataGridView1.Visible == false)
             {
                 dataGridView1.Visible = true;
                 int index = 0;
                 Program.Sr.DiscardBufferedData();
                 Program.Bin.Write(20);
+                if (sendCred() == 999) {
+                    return;
+                }
+                Program.Sr.DiscardBufferedData();
                 while (true)
                 {
-                    string path = Program.Sr.ReadLine();
-                    if (path.CompareTo(@"end") == 0) {
+                    string patht = Program.Sr.ReadLine();
+                    if (patht.CompareTo(@"end") == 0) {
                         break;
                     }
                    
                     this.dataGridView1.Rows.Add();
-                    this.dataGridView1.Rows[index].Cells[0].Value = path;
+                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     index++;
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
                 }
             }
             else
             {
                 dataGridView1.Visible = false;
-                }
+            }
+
+
         }
 
         private void button2_Click(object sender, EventArgs e)
@@ -90,11 +110,21 @@ namespace PrimaGUI
         //Bisogna fare un controllo sulla buona riuscita della sync e magari far apparire un messaggio fino alla terminazione della stessa
         private void SYNC_Click(object sender, EventArgs e)
         {
+            
             Program.Bin.Write(10);
+            if (sendCred() == 999)
+            {
+                return;
+            }
             Program.Bin.Write(Program.path.Length);
             Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
-           
-            
+
+            Program.Sr.DiscardBufferedData();
+            string temp = Program.Sr.ReadLine();
+            if (temp.CompareTo("OK") != 0)
+            {
+                label1.Text = temp;
+            }
         }
 
         //Necessario per la chiusura del processo client C++
@@ -125,5 +155,24 @@ namespace PrimaGUI
             }
         }
 
+        private int sendCred() {
+
+            Program.Bin.Write(Program.ip.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.ip));
+            Program.Sr.DiscardBufferedData();
+            string temp = Program.Sr.ReadLine();
+            if (temp.CompareTo("OK") != 0)
+            {
+                label1.Text = temp;
+                label1.ForeColor = System.Drawing.Color.Red;
+                return 999;
+            }
+            Program.Bin.Write(Program.userName.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.userName));
+            Program.Bin.Write(Program.Password.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.Password));
+
+            return 0;
+        }
     }
 }
