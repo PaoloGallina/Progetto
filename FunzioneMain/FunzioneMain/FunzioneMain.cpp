@@ -23,7 +23,7 @@ void sync(SOCKET client);
 list<Oggetto*> GetLastConfig(SOCKET server);
 void SerializeList(SOCKET server, list<Oggetto*> daser);
 list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig);
-void Restore(SOCKET server, wstring wpath, string hash);
+void Restore(SOCKET server);
 int Register(SOCKET server);
 int Login(SOCKET server);
 void Talk();
@@ -113,15 +113,14 @@ int _tmain(int argc,_TCHAR* argv[] ){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, temp->GetHash().c_str(), temp->GetHash().size(), &NuByRe, NULL);
+						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 					}
 					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
-
 					PulisciLista(debug);
 				}
 				if (choice == 50){
-					auto debug = GetLastConfig(server);
-					Restore(server, debug.back()->GetPath(), debug.back()->GetHash());
-					PulisciLista(debug);
+					Restore(server);
 				}
 
 				
@@ -158,8 +157,6 @@ void sync(SOCKET server){
 		int size;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		size = *((int*)recvbuf);
-
-
 		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		recvbuf[NuByRe] = '\0';
 		recvbuf[NuByRe + 1] = '\0';
@@ -241,64 +238,90 @@ void sync(SOCKET server){
 	delete cartella;
 }
 
-void Restore(SOCKET server, wstring wpath,string hash){
+void Restore(SOCKET server){
 
-	::printf("\nStarting the restore\n");
-	sendInt(server, 50);
+	char recvbuf2[DEFAULT_BUFLEN];
+	int recvbuflen2 = DEFAULT_BUFLEN;
+	DWORD NuByRe;
+
+	int size;
+	ReadFile(hpipe, recvbuf2, 4, &NuByRe, NULL);
+	size = *((int*)recvbuf2);
+	ReadFile(hpipe, recvbuf2, size*sizeof(wchar_t), &NuByRe, NULL);
+	recvbuf2[NuByRe] = '\0';
+	recvbuf2[NuByRe + 1] = '\0';
+	wstring wpath((wchar_t*)recvbuf2);
 	
-	sendInt(server, hash.size() + 1);
-	sendNbytes(server, (char *)hash.c_str(), hash.size() + 1);
-	sendInt(server, (wpath.size() + 1)*sizeof(wchar_t));
-	sendNbytes(server, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
+	ReadFile(hpipe, recvbuf2, 4, &NuByRe, NULL);
+	size = *((int*)recvbuf2);
+	ReadFile(hpipe, recvbuf2, size*sizeof(wchar_t), &NuByRe, NULL);
+	recvbuf2[NuByRe] = '\0';	
+	string hash(recvbuf2);
+
+	HANDLE handle;
+	wchar_t* temp2;
+	wstring temp;
+	try{
+		::printf("\nStarting the restore\n");
+		sendInt(server, 50);
+
+		sendInt(server, hash.size() + 1);
+		sendNbytes(server, (char *)hash.c_str(), hash.size() + 1);
+		sendInt(server, (wpath.size() + 1)*sizeof(wchar_t));
+		sendNbytes(server, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
 
 
-	wchar_t* temp2= (wchar_t*)malloc((MAX_PATH)*sizeof(wchar_t));
-	memcpy(temp2, wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
-	PathRemoveFileSpec(temp2);
-	SHCreateDirectoryExW(NULL, temp2, NULL);
-	::free(temp2);
+		temp2 = (wchar_t*)malloc((MAX_PATH)*sizeof(wchar_t));
+		memcpy(temp2, wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
+		PathRemoveFileSpec(temp2);
+		SHCreateDirectoryExW(NULL, temp2, NULL);
+		::free(temp2);
 
-	std::wstring temp(wpath);
-	temp.append(L".tempandhidden");
-	HANDLE handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_HIDDEN, NULL);
-	if (handle == INVALID_HANDLE_VALUE){
-		throw "the file in the restore has not been created";
-	}
-	if (recInt(server) == 999){
-		::printf("\n\n\ninvalid file name\n\n\n");
-		throw "RESTORE invalid file name";
-	}
-	int size = recInt(server);
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-	int tot = 0;
-	DWORD read;
-	while (tot < (int)size){
-		if (tot + recvbuflen < size){
-			(char*)recNbytes(server, recvbuflen, recvbuf);
-			WriteFile(handle, recvbuf, recvbuflen, &read, NULL);
+		temp= wpath;
+		temp.append(L".tempandhidden");
+		handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_HIDDEN, NULL);
+		if (handle == INVALID_HANDLE_VALUE){
+			throw "the file in the restore has not been created";
 		}
-		else{
-			(char*)recNbytes(server, size - tot, recvbuf);
-			WriteFile(handle, recvbuf, size - tot, &read, NULL);
-			tot += size - tot;
-			break;
+		if (recInt(server) == 999){
+			::printf("\n\n\ninvalid file name\n\n\n");
+			throw "RESTORE invalid file name";
 		}
-		tot += DEFAULT_BUFLEN;
-	}
+		int size = recInt(server);
+		char recvbuf[DEFAULT_BUFLEN];
+		int recvbuflen = DEFAULT_BUFLEN;
+		int tot = 0;
+		DWORD read;
+		while (tot < (int)size){
+			if (tot + recvbuflen < size){
+				(char*)recNbytes(server, recvbuflen, recvbuf);
+				WriteFile(handle, recvbuf, recvbuflen, &read, NULL);
+			}
+			else{
+				(char*)recNbytes(server, size - tot, recvbuf);
+				WriteFile(handle, recvbuf, size - tot, &read, NULL);
+				tot += size - tot;
+				break;
+			}
+			tot += DEFAULT_BUFLEN;
+		}
 
-	if (DeleteFileW(wpath.c_str()) == 0 && GetLastError()!=ERROR_FILE_NOT_FOUND){
-		::printf("deletetion error");
+		if (DeleteFileW(wpath.c_str()) == 0 && GetLastError() != ERROR_FILE_NOT_FOUND){
+			::printf("deletetion error");
+			DeleteFileW(temp.c_str());
+			throw "RESTORE: impossibile eliminare il vecchio file";
+		}
 		CloseHandle(handle);
-		DeleteFileW(temp.c_str());
-		throw "RESTORE: impossibile eliminare il vecchio file";
+		MoveFileW(temp.c_str(), wpath.c_str());
+		SetFileAttributesW(wpath.c_str(), FILE_ATTRIBUTE_NORMAL);
+
 	}
-
-	CloseHandle(handle);
-	MoveFileW(temp.c_str(), wpath.c_str());
-	SetFileAttributesW(wpath.c_str(),FILE_ATTRIBUTE_NORMAL);
+	catch (...){
+		CloseHandle(handle);
+		throw "error during the restore";
+	}
 	
-
+	
 	if (recInt(server) == -50){
 		sendInt(server, -50);
 		if (recInt(server) == -50){
@@ -313,7 +336,7 @@ void Restore(SOCKET server, wstring wpath,string hash){
 		::printf("error detected in the restore\n");
 		throw("error detected in the restore");
 	}
-	
+
 	return;
 }
 

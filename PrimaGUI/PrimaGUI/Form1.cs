@@ -57,29 +57,34 @@ namespace PrimaGUI
 
         }
 
-        private void button1_Click(object sender, EventArgs e)
+        private void VisualizzaVersione_Click(object sender, EventArgs e)
         {
            
-
             if (dataGridView1.Visible == false)
             {
                 dataGridView1.Visible = true;
                 int index = 0;
-                Program.Sr.DiscardBufferedData();
                 Program.Bin.Write(20);
                 if (sendCred() == 999) {
                     return;
                 }
-                Program.Sr.DiscardBufferedData();
+
                 while (true)
                 {
+                    Program.Sr.DiscardBufferedData();
                     string patht = Program.Sr.ReadLine();
                     if (patht.CompareTo(@"end") == 0) {
+                        this.dataGridView1.Rows.Add();
+                        this.dataGridView1.Rows[index].Cells[0].Value = "    FINITO";   
                         break;
                     }
-                   
+                    Program.Srchar.DiscardBufferedData();
+                    string hash = Program.Srchar.ReadLine();
+
                     this.dataGridView1.Rows.Add();
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
+                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
+                   
                     index++;
                 }
                 Program.Sr.DiscardBufferedData();
@@ -126,6 +131,7 @@ namespace PrimaGUI
             }
             Program.Bin.Write(Program.path.Length);
             Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
+
 
             Program.Sr.DiscardBufferedData();
             string temp = Program.Sr.ReadLine();
@@ -181,6 +187,30 @@ namespace PrimaGUI
             Program.Bin.Write(Encoding.ASCII.GetBytes(Program.Password));
 
             return 0;
+        }
+
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            Program.Bin.Write(50);
+            if (sendCred() == 999)
+            {
+                return;
+            }
+            int index = e.RowIndex;
+            string path =(string) this.dataGridView1.Rows[index].Cells[0].Value;
+            string hash = (string)this.dataGridView1.Rows[index].Cells[1].Value;
+           
+            Program.Bin.Write(path.Length);
+            Program.Bin.Write(Encoding.Unicode.GetBytes(path));
+            Program.Bin.Write(hash.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
+
+            Program.Sr.DiscardBufferedData();
+            string temp = Program.Sr.ReadLine();
+            if (temp.CompareTo("OK") != 0)
+            {
+                label1.Text = temp;
+            }
         }
     }
 }

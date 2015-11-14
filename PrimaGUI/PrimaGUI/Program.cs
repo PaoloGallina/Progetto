@@ -13,6 +13,7 @@ namespace PrimaGUI
     {
         public static NamedPipeServerStream PServer1 = null;
         public static StreamReader Sr = null;
+        public static StreamReader Srchar = null;
         public static BinaryWriter Bin = null;
         public static string userName="";
         public static string Password="";
@@ -42,6 +43,7 @@ namespace PrimaGUI
                 PServer1 = new NamedPipeServerStream(pipename, System.IO.Pipes.PipeDirection.InOut);
                 PServer1.WaitForConnection();
                 Sr = new StreamReader(PServer1, System.Text.Encoding.Unicode);
+                Srchar = new StreamReader(PServer1, System.Text.Encoding.ASCII);
                 Bin = new BinaryWriter(PServer1);
             }
 

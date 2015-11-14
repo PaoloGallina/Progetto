@@ -429,7 +429,6 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		}
 
 		PulisciDB(db);
-		sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		sqlite3_exec(db, "END TRANSACTION;", callback, NULL, &zErrMsg);
 		if (zErrMsg != nullptr){
 			throw "error during the commit-->ROLLBACK";

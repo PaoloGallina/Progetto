@@ -28,7 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
-            this.button1 = new System.Windows.Forms.Button();
+            this.VisualizzaVersione = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
@@ -40,23 +40,23 @@
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
-            // button1
+            // VisualizzaVersione
             // 
-            this.button1.BackColor = System.Drawing.Color.Transparent;
-            this.button1.FlatAppearance.BorderColor = System.Drawing.Color.White;
-            this.button1.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(12, 9);
-            this.button1.Margin = new System.Windows.Forms.Padding(0);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(478, 37);
-            this.button1.TabIndex = 12;
-            this.button1.Text = "Visualizza Versione";
-            this.button1.UseCompatibleTextRendering = true;
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.button1_Click);
+            this.VisualizzaVersione.BackColor = System.Drawing.Color.Transparent;
+            this.VisualizzaVersione.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.VisualizzaVersione.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.VisualizzaVersione.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.VisualizzaVersione.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.VisualizzaVersione.ForeColor = System.Drawing.Color.White;
+            this.VisualizzaVersione.Location = new System.Drawing.Point(12, 9);
+            this.VisualizzaVersione.Margin = new System.Windows.Forms.Padding(0);
+            this.VisualizzaVersione.Name = "VisualizzaVersione";
+            this.VisualizzaVersione.Size = new System.Drawing.Size(478, 37);
+            this.VisualizzaVersione.TabIndex = 12;
+            this.VisualizzaVersione.Text = "Visualizza Versione";
+            this.VisualizzaVersione.UseCompatibleTextRendering = true;
+            this.VisualizzaVersione.UseVisualStyleBackColor = false;
+            this.VisualizzaVersione.Click += new System.EventHandler(this.VisualizzaVersione_Click);
             // 
             // button2
             // 
@@ -90,6 +90,7 @@
             this.dataGridView1.Size = new System.Drawing.Size(478, 391);
             this.dataGridView1.TabIndex = 11;
             this.dataGridView1.Visible = false;
+            this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
             // Column1
             // 
@@ -163,7 +164,7 @@
             this.Controls.Add(this.button3);
             this.Controls.Add(this.dataGridView1);
             this.Controls.Add(this.button2);
-            this.Controls.Add(this.button1);
+            this.Controls.Add(this.VisualizzaVersione);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Name = "Form1";
             this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
@@ -180,7 +181,7 @@
 
         #endregion
 
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button VisualizzaVersione;
         private System.Windows.Forms.Button button2;
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.DataGridView dataGridView1;

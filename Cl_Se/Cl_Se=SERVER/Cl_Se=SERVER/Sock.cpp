@@ -93,7 +93,7 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 			}
 		}
 		catch (char* a){
-			std::this_thread::sleep_for(std::chrono::seconds(1));
+			printf("I'll retry in a while\n");
 			flag--;
 			if (flag < 1){
 				break;

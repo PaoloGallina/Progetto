@@ -206,6 +206,15 @@ void Sync(SOCKET client, std::string nome){
 		}
 		else{
 			std::wcout << L"\nThe database is updated\n" << std::endl;
+			sendInt(client, -10);
+			if (recInt(client) != -10){
+				printf("sync problem, not terminated correctly");
+				throw "sync problem, not terminated correctly";
+			}
+			else{
+				sendInt(client, -10);
+				printf("sync is terminated no more files are needed");
+			}
 		}
 		for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
 			ReadVERSIONE(db, i);
@@ -215,6 +224,7 @@ void Sync(SOCKET client, std::string nome){
 	catch (...){
 		PulisciLista(newconfig);
 		PulisciLista(missingfiles);
+		sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		int rc=sqlite3_close(db);
 		throw "errore durante la sync";
 	}
