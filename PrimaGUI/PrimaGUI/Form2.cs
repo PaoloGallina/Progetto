@@ -123,12 +123,11 @@ namespace PrimaGUI
                 {
                     using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
                     {
-                        file.WriteLine(folderBrowserDialog1.SelectedPath);
-                    }
+                        file.WriteLine(Program.path);
+                     }
                 }
-                catch { 
-                    //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
-                    //le credenziali
+                catch {
+                    label4.Text = "FILE CONFIG ERROR";
                 }
             }
 

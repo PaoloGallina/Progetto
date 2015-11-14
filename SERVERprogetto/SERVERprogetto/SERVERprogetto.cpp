@@ -180,11 +180,7 @@ int ServeClient(SOCKET client) {
 	catch (...){
 		printf("logout of a client due to an error");
 		std::lock_guard<std::mutex> LG(m);
-		if (nome.length()!=0)
-		{
-			clients.remove(nome);
-			
-		}
+		clients.remove(nome);
 		closeConn(client);
 		return -1;
 	}
@@ -200,64 +196,71 @@ int ServeClient(SOCKET client) {
 void Sync(SOCKET client, std::string nome){
 	sqlite3 *db = CreateDatabase(nome);
 	std::list < Oggetto *> newconfig,missingfiles;
+	try{
+		TxtToList(client, newconfig);
+		TxtToList(client, missingfiles);
 
-	TxtToList(client, newconfig);
-	TxtToList(client, missingfiles);
 
-	
-	if (missingfiles.size() != 0 || file_cancellati(db, newconfig.size()) != 0){
-		nuovaVersione(db, client, newconfig, missingfiles);
+		if (missingfiles.size() != 0 || file_cancellati(db, newconfig.size()) != 0){
+			nuovaVersione(db, client, newconfig, missingfiles);
+		}
+		else{
+			std::wcout << L"\nThe database is updated\n" << std::endl;
+		}
+		for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
+			ReadVERSIONE(db, i);
+		}
+		ReadFILES(db);
 	}
-	else{
-		std::wcout << L"\nThe database is updated\n" << std::endl;
+	catch (...){
+		PulisciLista(newconfig);
+		PulisciLista(missingfiles);
+		int rc=sqlite3_close(db);
+		throw "errore durante la sync";
 	}
-	for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
-		ReadVERSIONE(db, i);
-	}
-	ReadFILES(db);
+
 	PulisciLista(newconfig);
 	PulisciLista(missingfiles);
 	sqlite3_close(db);
-	//dico al client che la sync è terminata con successo
-	sendInt(client, -10);
-	if (recInt(client) != -10){
-		printf("sync problem, not terminated correctly");
-		throw "sync problem, not terminated correctly";
-	}
-	else{
-		sendInt(client, -10);
-		printf("sync is terminated no more files are needed");
-	}
+	//Ho già detto al client che la sync è terminata con successo
+
 	printf("\n\n\n");
 }
 
 void SendLastconfig(SOCKET client,  std::string nome){
 	sqlite3 *db = CreateDatabase(nome);
 	std::list<Oggetto*> last = LastVersion(db);
-	
-	//serialize list of files
-	std::stringstream c;
-	std::wstringstream b;
+	try{
 
-	for (std::list<Oggetto*>::iterator it = last.begin(); it != last.end(); ++it){
-		Oggetto IT = *it;
-		c.write(IT.GetHash().c_str(), IT.GetHash().size());
-		c.write("\n", 1);
-		b.write(IT.GetPath().c_str(), IT.GetPath().size());
-		b.write(L"\n", 1);
+
+		//serialize list of files
+		std::stringstream c;
+		std::wstringstream b;
+
+		for (std::list<Oggetto*>::iterator it = last.begin(); it != last.end(); ++it){
+			Oggetto IT = *it;
+			c.write(IT.GetHash().c_str(), IT.GetHash().size());
+			c.write("\n", 1);
+			b.write(IT.GetPath().c_str(), IT.GetPath().size());
+			b.write(L"\n", 1);
+		}
+		printf("I send the number of files in the last config\n");
+		sendInt(client, last.size());
+
+		printf("I send the size of first file and the file\n");
+		sendInt(client, c.str().size());
+		invFile(client, (char*)c.str().c_str(), c.str().size());
+
+		printf("I send the size of second file and the file\n");
+		sendInt(client, b.str().size()*sizeof(wchar_t));
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+
 	}
-	printf("I send the number of files in the last config\n");
-	sendInt(client, last.size());
-
-	printf("I send the size of first file and the file\n");
-	sendInt(client, c.str().size());
-	invFile(client, (char*)c.str().c_str(), c.str().size());
-
-	printf("I send the size of second file and the file\n");
-	sendInt(client, b.str().size()*sizeof(wchar_t));
-	invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
-
-
+	catch (...){
+		PulisciLista(last);
+		sqlite3_close(db);
+		throw "error during send last config";
+	}
 	PulisciLista(last);
 	sqlite3_close(db);
 	sendInt(client,-20);
@@ -316,14 +319,12 @@ void Register(SOCKET client,std::string& nome){
 
 		if (clients.size() > MAX_N_CLIENTS){
 			sendInt(client, 999);
-			closeConn(client);
 			throw "too many users";
 		}
 		for (std::list<std::string>::iterator it = clients.begin(); it != clients.end(); ++it){
 			std::string IT = *it;
 			if (!IT.compare(nome)){
 				sendInt(client, 999);
-				closeConn(client);
 				throw "user already served";
 			}
 		}
@@ -340,17 +341,26 @@ void Register(SOCKET client,std::string& nome){
 	else{
 		my_file.close();
 		sqlite3 *db = CreateDatabase(nome.c_str());
-		int  rc;
-		std::string sql = "INSERT INTO CREDENTIAL (USER,PASS) VALUES (?1, ?2);";
-
 		sqlite3_stmt* stm = NULL;
-		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		try{
+			int  rc;
+			std::string sql = "INSERT INTO CREDENTIAL (USER,PASS) VALUES (?1, ?2);";
 
-		rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
-		rc = sqlite3_bind_text(stm, 2, pass.c_str(), pass.size(), SQLITE_STATIC);
+			
+			rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
-		rc = sqlite3_step(stm);
-		rc = sqlite3_finalize(stm);
+			rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
+			rc = sqlite3_bind_text(stm, 2, pass.c_str(), pass.size(), SQLITE_STATIC);
+
+			rc = sqlite3_step(stm);
+			
+		}
+		catch(...){
+			sqlite3_finalize(stm);
+			sqlite3_close(db);
+			throw "error during registration";
+		}
+		sqlite3_finalize(stm);
 		sqlite3_close(db);
 	}
 
@@ -375,7 +385,6 @@ void Login(SOCKET client, std::string& nome){
 		
 		if (clients.size() > MAX_N_CLIENTS){
 			sendInt(client, 999);
-			closeConn(client);
 			throw "too many users";
 		}
 		
@@ -383,7 +392,6 @@ void Login(SOCKET client, std::string& nome){
 			std::string IT = *it;
 			if (!IT.compare(nome)){
 				sendInt(client, 999);
-				closeConn(client);
 				throw "user already served";
 			}
 		}
@@ -395,17 +403,25 @@ void Login(SOCKET client, std::string& nome){
 	{	
 		my_file.close();
 		sqlite3 *db = CreateDatabase(nome.c_str());
-		std::string sql = "SELECT PASS FROM CREDENTIAL WHERE USER=?1";
 		sqlite3_stmt* stm;
-		int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-		rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
-		rc = sqlite3_step(stm);
-		std::string passD = std::string((char*)sqlite3_column_text(stm, 0));
-		if (passD.compare(pass)!=0){
-			sendInt(client, 999);
-			throw "wrong password ";
+		try{
+			std::string sql = "SELECT PASS FROM CREDENTIAL WHERE USER=?1";			
+			int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+			rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
+			rc = sqlite3_step(stm);
+			std::string passD = std::string((char*)sqlite3_column_text(stm, 0));
+			if (passD.compare(pass) != 0){
+				sendInt(client, 999);
+				throw "wrong password ";
+			}
+			
 		}
-		rc = sqlite3_finalize(stm);
+		catch (...){
+			sqlite3_finalize(stm);
+			sqlite3_close(db);
+			throw "error during login";
+		}
+		sqlite3_finalize(stm);
 		sqlite3_close(db);
 	}
 	else{
@@ -429,47 +445,57 @@ void Restore(SOCKET client, std::string nome){
 
 	int rc;
 	sqlite3* db = CreateDatabase(nome);
-	/* Create SQL statement */
-	std::string sql = "SELECT rowid from FILES where PATH=?1 and HASH=?2";
-
-	sqlite3_stmt* stm;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-	rc = sqlite3_bind_blob(stm, 1, path, wcslen(path)*sizeof(TCHAR), SQLITE_STATIC);
-	rc = sqlite3_bind_text(stm, 2, hash, strlen(hash), SQLITE_STATIC);
-	rc = sqlite3_step(stm);
-	sqlite_int64 rowid = sqlite3_column_int64(stm, 0);
-	sqlite3_finalize(stm);
-
 	sqlite3_blob *BLOB;
-	rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
-	if (rc == 1){
-		std::cout << sqlite3_errmsg(db) << std::endl;
-		sendInt(client, 999);
-		throw "invalid rowid";
-	}
-	else{ sendInt(client, 0); }
+	sqlite3_stmt* stm;
+	try{
+		/* Create SQL statement */
+		std::string sql = "SELECT rowid from FILES where PATH=?1 and HASH=?2";
 
-	int size = sqlite3_blob_bytes(BLOB);
-	sendInt(client, size);
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-	int tot = 0;
-	while (tot < size){
-		if (tot + recvbuflen < size){
-			int read = sqlite3_blob_read(BLOB, recvbuf, recvbuflen, tot);
-			sendNbytes(client, recvbuf, recvbuflen);
+		
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_bind_blob(stm, 1, path, wcslen(path)*sizeof(TCHAR), SQLITE_STATIC);
+		rc = sqlite3_bind_text(stm, 2, hash, strlen(hash), SQLITE_STATIC);
+		rc = sqlite3_step(stm);
+		sqlite_int64 rowid = sqlite3_column_int64(stm, 0);
+		
+
+
+		rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
+		if (rc == 1){
+			std::cout << sqlite3_errmsg(db) << std::endl;
+			sendInt(client, 999);
+			throw "invalid rowid";
 		}
-		else{
-			int read = sqlite3_blob_read(BLOB, recvbuf, size - tot, tot);
-			sendNbytes(client, recvbuf, size - tot);
-			tot += size - tot;
-			break;
+		else{ sendInt(client, 0); }
+
+		int size = sqlite3_blob_bytes(BLOB);
+		sendInt(client, size);
+		char recvbuf[DEFAULT_BUFLEN];
+		int recvbuflen = DEFAULT_BUFLEN;
+		int tot = 0;
+		while (tot < size){
+			if (tot + recvbuflen < size){
+				int read = sqlite3_blob_read(BLOB, recvbuf, recvbuflen, tot);
+				sendNbytes(client, recvbuf, recvbuflen);
+			}
+			else{
+				int read = sqlite3_blob_read(BLOB, recvbuf, size - tot, tot);
+				sendNbytes(client, recvbuf, size - tot);
+				tot += size - tot;
+				break;
+			}
+			tot += DEFAULT_BUFLEN;
 		}
-		tot += DEFAULT_BUFLEN;
+
+
 	}
-
-
-
+	catch (...){
+		sqlite3_finalize(stm);
+		sqlite3_blob_close(BLOB);
+		sqlite3_close(db);
+		throw "error during restore";
+	}
+	sqlite3_finalize(stm);
 	sqlite3_blob_close(BLOB);
 	sqlite3_close(db);
 

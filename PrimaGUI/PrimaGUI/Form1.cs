@@ -33,30 +33,26 @@ namespace PrimaGUI
             }
             catch
             {
-                while (Program.path.CompareTo(@"") == 0)
-                {
-                    folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
-                    folderBrowserDialog1.ShowDialog();
-                    Program.path = folderBrowserDialog1.SelectedPath;
-                }
+                //il file non è presente, ma non è grave
             }
+
             while (Program.path.CompareTo(@"") == 0)
             {
                 folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
                 folderBrowserDialog1.ShowDialog();
                 Program.path = folderBrowserDialog1.SelectedPath;
             }
+
             try
             {
                 using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
                 {
-                    file.WriteLine(folderBrowserDialog1.SelectedPath);
+                    file.WriteLine(Program.path);
                 }
             }
             catch
             {
-                //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
-                //le credenziali
+                //il file non è presente, ma non è grave l'utente dovrà caricarl ogni volta
             }
 
         }

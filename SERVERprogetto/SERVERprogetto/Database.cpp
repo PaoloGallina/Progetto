@@ -82,17 +82,24 @@ int GetUltimaVersione(sqlite3*db){
 	/* Create SQL statement */
 	std::string sql = "SELECT max(VER) FROM VERSIONS";
 	sqlite3_stmt* stm;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-	rc = sqlite3_step(stm);
-	
-	int temp=0;
-	if (rc == 100){
-		temp = sqlite3_column_int(stm, 0);
-	}
-	else{
-		temp = 0;
-	}
+	int temp = 0;
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_step(stm);
 
+		
+		if (rc == 100){
+			temp = sqlite3_column_int(stm, 0);
+		}
+		else{
+			temp = 0;
+		}
+	}
+	catch (...){
+
+		rc = sqlite3_finalize(stm);
+		throw "error during getUltimaVersione";
+	}
 	rc = sqlite3_finalize(stm);
 	return temp;
 }
@@ -106,22 +113,28 @@ list<Oggetto*> LastVersion(sqlite3*db){
 	/* Create SQL statement */
 	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
 	sqlite3_stmt* stm;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-	rc = sqlite3_bind_int(stm, 1, versione);
-	rc = sqlite3_step(stm);
-
-	std::wstring path;
-	std::string hash;
-	int ver;
-	while (rc == 100){
-
-		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
-		ver = sqlite3_column_int(stm, 1);
-		hash = std::string((char*)sqlite3_column_text(stm, 2));
-
-		Oggetto* p2=new Oggetto(path,L"",L"",hash,0,INVALID_HANDLE_VALUE);
-		last.push_front(p2);
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_bind_int(stm, 1, versione);
 		rc = sqlite3_step(stm);
+
+		std::wstring path;
+		std::string hash;
+		int ver;
+		while (rc == 100){
+
+			path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
+			ver = sqlite3_column_int(stm, 1);
+			hash = std::string((char*)sqlite3_column_text(stm, 2));
+
+			Oggetto* p2 = new Oggetto(path, L"", L"", hash, 0, INVALID_HANDLE_VALUE);
+			last.push_front(p2);
+			rc = sqlite3_step(stm);
+		}
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		throw"error during Last version";
 	}
 	sqlite3_finalize(stm);
 	return last;
@@ -131,61 +144,71 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 
 	int  rc=0;
 	std::string sql = "INSERT INTO FILES (PATH , HASH , DATI , VER) VALUES (?1, ?2, ?3, ?4);";
-	sqlite3_stmt* stm = NULL;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-
-	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
-	rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
-	rc = sqlite3_bind_zeroblob(stm, 3, size);
-	rc = sqlite3_bind_int(stm, 4, versione);
-
-	rc = sqlite3_step(stm);
-
-	if (rc != SQLITE_DONE){
-		fprintf(stderr, " This file was already present in the database!\n",rc);
-	}
-	else{
-		fprintf(stdout, "Record FILE created successfully\n");
-	}
 	
-	sqlite3_finalize(stm);
-
-
-	std::string sql2 = "SELECT ROWID FROM FILES WHERE HASH=?1 and PATH=?2;";
+	sqlite3_stmt* stm = NULL;
 	sqlite3_stmt* stm2 = NULL;
-	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
-	rc = sqlite3_bind_text(stm2, 1, hash.c_str(), hash.size(), SQLITE_STATIC);
-	rc = sqlite3_bind_blob(stm2, 2, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
-	rc = sqlite3_step(stm2);
-	sqlite_int64 rowid = sqlite3_column_int64(stm2, 0);
-	sqlite3_finalize(stm2);
+	sqlite3_blob *BLOB=NULL;
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
-	sqlite3_blob *BLOB;
-	rc=sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 1, &BLOB);
-	if (rc == 1){
-		cout << sqlite3_errmsg(db)<<endl;
-	}
+		rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
+		rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
+		rc = sqlite3_bind_zeroblob(stm, 3, size);
+		rc = sqlite3_bind_int(stm, 4, versione);
 
-	sendInt(client, (wpath.size() + 1)*sizeof(wchar_t));
-	sendNbytes(client, (char*)wpath.c_str(),(wpath.size()+1)*sizeof(wchar_t));
+		rc = sqlite3_step(stm);
 
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-	int tot = 0;
-
-	while (tot < (int)size){
-		if (tot + recvbuflen < size){
-			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf), recvbuflen, tot);
+		if (rc != SQLITE_DONE){
+			fprintf(stderr, " This file was already present in the database!\n", rc);
 		}
 		else{
-			rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf), size - tot, tot);
-			tot += size - tot;
-			break;
+			fprintf(stdout, "Record FILE created successfully\n");
 		}
-		tot += DEFAULT_BUFLEN;
+
+
+
+
+		std::string sql2 = "SELECT ROWID FROM FILES WHERE HASH=?1 and PATH=?2;";
+
+		rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
+		rc = sqlite3_bind_text(stm2, 1, hash.c_str(), hash.size(), SQLITE_STATIC);
+		rc = sqlite3_bind_blob(stm2, 2, wpath.c_str(), wpath.size()*sizeof(wchar_t), SQLITE_STATIC);
+		rc = sqlite3_step(stm2);
+		sqlite_int64 rowid = sqlite3_column_int64(stm2, 0);
+
+
+		rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 1, &BLOB);
+		if (rc == 1){
+			cout << sqlite3_errmsg(db) << endl;
+		}
+
+		sendInt(client, (wpath.size() + 1)*sizeof(wchar_t));
+		sendNbytes(client, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
+
+		char recvbuf[DEFAULT_BUFLEN];
+		int recvbuflen = DEFAULT_BUFLEN;
+		int tot = 0;
+
+		while (tot < (int)size){
+			if (tot + recvbuflen < size){
+				rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf), recvbuflen, tot);
+			}
+			else{
+				rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf), size - tot, tot);
+				tot += size - tot;
+				break;
+			}
+			tot += DEFAULT_BUFLEN;
+		}
 	}
-
-
+	catch (...){
+		sqlite3_finalize(stm);
+		sqlite3_finalize(stm2);
+		sqlite3_blob_close(BLOB);
+		throw "Error during insert file";
+	}
+	sqlite3_finalize(stm);
+	sqlite3_finalize(stm2);
 	sqlite3_blob_close(BLOB);
 	
 };
@@ -196,26 +219,31 @@ void InsertVER(sqlite3*db, std::wstring wpath, std::string hash,int ver){
 	std::string sql = "INSERT INTO VERSIONS (PATH,VER,HASH) VALUES (?1, ?2, ?3);";
 
 	sqlite3_stmt* stm = NULL;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
-	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
-	rc = sqlite3_bind_int(stm, 2, ver);
-	rc = sqlite3_bind_text(stm, 3, hash.c_str(), hash.size(), SQLITE_STATIC);
-	
+		rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
+		rc = sqlite3_bind_int(stm, 2, ver);
+		rc = sqlite3_bind_text(stm, 3, hash.c_str(), hash.size(), SQLITE_STATIC);
 
-	rc = sqlite3_step(stm);
 
-	if (rc != SQLITE_DONE){
-		printf( "nuova versione non inserita!\n");
+		rc = sqlite3_step(stm);
+
+		if (rc != SQLITE_DONE){
+			printf("nuova versione non inserita!\n");
+		}
+		else{
+			printf("Record VERSION created successfully\n");
+		}
 	}
-	else{
-		printf( "Record VERSION created successfully\n");
+	catch (...){
+		sqlite3_finalize(stm);
+		throw "error during insert VER";
 	}
-
 	sqlite3_finalize(stm);
 
 	return;
-};
+}
 
 void ReadFILES(sqlite3*db){
 	int rc;
@@ -225,38 +253,43 @@ void ReadFILES(sqlite3*db){
 	//std::string sql = "SELECT PATH,HASH,VER,DATI from FILES";
 
 	sqlite3_stmt* stm;
-	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-	rc = sqlite3_step(stm);
-
-	std::wstring path;
-	std::string hash;
-	//std::string file;
-	int ver;
-	std::wcout << L"\n\n\nFILE PRESENTI NEL DB \n----------------------------\n";
-	if (rc != 100){
-		std::wcout << L"   NESSUN FILE PRESENTE" << endl;
-	}
-	while (rc == 100){
-
-		path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0)/sizeof(TCHAR));
-		hash = std::string((char*)sqlite3_column_text(stm, 1));
-		ver = (sqlite3_column_int(stm, 2));
-		
-		//file = std::string((char*)sqlite3_column_blob(stm, 3), sqlite3_column_bytes(stm, 3));
-	    //std::ofstream ofs(path, std::ios::binary);
-		//ofs << file;
-		//std::ofstream ifs(path + L".wmv", std::ios::binary);
-		//ifs << file;
-
-		std::wcout <<ver<<" : "<< hash.c_str()<< endl ;
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 		rc = sqlite3_step(stm);
+
+		std::wstring path;
+		std::string hash;
+		//std::string file;
+		int ver;
+		std::wcout << L"\n\n\nFILE PRESENTI NEL DB \n----------------------------\n";
+		if (rc != 100){
+			std::wcout << L"   NESSUN FILE PRESENTE" << endl;
+		}
+		while (rc == 100){
+
+			path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
+			hash = std::string((char*)sqlite3_column_text(stm, 1));
+			ver = (sqlite3_column_int(stm, 2));
+
+			//file = std::string((char*)sqlite3_column_blob(stm, 3), sqlite3_column_bytes(stm, 3));
+			//std::ofstream ofs(path, std::ios::binary);
+			//ofs << file;
+			//std::ofstream ifs(path + L".wmv", std::ios::binary);
+			//ifs << file;
+
+			std::wcout << ver << " : " << hash.c_str() << endl;
+			rc = sqlite3_step(stm);
+		}
+
+
+
+
 	}
-
-	
-	
-	
-
-	sqlite3_finalize(stm);///POI PROVA A SPOSTARLO
+	catch (...){
+		sqlite3_finalize(stm);
+		throw "error during read file";
+	}
+	sqlite3_finalize(stm);
 	
 	return;
 }
@@ -266,6 +299,7 @@ void ReadVERSIONE(sqlite3 *db, int versione){
 	/* Create SQL statement */
 	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
 	sqlite3_stmt* stm;
+	try{
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_bind_int(stm, 1, versione);
 	rc = sqlite3_step(stm);
@@ -289,7 +323,11 @@ void ReadVERSIONE(sqlite3 *db, int versione){
 		rc = sqlite3_step(stm);
 
 	}
-
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		throw "error during read file";
+	}
 	rc = sqlite3_finalize(stm);
 	return;
 }
@@ -301,11 +339,16 @@ void eliminaFILE(sqlite3* db,wstring wpath,int ver){
 	std::string sql = "DELETE from FILES where PATH=?1 and VER=?2";
 
 	sqlite3_stmt* stm;
+	try{
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
 	rc = sqlite3_bind_int(stm, 2, ver);
 	rc = sqlite3_step(stm);
-
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		throw "error during read Eliminafile";
+	}
 	sqlite3_finalize(stm);
 
 };
@@ -315,14 +358,16 @@ void PulisciDB(sqlite3* db){
 	int rc;
 	int Versione = GetUltimaVersione(db);
 	std::string sql = "DELETE FROM VERSIONS WHERE VER<?1";
-	sqlite3_stmt* stm;
+	sqlite3_stmt* stm=NULL;
+	sqlite3_stmt* stm2=NULL;
+	try{
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_bind_int(stm, 1, Versione - 2);
 	rc = sqlite3_step(stm);
-	sqlite3_finalize(stm);
+	
 
 	std::string sql2 = "SELECT PATH,MIN(VER) FROM FILES GROUP BY PATH HAVING count(*)>3";
-	sqlite3_stmt* stm2;
+	
 	rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
 	rc = sqlite3_step(stm2);
 	while (rc == 100){
@@ -335,13 +380,19 @@ void PulisciDB(sqlite3* db){
 		rc = sqlite3_prepare_v2(db, sql2.c_str(), -1, &stm2, NULL);
 		rc = sqlite3_step(stm2);
 	}
-
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		sqlite3_finalize(stm2);
+		throw "error pulisci DB";
+	}
+	sqlite3_finalize(stm);
 	sqlite3_finalize(stm2);
 
 }
 
 void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
-	
+	char *zErrMsg = 0;
 	try{
 		sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 		int Versione = GetUltimaVersione(db);
@@ -357,6 +408,7 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 			std::string sql = "UPDATE FILES SET VER = ?3 where hash=?2 and path=?1";
 			int rc;
 			sqlite3_stmt* stm;
+			try{
 			rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 			wstring wpath = ((*ci)->GetPath());
 			string hash = ((*ci)->GetHash());
@@ -367,19 +419,41 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 
 			//qui il programma richiede di colpo tantissima memoria.. ma è colpa di sqlite3
 			rc = sqlite3_step(stm);
-
+			}
+			catch (...){
+				sqlite3_finalize(stm);
+				throw "error during update VER";
+			}
 			sqlite3_finalize(stm);
 
 		}
 
 		PulisciDB(db);
 		sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
-		sqlite3_exec(db, "END TRANSACTION;", NULL, NULL, NULL);
+		sqlite3_exec(db, "END TRANSACTION;", callback, NULL, &zErrMsg);
+		if (zErrMsg != nullptr){
+			throw "error during the commit-->ROLLBACK";
+		}
+
+		sendInt(client, -10);
+		if (recInt(client) != -10){
+			printf("sync problem, not terminated correctly");
+			throw "sync problem, not terminated correctly";
+		}
+		else{
+			sendInt(client, -10);
+			printf("sync is terminated no more files are needed");
+		}
+
 		wcout << L"TRANSACTION COMMITTED" << endl;
+
 	}
 	catch (...){
 		wcout << L"ROLLBACK" << endl;
-		sqlite3_exec(db, "ROLLBACK;", NULL, NULL, NULL);
+		sqlite3_exec(db, "ROLLBACK;", callback, NULL, &zErrMsg);
+		if (zErrMsg != nullptr){
+			throw "error during the ROLLBACK";
+		}
 		throw "errore durante la creazione di una nuova versione";
 	}
 }
@@ -392,6 +466,7 @@ int file_cancellati(sqlite3* db, int val){
 	
 	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
 	sqlite3_stmt* stm;
+	try{
 	rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 	rc = sqlite3_bind_int(stm, 1, versione);
 	rc = sqlite3_step(stm);
@@ -400,7 +475,12 @@ int file_cancellati(sqlite3* db, int val){
 		rc = sqlite3_step(stm);
 	}
 
-
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		throw "error during file eliminati";
+	}
 	rc = sqlite3_finalize(stm);
+
 	return val - counter;
 };
