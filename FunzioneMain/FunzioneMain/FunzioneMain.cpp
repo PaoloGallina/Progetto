@@ -279,7 +279,7 @@ void Restore(SOCKET server){
 
 		temp= wpath;
 		temp.append(L".tempandhidden");
-		handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_NEW, FILE_ATTRIBUTE_HIDDEN, NULL);
+		handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
 		if (handle == INVALID_HANDLE_VALUE){
 			throw "the file in the restore has not been created";
 		}
@@ -308,7 +308,6 @@ void Restore(SOCKET server){
 
 		if (DeleteFileW(wpath.c_str()) == 0 && GetLastError() != ERROR_FILE_NOT_FOUND){
 			::printf("deletetion error");
-			DeleteFileW(temp.c_str());
 			throw "RESTORE: impossibile eliminare il vecchio file";
 		}
 		CloseHandle(handle);
@@ -318,6 +317,7 @@ void Restore(SOCKET server){
 	}
 	catch (...){
 		CloseHandle(handle);
+		DeleteFileW(temp.c_str());
 		throw "error during the restore";
 	}
 	
