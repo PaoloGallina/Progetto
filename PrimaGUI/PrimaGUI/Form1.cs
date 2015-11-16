@@ -18,12 +18,10 @@ namespace PrimaGUI
     public partial class Form1 : Form
     {
         public AutoResetEvent T = new AutoResetEvent(false);
-       // private bool _dragging = false;
-       // private Point _start_point = new Point(0, 0);
+
         public Form1()
         {
             InitializeComponent();
-            //this.FormBorderStyle = FormBorderStyle.None;
             try
             {
                 using (System.IO.StreamReader file = new System.IO.StreamReader(@".\_" + Program.userName + @"_Config_.bin", System.Text.Encoding.Unicode))
@@ -59,18 +57,19 @@ namespace PrimaGUI
       
             foreach (DataGridViewColumn c in dataGridView1.Columns)
             {
-                c.DefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
-
-
+                c.DefaultCellStyle.Font = new Font("Times New Roman", 14F, GraphicsUnit.Pixel);
+                c.DefaultCellStyle.BackColor = System.Drawing.SystemColors.ActiveCaption;
+                c.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.ActiveCaption;
                 c.DefaultCellStyle.SelectionForeColor = Color.Black;
                 c.DefaultCellStyle.ForeColor = Color.Black;
-
             }
             dataGridView1.AutoSize = true;
+            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
+            dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.InactiveCaption;
             dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
-           // dataGridView1.EnableHeadersVisualStyles = false;
-          
+            
         }
 
         private void VisualizzaVersione_Click(object sender, EventArgs e)
@@ -101,7 +100,7 @@ namespace PrimaGUI
                     }
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     this.dataGridView1.Rows[index].Cells[1].Value = hash;
-
+                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore"; 
                     index++;
                 }
                 Program.Sr.DiscardBufferedData();
@@ -169,27 +168,6 @@ namespace PrimaGUI
             base.OnClosing(e);
         }
 
-       /* //Metodi per rendere spostabile la finestra
-        private void panel2_MouseDown(object sender, MouseEventArgs e)
-        {
-            _dragging = true;  // _dragging is your variable flag
-            _start_point = new Point(e.X, e.Y);
-        }
-
-        private void panel2_MouseUp(object sender, MouseEventArgs e)
-        {
-            _dragging = false;
-        }
-
-        private void panel2_MouseMove(object sender, MouseEventArgs e)
-        {
-            if (_dragging)
-            {
-                Point p = PointToScreen(e.Location);
-                Location = new Point(p.X - this._start_point.X, p.Y - this._start_point.Y);
-            }
-        }
-        */
        
         private int sendCred() {
 
@@ -213,6 +191,11 @@ namespace PrimaGUI
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+           
+            if (e.ColumnIndex != 3)
+            {
+                return;
+            }
             Program.Bin.Write(50);
             if (sendCred() == 999)
             {
