@@ -437,8 +437,8 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 			InsertFILE(db,client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize());
 		}
-		std::cout<<chrono::system_clock::now();
-
+		//std::cout<<chrono::system_clock::now();
+		last = ""
 		for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
 			InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(),last, Versione);
 
