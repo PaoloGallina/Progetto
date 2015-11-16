@@ -52,7 +52,7 @@ namespace PrimaGUI
             {
                 //il file non è presente, ma non è grave l'utente dovrà caricarl ogni volta
             }
-            this.Text = "Ciao, " + Program.userName + " la cartella attualmente sincronizzata è " + Program.path;
+            this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
         
       
             foreach (DataGridViewColumn c in dataGridView1.Columns)
@@ -62,8 +62,8 @@ namespace PrimaGUI
                 c.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.ActiveCaption;
                 c.DefaultCellStyle.SelectionForeColor = Color.Black;
                 c.DefaultCellStyle.ForeColor = Color.Black;
+           
             }
-            dataGridView1.AutoSize = true;
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
             dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
@@ -71,54 +71,6 @@ namespace PrimaGUI
             dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
             
         }
-
-        private void VisualizzaVersione_Click(object sender, EventArgs e)
-        {
-           
-            if (dataGridView1.Visible == false)
-            {
-                dataGridView1.Visible = true;
-                int index = 0;
-                Program.Bin.Write(20);
-                if (sendCred() == 999) {
-                    return;
-                }
-
-                while (true)
-                {
-                    Program.Sr.DiscardBufferedData();
-                    string patht = Program.Sr.ReadLine();
-                    if (patht.CompareTo(@"end") == 0) {
-                        this.dataGridView1.RowCount=index;
-                        break;
-                    }
-                    Program.Srchar.DiscardBufferedData();
-                    string hash = Program.Srchar.ReadLine();
-
-                    if (dataGridView1.Rows.Count == index){
-                        this.dataGridView1.Rows.Add();
-                    }
-                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
-                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore"; 
-                    index++;
-                }
-                Program.Sr.DiscardBufferedData();
-                string temp = Program.Sr.ReadLine();
-                if (temp.CompareTo("OK") != 0)
-                {
-                    label1.Text = temp;
-                }
-            }
-            else
-            {
-                dataGridView1.Visible = false;
-            }
-
-
-
-
-                    }
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -136,7 +88,7 @@ namespace PrimaGUI
                 //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
                 //le credenziali
             }
-            this.Text = "Ciao, " + Program.userName + " la cartella attualmente sincronizzata è " + Program.path;
+            this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
             
         }
 
@@ -191,7 +143,6 @@ namespace PrimaGUI
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-           
             if (e.ColumnIndex != 3)
             {
                 return;
@@ -216,6 +167,152 @@ namespace PrimaGUI
             {
                 label1.Text = temp;
             }
+        }
+
+
+        private void VisualizzaVersione_Click(object sender, EventArgs e)
+        {
+
+            if (dataGridView1.Visible == false)
+            {
+                dataGridView1.Visible = true;
+                int index = 0;
+                Program.Bin.Write(20);
+                if (sendCred() == 999)
+                {
+                    return;
+                }
+
+                while (true)
+                {
+                    Program.Sr.DiscardBufferedData();
+                    string patht = Program.Sr.ReadLine();
+                    if (patht.CompareTo(@"end") == 0)
+                    {
+                        this.dataGridView1.Columns[0].HeaderText = "Path";
+                        this.dataGridView1.Columns[1].HeaderText = "";
+                        this.dataGridView1.RowCount = index;
+                        break;
+                    }
+                    Program.Srchar.DiscardBufferedData();
+                    string hash = Program.Srchar.ReadLine();
+
+                    if (dataGridView1.Rows.Count == index)
+                    {
+                        this.dataGridView1.Rows.Add();
+                    }
+                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
+                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
+                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore";
+                    this.dataGridView1.Rows[index].Cells[2].Value = "";
+                    index++;
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
+                }
+            }
+            else
+            {
+                dataGridView1.Visible = false;
+            }
+        }
+
+
+        private void VisualizzaFile_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.Visible == false){
+
+                dataGridView1.Visible = true;
+                int index = 0;
+                Program.Bin.Write(60);
+                if (sendCred() == 999){
+                    return;}
+
+                while (true){
+                    Program.Sr.DiscardBufferedData();
+                    string patht = Program.Sr.ReadLine();
+                    if (patht.CompareTo(@"end") == 0){
+                        this.dataGridView1.Columns[0].HeaderText = "Path";
+                        this.dataGridView1.Columns[1].HeaderText = "";
+                        this.dataGridView1.RowCount = index;
+                        break;
+                    }
+                    Program.Srchar.DiscardBufferedData();
+                    string hash = Program.Srchar.ReadLine();
+                    if (dataGridView1.Rows.Count == index){
+                        this.dataGridView1.Rows.Add();
+                    }
+                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
+                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
+                    this.dataGridView1.Rows[index].Cells[2].Value = "";
+                    
+                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore";
+                    index++;
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0){
+                    label1.Text = temp;}
+            }
+            else{
+                dataGridView1.Visible = false;
+            }
+
+        }
+
+        private void VisualizzaVersioni_Click(object sender, EventArgs e)
+        {
+            if (dataGridView1.Visible == false)
+            {
+
+                dataGridView1.Visible = true;
+                int index = 0;
+                Program.Bin.Write(70);
+                if (sendCred() == 999)
+                {
+                    return;
+                }
+
+                while (true)
+                {
+                    Program.Srchar.DiscardBufferedData();
+                    string numero = Program.Srchar.ReadLine();
+                    if (numero.CompareTo(@"end") == 0)
+                    {
+                        this.dataGridView1.Columns[0].HeaderText = "Versione";
+                        this.dataGridView1.Columns[1].HeaderText = "Data Creazione";
+                        this.dataGridView1.RowCount = index;
+                        break;
+                    }
+                    Program.Sr.DiscardBufferedData();
+                    string data = Program.Sr.ReadLine();
+
+                    if (dataGridView1.Rows.Count == index)
+                    {
+                        this.dataGridView1.Rows.Add();
+                    }
+                    
+                    this.dataGridView1.Rows[index].Cells[3].Value = "Visualizza";
+
+                    this.dataGridView1.Rows[index].Cells[0].Value = "Versione Numero "+numero;
+                    this.dataGridView1.Rows[index].Cells[2].Value = data;
+                    index++;
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
+                }
+            }
+            else
+            {
+                dataGridView1.Visible = false;
+            }
+
         }
     }
 }

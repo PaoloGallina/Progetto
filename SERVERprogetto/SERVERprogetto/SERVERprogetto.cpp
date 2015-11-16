@@ -40,6 +40,8 @@ void Register(SOCKET client, std::string& nome);
 void Login(SOCKET client,std::string& nome);
 int ServeClient(SOCKET client);
 void SendLastconfig(SOCKET client, std::string nome);
+void SendAllFiles(SOCKET client, std::string nome);
+
 std::list<std::string> clients;
 std::mutex m;
 
@@ -172,6 +174,12 @@ int ServeClient(SOCKET client) {
 			else if (op == 50){
 				Restore(client, nome);
 			}
+			else if (op == 60){
+				SendAllFiles(client, nome);
+			}
+			else if (op == 70){
+				SendVersions(client, nome);
+			}
 			else if (op == 999){
 				break;
 			}
@@ -274,6 +282,45 @@ void SendLastconfig(SOCKET client,  std::string nome){
 	PulisciLista(last);
 	sqlite3_close(db);
 	sendInt(client,-20);
+}
+
+void SendAllFiles(SOCKET client, std::string nome){
+	sqlite3 *db = CreateDatabase(nome);
+	std::list<Oggetto*> last = AllFiles(db);
+	try{
+
+
+		//serialize list of files
+		std::stringstream c;
+		std::wstringstream b;
+
+		for (std::list<Oggetto*>::iterator it = last.begin(); it != last.end(); ++it){
+			Oggetto IT = *it;
+			c.write(IT.GetHash().c_str(), IT.GetHash().size());
+			c.write("\n", 1);
+			b.write(IT.GetPath().c_str(), IT.GetPath().size());
+			b.write(L"\n", 1);
+		}
+		printf("I send the number of files in the last config\n");
+		sendInt(client, last.size());
+
+		printf("I send the size of first file and the file\n");
+		sendInt(client, c.str().size());
+		invFile(client, (char*)c.str().c_str(), c.str().size());
+
+		printf("I send the size of second file and the file\n");
+		sendInt(client, b.str().size()*sizeof(wchar_t));
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+
+	}
+	catch (...){
+		PulisciLista(last);
+		sqlite3_close(db);
+		throw "error during send last config";
+	}
+	PulisciLista(last);
+	sqlite3_close(db);
+	sendInt(client, -60);
 }
 
 void TxtToList(SOCKET client, std::list < Oggetto *>& listaobj){

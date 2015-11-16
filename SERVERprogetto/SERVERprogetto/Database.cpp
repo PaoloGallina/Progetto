@@ -6,6 +6,8 @@
 #include "sqlite3.h" 
 #include <string>
 #include "Oggetto.h"
+#include <chrono>
+#include <ctime>
 #include <string.h>
 #include <fstream>
 #include <iostream>
@@ -51,7 +53,7 @@ sqlite3 * CreateDatabase(std::string nome){
 	}
 
 	/* Create SQL statement */
-	sql = "CREATE TABLE VERSIONS( PATH BLOB NOT NULL, VER INT NOT NULL,HASH  TEXT NOT NULL, PRIMARY KEY (PATH, VER));";
+	sql = "CREATE TABLE VERSIONS( PATH BLOB NOT NULL, VER INT NOT NULL,HASH  TEXT NOT NULL,LAST BLOB NOT NULL, PRIMARY KEY (PATH, VER));";
 
 	/* CREATING VERSION TABLE */
 	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
@@ -102,6 +104,39 @@ int GetUltimaVersione(sqlite3*db){
 	}
 	rc = sqlite3_finalize(stm);
 	return temp;
+}
+
+list<Oggetto*> AllFiles(sqlite3*db){
+	int rc;
+	list < Oggetto *> last;
+
+
+	/* Create SQL statement */
+	std::string sql = "SELECT PATH,HASH FROM FILES";
+	sqlite3_stmt* stm;
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_step(stm);
+
+		std::wstring path;
+		std::string hash;
+		int ver;
+		while (rc == 100){
+
+			path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
+			hash = std::string((char*)sqlite3_column_text(stm, 1));
+
+			Oggetto* p2 = new Oggetto(path, L"", L"", hash, 0, INVALID_HANDLE_VALUE);
+			last.push_front(p2);
+			rc = sqlite3_step(stm);
+		}
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		throw"error during Last version";
+	}
+	sqlite3_finalize(stm);
+	return last;
 }
 
 list<Oggetto*> LastVersion(sqlite3*db){
@@ -213,16 +248,18 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 	
 };
 
-void InsertVER(sqlite3*db, std::wstring wpath, std::string hash,int ver){
+void InsertVER(sqlite3*db, std::wstring wpath, std::string hash, std::wstring last, int ver){
 	//Just a stub
 	int  rc;
-	std::string sql = "INSERT INTO VERSIONS (PATH,VER,HASH) VALUES (?1, ?2, ?3);";
+	std::string sql = "INSERT INTO VERSIONS (PATH,VER,HASH,LAST) VALUES (?1, ?2, ?3,?4);";
 
 	sqlite3_stmt* stm = NULL;
 	try{
 		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
 		rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
+		rc = sqlite3_bind_blob(stm, 4, last.c_str(), last.size()*sizeof(TCHAR), SQLITE_STATIC);
+
 		rc = sqlite3_bind_int(stm, 2, ver);
 		rc = sqlite3_bind_text(stm, 3, hash.c_str(), hash.size(), SQLITE_STATIC);
 
@@ -400,9 +437,10 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 			InsertFILE(db,client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize());
 		}
+		std::cout<<chrono::system_clock::now();
 
 		for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
-			InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(), Versione);
+			InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(),last, Versione);
 
 
 			std::string sql = "UPDATE FILES SET VER = ?3 where hash=?2 and path=?1";
@@ -457,6 +495,66 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 	}
 }
 
+void SendVersions(SOCKET client, std::string nome){
+	sqlite3 *db = CreateDatabase(nome);
+	int rc;
+	/* Create SQL statement */
+	std::string sql = "SELECT VER,LAST FROM VERSIONS GROUP BY VER,LAST";
+	sqlite3_stmt* stm;
+	//serialize list of files
+	std::stringstream c;
+	std::wstringstream b;
+	try{
+		
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_step(stm);
+
+		std::wstring last_mod;
+		int ver;
+		int n=0;
+		if (rc != 100){
+			wcout << L"NESSUN FILE PRESENTE NELLA CONFIGURAZIONE \n" << endl;
+		}
+		while (rc == 100){
+
+			ver = sqlite3_column_int(stm, 0);
+			last_mod = std::wstring((TCHAR*)sqlite3_column_blob(stm, 1), sqlite3_column_bytes(stm, 1) / sizeof(TCHAR));
+			
+			c.write(to_string(ver).c_str(), to_string(ver).size());
+			c.write("\n", 1);
+			b.write(last_mod.c_str(), last_mod.size());
+			b.write(L"\n", 1);
+
+			rc = sqlite3_step(stm);
+			n++;
+		}
+
+
+
+		printf("I send the number of files in the last config\n");
+		sendInt(client, n);
+
+		printf("I send the size of first file and the file\n");
+		sendInt(client, c.str().size());
+		invFile(client, (char*)c.str().c_str(), c.str().size());
+
+		printf("I send the size of second file and the file\n");
+		sendInt(client, b.str().size()*sizeof(wchar_t));
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+
+	}
+		catch (...){
+			sqlite3_finalize(stm);
+			sqlite3_close(db);
+		throw "error during sending all version";
+	}
+	
+	rc = sqlite3_finalize(stm);
+	sqlite3_close(db);
+	sendInt(client, -70);
+	return;
+}
+
 int file_cancellati(sqlite3* db, int val){
 	
 	int versione = GetUltimaVersione(db);
@@ -483,3 +581,4 @@ int file_cancellati(sqlite3* db, int val){
 
 	return val - counter;
 };
+

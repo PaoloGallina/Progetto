@@ -21,6 +21,8 @@ HANDLE hpipe;
 void PulisciLista(std::list < Oggetto *>& a);
 void sync(SOCKET client);
 list<Oggetto*> GetLastConfig(SOCKET server);
+list<Oggetto*> GetAllFiles(SOCKET server);
+void GetAllVersionN(SOCKET server, HANDLE hpipe);
 void SerializeList(SOCKET server, list<Oggetto*> daser);
 list<Oggetto*> FilesDaMandare(list<Oggetto*>newconfig, list<Oggetto*> lastconfig);
 void Restore(SOCKET server);
@@ -111,7 +113,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					sync(server);
 				}
 				if (choice == 20){
-					 debug = GetLastConfig(server);
+					debug = GetLastConfig(server);
 					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
@@ -122,6 +124,21 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
 					PulisciLista(debug);
 				}
+				if (choice == 60){
+					debug = GetAllFiles(server);
+					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+						Oggetto* temp = *it;
+						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, temp->GetHash().c_str(), temp->GetHash().size(), &NuByRe, NULL);
+						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
+					}
+					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
+					PulisciLista(debug);
+				}
+				if (choice == 70){
+					GetAllVersionN(server,hpipe);
+					}
 				if (choice == 50){
 					Restore(server);
 				}
@@ -355,8 +372,6 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	istringstream fhash(Hash);
 	wistringstream fpath(PathNameLast);
 
-
-
 	int t = 0;
 	while (t<n){
 		wchar_t buf1[DEFAULT_BUFLEN];
@@ -377,6 +392,76 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	return last;
 }
 
+list<Oggetto*> GetAllFiles(SOCKET server){
+	::printf("I send the #60 requesting all files\n");
+	sendInt(server, 60);
+	list<Oggetto*>last;
+	::printf("I get the number of files in the last config\n");
+	int n = recInt(server);
+
+	char* Hash = recvFile(server);
+	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
+	istringstream fhash(Hash);
+	wistringstream fpath(PathNameLast);
+
+	int t = 0;
+	while (t<n){
+		wchar_t buf1[DEFAULT_BUFLEN];
+		char buf4[DEFAULT_BUFLEN];
+		fpath.getline(buf1, DEFAULT_BUFLEN);
+		fhash.getline(buf4, DEFAULT_BUFLEN);
+		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
+
+		t++;
+	}
+
+	::free(Hash);
+	::free(PathNameLast);
+
+	if (recInt(server) != -60){
+		::printf("\nAn error occurred while receiving all the files");
+	}
+	return last;
+
+}
+
+void GetAllVersionN(SOCKET server,HANDLE hpipe){
+	DWORD NuByRe;
+	::printf("I send the #70 requesting all versions\n");
+	sendInt(server, 70);
+	::printf("I get the number of versions\n");
+	int n = recInt(server);
+
+	char* NUM = recvFile(server);
+	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
+	istringstream fnum(NUM);
+	wistringstream fLAST(PathNameLast);
+
+	int t = 0;
+	while (t<n){
+		wchar_t buf1[DEFAULT_BUFLEN];
+		char buf4[DEFAULT_BUFLEN];
+		fLAST.getline(buf1, DEFAULT_BUFLEN);
+		fnum.getline(buf4, DEFAULT_BUFLEN);
+
+		WriteFile(hpipe, buf4, strlen(buf4), &NuByRe, NULL);
+		WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
+		WriteFile(hpipe, buf1, wcslen(buf1) * sizeof(wchar_t), &NuByRe, NULL);
+		WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+
+		t++;
+	}
+
+	::free(NUM);
+	::free(PathNameLast);
+	
+	WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
+	if (recInt(server) != -70){
+		::printf("\nAn error occurred while receiving all the files");
+	}
+
+	return;
+}
 void SerializeList(SOCKET server,list<Oggetto*> daser){
 	//serialize list of files
 	stringstream c;
