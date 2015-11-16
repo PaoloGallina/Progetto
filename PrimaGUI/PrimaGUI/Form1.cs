@@ -18,12 +18,12 @@ namespace PrimaGUI
     public partial class Form1 : Form
     {
         public AutoResetEvent T = new AutoResetEvent(false);
-        private bool _dragging = false;
-        private Point _start_point = new Point(0, 0);
+       // private bool _dragging = false;
+       // private Point _start_point = new Point(0, 0);
         public Form1()
         {
             InitializeComponent();
-            this.FormBorderStyle = FormBorderStyle.None;
+            //this.FormBorderStyle = FormBorderStyle.None;
             try
             {
                 using (System.IO.StreamReader file = new System.IO.StreamReader(@".\_" + Program.userName + @"_Config_.bin", System.Text.Encoding.Unicode))
@@ -54,7 +54,23 @@ namespace PrimaGUI
             {
                 //il file non è presente, ma non è grave l'utente dovrà caricarl ogni volta
             }
+            this.Text = "Ciao, " + Program.userName + " la cartella attualmente sincronizzata è " + Program.path;
+        
+      
+            foreach (DataGridViewColumn c in dataGridView1.Columns)
+            {
+                c.DefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
 
+
+                c.DefaultCellStyle.SelectionForeColor = Color.Black;
+                c.DefaultCellStyle.ForeColor = Color.Black;
+
+            }
+            dataGridView1.AutoSize = true;
+            dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
+            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
+           // dataGridView1.EnableHeadersVisualStyles = false;
+          
         }
 
         private void VisualizzaVersione_Click(object sender, EventArgs e)
@@ -74,17 +90,18 @@ namespace PrimaGUI
                     Program.Sr.DiscardBufferedData();
                     string patht = Program.Sr.ReadLine();
                     if (patht.CompareTo(@"end") == 0) {
-                        this.dataGridView1.Rows.Add();
-                        this.dataGridView1.Rows[index].Cells[0].Value = "    FINITO";   
+                        this.dataGridView1.RowCount=index;
                         break;
                     }
                     Program.Srchar.DiscardBufferedData();
                     string hash = Program.Srchar.ReadLine();
 
-                    this.dataGridView1.Rows.Add();
+                    if (dataGridView1.Rows.Count == index){
+                        this.dataGridView1.Rows.Add();
+                    }
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                   
+
                     index++;
                 }
                 Program.Sr.DiscardBufferedData();
@@ -100,7 +117,9 @@ namespace PrimaGUI
             }
 
 
-        }
+
+
+                    }
 
         private void button2_Click(object sender, EventArgs e)
         {
@@ -118,6 +137,8 @@ namespace PrimaGUI
                 //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
                 //le credenziali
             }
+            this.Text = "Ciao, " + Program.userName + " la cartella attualmente sincronizzata è " + Program.path;
+            
         }
 
         //Bisogna fare un controllo sulla buona riuscita della sync e magari far apparire un messaggio fino alla terminazione della stessa
@@ -148,7 +169,7 @@ namespace PrimaGUI
             base.OnClosing(e);
         }
 
-        //Metodi per rendere spostabile la finestra
+       /* //Metodi per rendere spostabile la finestra
         private void panel2_MouseDown(object sender, MouseEventArgs e)
         {
             _dragging = true;  // _dragging is your variable flag
@@ -168,7 +189,8 @@ namespace PrimaGUI
                 Location = new Point(p.X - this._start_point.X, p.Y - this._start_point.Y);
             }
         }
-
+        */
+       
         private int sendCred() {
 
             Program.Bin.Write(Program.ip.Length);
@@ -199,7 +221,7 @@ namespace PrimaGUI
             int index = e.RowIndex;
             string path =(string) this.dataGridView1.Rows[index].Cells[0].Value;
             string hash = (string)this.dataGridView1.Rows[index].Cells[1].Value;
-           
+            hash.ToLower();
             Program.Bin.Write(path.Length);
             Program.Bin.Write(Encoding.Unicode.GetBytes(path));
             Program.Bin.Write(hash.Length);

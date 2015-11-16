@@ -63,17 +63,19 @@ namespace PrimaGUI
         {
             LoginButton.Visible = true;
             RegisterButton.Visible = true;
+            label3.Visible = true;
+            HelpButtonN.Visible = true;
+            AboutButton.Visible = true;
             OkButton.Visible = false;
             IndietroButton.Visible = false;
             CartDaSyncButton.Visible = false;
-            HelpButtonN.Visible = true;
-            AboutButton.Visible = true;
-            label3.Visible = true;
             label4.Visible = false;
             infoLabel.Visible = false;
             UsernameText.Visible = false;
             PasswordText.Visible = false;
             IpAddressText.Visible = false;
+            label4.Text = "Inserisci tutti i campi";
+            label4.ForeColor = System.Drawing.Color.White;
         }
 
         private void OK_Click(object sender, EventArgs e)

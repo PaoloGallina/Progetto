@@ -35,17 +35,20 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	DWORD NuByRe;
 
 	wstring pipename(L"\\\\.\\pipe\\PIPE");
-	//pipename.append(argv[1]);
-	pipename.append(L"1"); //DEBUG
-
+	if (argc == 2){
+		pipename.append(argv[1]);}
+	else{
+		pipename.append(L"1"); //DEBUG
+	}
+	
+	
 	std::wcout << pipename << endl;
-
-	hpipe = CreateFile( pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	hpipe = CreateFile(pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 	if (hpipe == INVALID_HANDLE_VALUE){
 		while (hpipe == INVALID_HANDLE_VALUE){
 			_tprintf(TEXT("INVALID CLIENT ERROR::%d\n"), GetLastError());
 			this_thread::sleep_for(chrono::milliseconds(1000));
-			hpipe = CreateFile(TEXT("\\\\.\\pipe\\myNamedPipe1"), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+			hpipe = CreateFile(pipename.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 		}
 	}
 

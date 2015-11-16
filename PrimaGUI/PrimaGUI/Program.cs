@@ -29,14 +29,19 @@ namespace PrimaGUI
             //exception proble.. not hardcoded string
             Random rnd = new Random();
             int pipenumber = rnd.Next(10000);
-         //   string pipename = "PIPE" + pipenumber;
-            string pipename = "PIPE" + 1;//DEBUG
+            string pipename = "PIPE" + pipenumber;
+         //   string pipename = "PIPE" + 1;//DEBUG
+            try{
             
             myprocess = new Process();
             myprocess.StartInfo.FileName = "C:\\Users\\Paolo\\Desktop\\Progetto\\FunzioneMain\\Debug\\FunzioneMain.exe";
             myprocess.StartInfo.CreateNoWindow = true;
             myprocess.StartInfo.Arguments = pipenumber.ToString();
-          //  myprocess.Start();
+            myprocess.StartInfo.Verb = "runas";
+            myprocess.Start();
+            }catch(Exception e){
+            return;
+            }
 
             while (PServer1 == null||Bin==null || Sr == null)
             {
