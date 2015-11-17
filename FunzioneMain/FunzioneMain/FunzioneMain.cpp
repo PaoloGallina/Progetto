@@ -21,6 +21,7 @@ HANDLE hpipe;
 void PulisciLista(std::list < Oggetto *>& a);
 void sync(SOCKET client);
 list<Oggetto*> GetLastConfig(SOCKET server);
+list<Oggetto*> GetConfig(SOCKET server, HANDLE hpipe);
 list<Oggetto*> GetAllFiles(SOCKET server);
 void GetAllVersionN(SOCKET server, HANDLE hpipe);
 void SerializeList(SOCKET server, list<Oggetto*> daser);
@@ -106,8 +107,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		server = ConnectClient(hpipe);
 		if (server != INVALID_SOCKET){
 			try{
+				
 				Login(server); //A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
-
 
 				if (choice == 10){
 					sync(server);
@@ -124,6 +125,9 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
 					PulisciLista(debug);
 				}
+				if (choice == 50){
+					Restore(server);
+				}
 				if (choice == 60){
 					debug = GetAllFiles(server);
 					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
@@ -138,9 +142,18 @@ int _tmain(int argc,_TCHAR* argv[] ){
 				}
 				if (choice == 70){
 					GetAllVersionN(server,hpipe);
+				}
+				if (choice == 80){
+					debug = GetConfig(server, hpipe);
+					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+						Oggetto* temp = *it;
+						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, temp->GetHash().c_str(), temp->GetHash().size(), &NuByRe, NULL);
+						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 					}
-				if (choice == 50){
-					Restore(server);
+					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
+					PulisciLista(debug);
 				}
 
 				
@@ -392,6 +405,49 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	return last;
 }
 
+list<Oggetto*> GetConfig(SOCKET server,HANDLE hpipe){
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	DWORD NuByRe;
+
+	int ver;
+	ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+	ver = *((int*)recvbuf);
+
+	::printf("I send the #80 requested a config\n");
+	sendInt(server, 80);
+	list<Oggetto*>last;
+
+	::printf("I send the number of version of the requested config\n");
+	sendInt(server, ver);
+	::printf("I get the number of files in the requested config\n");
+	int n = recInt(server);
+
+	char* Hash = recvFile(server);
+	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
+	istringstream fhash(Hash);
+	wistringstream fpath(PathNameLast);
+
+	int t = 0;
+	while (t<n){
+		wchar_t buf1[DEFAULT_BUFLEN];
+		char buf4[DEFAULT_BUFLEN];
+		fpath.getline(buf1, DEFAULT_BUFLEN);
+		fhash.getline(buf4, DEFAULT_BUFLEN);
+		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
+
+		t++;
+	}
+
+	::free(Hash);
+	::free(PathNameLast);
+
+	if (recInt(server) != -80){
+		::printf("\nAn error occurred while receiving last config");
+	}
+	return last;
+}
+
 list<Oggetto*> GetAllFiles(SOCKET server){
 	::printf("I send the #60 requesting all files\n");
 	sendInt(server, 60);
@@ -433,21 +489,21 @@ void GetAllVersionN(SOCKET server,HANDLE hpipe){
 	int n = recInt(server);
 
 	char* NUM = recvFile(server);
-	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
+	char* PathNameLast = recvFile(server);
 	istringstream fnum(NUM);
-	wistringstream fLAST(PathNameLast);
+	istringstream fLAST(PathNameLast);
 
 	int t = 0;
 	while (t<n){
-		wchar_t buf1[DEFAULT_BUFLEN];
+		char buf1[DEFAULT_BUFLEN];
 		char buf4[DEFAULT_BUFLEN];
 		fLAST.getline(buf1, DEFAULT_BUFLEN);
 		fnum.getline(buf4, DEFAULT_BUFLEN);
 
 		WriteFile(hpipe, buf4, strlen(buf4), &NuByRe, NULL);
 		WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
-		WriteFile(hpipe, buf1, wcslen(buf1) * sizeof(wchar_t), &NuByRe, NULL);
-		WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+		WriteFile(hpipe, buf1, strlen(buf1), &NuByRe, NULL);
+		WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 
 		t++;
 	}
@@ -462,6 +518,7 @@ void GetAllVersionN(SOCKET server,HANDLE hpipe){
 
 	return;
 }
+
 void SerializeList(SOCKET server,list<Oggetto*> daser){
 	//serialize list of files
 	stringstream c;

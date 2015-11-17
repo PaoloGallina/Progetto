@@ -30,7 +30,7 @@ namespace PrimaGUI
             Random rnd = new Random();
             int pipenumber = rnd.Next(10000);
             string pipename = "PIPE" + pipenumber;
-           // string pipename = "PIPE" + 1;//DEBUG
+            //string pipename = "PIPE" + 1;//DEBUG
             try{
             
             myprocess = new Process();

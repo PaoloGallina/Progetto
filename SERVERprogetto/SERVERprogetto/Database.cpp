@@ -7,13 +7,14 @@
 #include <string>
 #include "Oggetto.h"
 #include <chrono>
-#include <ctime>
 #include <string.h>
 #include <fstream>
-#include <iostream>
 #include <sstream>
 #include <list>
 #include <exception>
+#include <iomanip>
+#include <ctime>
+
 
 using namespace std;
 
@@ -120,7 +121,6 @@ list<Oggetto*> AllFiles(sqlite3*db){
 
 		std::wstring path;
 		std::string hash;
-		int ver;
 		while (rc == 100){
 
 			path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
@@ -142,6 +142,42 @@ list<Oggetto*> AllFiles(sqlite3*db){
 list<Oggetto*> LastVersion(sqlite3*db){
 	int rc;
 	int versione = GetUltimaVersione(db);
+	list < Oggetto *> last;
+
+
+	/* Create SQL statement */
+	std::string sql = "SELECT * FROM VERSIONS WHERE VER=?1";
+	sqlite3_stmt* stm;
+	try{
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_bind_int(stm, 1, versione);
+		rc = sqlite3_step(stm);
+
+		std::wstring path;
+		std::string hash;
+		int ver;
+		while (rc == 100){
+
+			path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
+			ver = sqlite3_column_int(stm, 1);
+			hash = std::string((char*)sqlite3_column_text(stm, 2));
+
+			Oggetto* p2 = new Oggetto(path, L"", L"", hash, 0, INVALID_HANDLE_VALUE);
+			last.push_front(p2);
+			rc = sqlite3_step(stm);
+		}
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		throw"error during Last version";
+	}
+	sqlite3_finalize(stm);
+	return last;
+}
+
+list<Oggetto*> Version(sqlite3*db,int ver){
+	int rc;
+	int versione = ver;
 	list < Oggetto *> last;
 
 
@@ -248,7 +284,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 	
 };
 
-void InsertVER(sqlite3*db, std::wstring wpath, std::string hash, std::wstring last, int ver){
+void InsertVER(sqlite3*db, std::wstring wpath, std::string hash, std::string last, int ver){
 	//Just a stub
 	int  rc;
 	std::string sql = "INSERT INTO VERSIONS (PATH,VER,HASH,LAST) VALUES (?1, ?2, ?3,?4);";
@@ -258,7 +294,7 @@ void InsertVER(sqlite3*db, std::wstring wpath, std::string hash, std::wstring la
 		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 
 		rc = sqlite3_bind_blob(stm, 1, wpath.c_str(), wpath.size()*sizeof(TCHAR), SQLITE_STATIC);
-		rc = sqlite3_bind_blob(stm, 4, last.c_str(), last.size()*sizeof(TCHAR), SQLITE_STATIC);
+		rc = sqlite3_bind_blob(stm, 4, last.c_str(), last.size(), SQLITE_STATIC);
 
 		rc = sqlite3_bind_int(stm, 2, ver);
 		rc = sqlite3_bind_text(stm, 3, hash.c_str(), hash.size(), SQLITE_STATIC);
@@ -437,8 +473,15 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 			InsertFILE(db,client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize());
 		}
-		//std::cout<<chrono::system_clock::now();
-		last = ""
+
+		time_t rawtime;
+		struct tm * timeinfo;
+		char buffer[180];
+		time(&rawtime);
+		timeinfo = localtime(&rawtime);
+		strftime(buffer, 80, "%d-%m-%Y %I:%M:%S", timeinfo);
+		std::string last(buffer);
+		
 		for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){
 			InsertVER(db, (*ci)->GetPath(), (*ci)->GetHash(),last, Versione);
 
@@ -472,16 +515,6 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 			throw "error during the commit-->ROLLBACK";
 		}
 
-		sendInt(client, -10);
-		if (recInt(client) != -10){
-			printf("sync problem, not terminated correctly");
-			throw "sync problem, not terminated correctly";
-		}
-		else{
-			sendInt(client, -10);
-			printf("sync is terminated no more files are needed");
-		}
-
 		wcout << L"TRANSACTION COMMITTED" << endl;
 
 	}
@@ -503,13 +536,13 @@ void SendVersions(SOCKET client, std::string nome){
 	sqlite3_stmt* stm;
 	//serialize list of files
 	std::stringstream c;
-	std::wstringstream b;
+	std::stringstream b;
 	try{
 		
 		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 		rc = sqlite3_step(stm);
 
-		std::wstring last_mod;
+		std::string last_mod;
 		int ver;
 		int n=0;
 		if (rc != 100){
@@ -518,12 +551,12 @@ void SendVersions(SOCKET client, std::string nome){
 		while (rc == 100){
 
 			ver = sqlite3_column_int(stm, 0);
-			last_mod = std::wstring((TCHAR*)sqlite3_column_blob(stm, 1), sqlite3_column_bytes(stm, 1) / sizeof(TCHAR));
+			last_mod = std::string((char*)sqlite3_column_blob(stm, 1), sqlite3_column_bytes(stm, 1));
 			
 			c.write(to_string(ver).c_str(), to_string(ver).size());
 			c.write("\n", 1);
 			b.write(last_mod.c_str(), last_mod.size());
-			b.write(L"\n", 1);
+			b.write("\n", 1);
 
 			rc = sqlite3_step(stm);
 			n++;
@@ -539,8 +572,8 @@ void SendVersions(SOCKET client, std::string nome){
 		invFile(client, (char*)c.str().c_str(), c.str().size());
 
 		printf("I send the size of second file and the file\n");
-		sendInt(client, b.str().size()*sizeof(wchar_t));
-		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+		sendInt(client, b.str().size());
+		invFile(client, (char*)b.str().c_str(), b.str().size());
 
 	}
 		catch (...){

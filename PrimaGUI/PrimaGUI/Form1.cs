@@ -9,7 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.DirectoryServices;
-
+using System.Text.RegularExpressions;
 
          
 
@@ -147,30 +147,76 @@ namespace PrimaGUI
             {
                 return;
             }
-            Program.Bin.Write(50);
-            if (sendCred() == 999)
+            if (this.dataGridView1.Columns[0].HeaderText.CompareTo("Versione numero") != 0)
             {
-                return;
-            }
-            int index = e.RowIndex;
-            string path =(string) this.dataGridView1.Rows[index].Cells[0].Value;
-            string hash = (string)this.dataGridView1.Rows[index].Cells[1].Value;
-            hash.ToLower();
-            Program.Bin.Write(path.Length);
-            Program.Bin.Write(Encoding.Unicode.GetBytes(path));
-            Program.Bin.Write(hash.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
+                Program.Bin.Write(50);
+                if (sendCred() == 999)
+                {
+                    return;
+                }
+                int index = e.RowIndex;
+                string path = (string)this.dataGridView1.Rows[index].Cells[0].Value;
+                string hash = (string)this.dataGridView1.Rows[index].Cells[1].Value;
+                hash.ToLower();
+                Program.Bin.Write(path.Length);
+                Program.Bin.Write(Encoding.Unicode.GetBytes(path));
+                Program.Bin.Write(hash.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
 
-            Program.Sr.DiscardBufferedData();
-            string temp = Program.Sr.ReadLine();
-            if (temp.CompareTo("OK") != 0)
-            {
-                label1.Text = temp;
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
+                }
+            }
+            else {
+                int index = 0;
+                Program.Bin.Write(80);
+                if (sendCred() == 999)
+                {
+                    return;
+                }
+
+                int ver = Int32.Parse((string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value);
+
+                Program.Bin.Write(ver);
+                    
+                while (true)
+                {
+                    Program.Sr.DiscardBufferedData();
+                    string patht = Program.Sr.ReadLine();
+                    if (patht.CompareTo(@"end") == 0)
+                    {
+                        this.dataGridView1.Columns[0].HeaderText = "Path";
+                        this.dataGridView1.Columns[1].HeaderText = "";
+                        this.dataGridView1.RowCount = index;
+                        break;
+                    }
+                    Program.Srchar.DiscardBufferedData();
+                    string hash = Program.Srchar.ReadLine();
+
+                    if (dataGridView1.Rows.Count == index)
+                    {
+                        this.dataGridView1.Rows.Add();
+                    }
+                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
+                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
+                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore";
+                    this.dataGridView1.Rows[index].Cells[2].Value = "";
+                    index++;
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
+                }
+
             }
         }
 
-
-        private void VisualizzaVersione_Click(object sender, EventArgs e)
+        private void VisualizzaUltimaVersione_Click(object sender, EventArgs e)
         {
 
             if (dataGridView1.Visible == false)
@@ -219,7 +265,6 @@ namespace PrimaGUI
                 dataGridView1.Visible = false;
             }
         }
-
 
         private void VisualizzaFile_Click(object sender, EventArgs e)
         {
@@ -282,13 +327,13 @@ namespace PrimaGUI
                     string numero = Program.Srchar.ReadLine();
                     if (numero.CompareTo(@"end") == 0)
                     {
-                        this.dataGridView1.Columns[0].HeaderText = "Versione";
+                        this.dataGridView1.Columns[0].HeaderText = "Versione numero";
                         this.dataGridView1.Columns[1].HeaderText = "Data Creazione";
                         this.dataGridView1.RowCount = index;
                         break;
                     }
-                    Program.Sr.DiscardBufferedData();
-                    string data = Program.Sr.ReadLine();
+                    Program.Srchar.DiscardBufferedData();
+                    string data = Program.Srchar.ReadLine();
 
                     if (dataGridView1.Rows.Count == index)
                     {
@@ -297,7 +342,7 @@ namespace PrimaGUI
                     
                     this.dataGridView1.Rows[index].Cells[3].Value = "Visualizza";
 
-                    this.dataGridView1.Rows[index].Cells[0].Value = "Versione Numero "+numero;
+                    this.dataGridView1.Rows[index].Cells[0].Value = numero;
                     this.dataGridView1.Rows[index].Cells[2].Value = data;
                     index++;
                 }
@@ -314,5 +359,7 @@ namespace PrimaGUI
             }
 
         }
+
+
     }
 }

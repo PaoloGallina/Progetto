@@ -40,6 +40,7 @@ void Register(SOCKET client, std::string& nome);
 void Login(SOCKET client,std::string& nome);
 int ServeClient(SOCKET client);
 void SendLastconfig(SOCKET client, std::string nome);
+void SendConfig(SOCKET client, std::string nome);
 void SendAllFiles(SOCKET client, std::string nome);
 
 std::list<std::string> clients;
@@ -180,6 +181,9 @@ int ServeClient(SOCKET client) {
 			else if (op == 70){
 				SendVersions(client, nome);
 			}
+			else if (op == 80){
+				SendConfig(client, nome);
+			}
 			else if (op == 999){
 				break;
 			}
@@ -214,15 +218,7 @@ void Sync(SOCKET client, std::string nome){
 		}
 		else{
 			std::wcout << L"\nThe database is updated\n" << std::endl;
-			sendInt(client, -10);
-			if (recInt(client) != -10){
-				printf("sync problem, not terminated correctly");
-				throw "sync problem, not terminated correctly";
-			}
-			else{
-				sendInt(client, -10);
-				printf("sync is terminated no more files are needed");
-			}
+			
 		}
 		for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
 			ReadVERSIONE(db, i);
@@ -236,11 +232,20 @@ void Sync(SOCKET client, std::string nome){
 		int rc=sqlite3_close(db);
 		throw "errore durante la sync";
 	}
-
+	sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 	PulisciLista(newconfig);
 	PulisciLista(missingfiles);
 	sqlite3_close(db);
-	//Ho già detto al client che la sync è terminata con successo
+	
+	sendInt(client, -10);
+	if (recInt(client) != -10){
+		printf("sync problem, not terminated correctly");
+		throw "sync problem, not terminated correctly";
+	}
+	else{
+		sendInt(client, -10);
+		printf("sync is terminated no more files are needed");
+	}
 
 	printf("\n\n\n");
 }
@@ -282,6 +287,45 @@ void SendLastconfig(SOCKET client,  std::string nome){
 	PulisciLista(last);
 	sqlite3_close(db);
 	sendInt(client,-20);
+}
+
+void SendConfig(SOCKET client, std::string nome){
+	sqlite3 *db = CreateDatabase(nome);
+	std::list<Oggetto*> last;
+	try{
+		last = Version(db, recInt(client));
+
+		//serialize list of files
+		std::stringstream c;
+		std::wstringstream b;
+
+		for (std::list<Oggetto*>::iterator it = last.begin(); it != last.end(); ++it){
+			Oggetto IT = *it;
+			c.write(IT.GetHash().c_str(), IT.GetHash().size());
+			c.write("\n", 1);
+			b.write(IT.GetPath().c_str(), IT.GetPath().size());
+			b.write(L"\n", 1);
+		}
+		printf("I send the number of files in the last config\n");
+		sendInt(client, last.size());
+
+		printf("I send the size of first file and the file\n");
+		sendInt(client, c.str().size());
+		invFile(client, (char*)c.str().c_str(), c.str().size());
+
+		printf("I send the size of second file and the file\n");
+		sendInt(client, b.str().size()*sizeof(wchar_t));
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+
+	}
+	catch (...){
+		PulisciLista(last);
+		sqlite3_close(db);
+		throw "error during sending the requested config";
+	}
+	PulisciLista(last);
+	sqlite3_close(db);
+	sendInt(client, -80);
 }
 
 void SendAllFiles(SOCKET client, std::string nome){

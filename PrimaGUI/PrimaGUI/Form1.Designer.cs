@@ -61,7 +61,7 @@
             this.VisualizzaVersione.Text = "Ultima Versione";
             this.VisualizzaVersione.UseCompatibleTextRendering = true;
             this.VisualizzaVersione.UseVisualStyleBackColor = false;
-            this.VisualizzaVersione.Click += new System.EventHandler(this.VisualizzaVersione_Click);
+            this.VisualizzaVersione.Click += new System.EventHandler(this.VisualizzaUltimaVersione_Click);
             // 
             // button2
             // 
