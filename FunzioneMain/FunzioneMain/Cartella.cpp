@@ -63,9 +63,9 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 				SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
 				// Build a string showing the date and time.
 				StringCchPrintf(lpszString, 50,
-					TEXT("%02d %02d %d  %02d %02d"),
-					stLocal.wMonth, stLocal.wDay, stLocal.wYear,
-					stLocal.wHour, stLocal.wMinute);
+					TEXT("%02d/%02d/%d  %02d:%02d:%02d"),
+					stLocal.wDay, stLocal.wMonth, stLocal.wYear,
+					stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
 
 				wstring lastmodified(lpszString);
 				free(lpszString);

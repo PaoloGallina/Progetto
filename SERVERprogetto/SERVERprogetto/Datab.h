@@ -6,7 +6,7 @@
 
 sqlite3* CreateDatabase(std::string nome);
 
-void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione);
+void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione,std::wstring last);
 void InsertVER(sqlite3*db, std::wstring wpath, std::string hash, std::string last, int ver);
 int GetUltimaVersione(sqlite3*db);
 std::list<Oggetto*> AllFiles(sqlite3*db);

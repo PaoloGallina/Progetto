@@ -42,7 +42,7 @@ sqlite3 * CreateDatabase(std::string nome){
 	}
 
 	/* Create SQL statement */
-	sql = "CREATE TABLE FILES( PATH BLOB NOT NULL, HASH TEXT NOT NULL,DATI  BLOB, VER INT NOT NULL, PRIMARY KEY (PATH, HASH));";
+	sql = "CREATE TABLE FILES( PATH BLOB NOT NULL, HASH TEXT NOT NULL,DATI  BLOB, VER INT NOT NULL,LAST BLOB, PRIMARY KEY (PATH, HASH));";
 
 	/* CREATING FILES TABLE */
 	rc = sqlite3_exec(db, sql, callback, 0, &zErrMsg);
@@ -113,20 +113,22 @@ list<Oggetto*> AllFiles(sqlite3*db){
 
 
 	/* Create SQL statement */
-	std::string sql = "SELECT PATH,HASH FROM FILES";
+	std::string sql = "SELECT PATH,HASH,LAST FROM FILES";
 	sqlite3_stmt* stm;
 	try{
 		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
 		rc = sqlite3_step(stm);
 
 		std::wstring path;
+		std::wstring lastm;
 		std::string hash;
 		while (rc == 100){
 
 			path = std::wstring((TCHAR*)sqlite3_column_blob(stm, 0), sqlite3_column_bytes(stm, 0) / sizeof(TCHAR));
 			hash = std::string((char*)sqlite3_column_text(stm, 1));
+			lastm = std::wstring((TCHAR*)sqlite3_column_blob(stm, 2), sqlite3_column_bytes(stm, 2) / sizeof(TCHAR));
 
-			Oggetto* p2 = new Oggetto(path, L"", L"", hash, 0, INVALID_HANDLE_VALUE);
+			Oggetto* p2 = new Oggetto(path, L"", lastm, hash, 0, INVALID_HANDLE_VALUE);
 			last.push_front(p2);
 			rc = sqlite3_step(stm);
 		}
@@ -211,10 +213,10 @@ list<Oggetto*> Version(sqlite3*db,int ver){
 	return last;
 }
 
-void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione,DWORD size){
+void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione,DWORD size,wstring last){
 
 	int  rc=0;
-	std::string sql = "INSERT INTO FILES (PATH , HASH , DATI , VER) VALUES (?1, ?2, ?3, ?4);";
+	std::string sql = "INSERT INTO FILES (PATH , HASH , DATI , VER, LAST) VALUES (?1, ?2, ?3, ?4,?5);";
 	
 	sqlite3_stmt* stm = NULL;
 	sqlite3_stmt* stm2 = NULL;
@@ -226,6 +228,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 		rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
 		rc = sqlite3_bind_zeroblob(stm, 3, size);
 		rc = sqlite3_bind_int(stm, 4, versione);
+		rc = sqlite3_bind_blob(stm, 5, last.c_str(), last.size()*sizeof(wchar_t), SQLITE_STATIC);
 
 		rc = sqlite3_step(stm);
 
@@ -471,7 +474,7 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		int Versione = GetUltimaVersione(db);
 		Versione++;
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
-			InsertFILE(db,client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize());
+			InsertFILE(db, client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize(), (*ci2)->GetLastModified());
 		}
 
 		time_t rawtime;

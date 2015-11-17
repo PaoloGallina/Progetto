@@ -204,7 +204,7 @@ namespace PrimaGUI
                     }
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore";
+                    this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
                     this.dataGridView1.Rows[index].Cells[2].Value = "";
                     index++;
                 }
@@ -251,7 +251,7 @@ namespace PrimaGUI
                     }
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore";
+                    this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
                     this.dataGridView1.Rows[index].Cells[2].Value = "";
                     index++;
                 }
@@ -287,6 +287,8 @@ namespace PrimaGUI
                         this.dataGridView1.RowCount = index;
                         break;
                     }
+                    Program.Sr.DiscardBufferedData();
+                    string last = Program.Sr.ReadLine();
                     Program.Srchar.DiscardBufferedData();
                     string hash = Program.Srchar.ReadLine();
                     if (dataGridView1.Rows.Count == index){
@@ -294,9 +296,9 @@ namespace PrimaGUI
                     }
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                    this.dataGridView1.Rows[index].Cells[2].Value = "";
+                    this.dataGridView1.Rows[index].Cells[2].Value = last;
                     
-                    this.dataGridView1.Rows[index].Cells[3].Value = "Restore";
+                    this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
                     index++;
                 }
                 Program.Sr.DiscardBufferedData();
@@ -342,7 +344,7 @@ namespace PrimaGUI
                         this.dataGridView1.Rows.Add();
                     }
                     
-                    this.dataGridView1.Rows[index].Cells[3].Value = "Visualizza";
+                    this.dataGridView1.Rows[index].Cells[4].Value = "Visualizza";
 
                     this.dataGridView1.Rows[index].Cells[0].Value = numero;
                     this.dataGridView1.Rows[index].Cells[2].Value = data;

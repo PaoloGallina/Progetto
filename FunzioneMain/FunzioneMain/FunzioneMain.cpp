@@ -134,6 +134,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, temp->GetLastModified().c_str(), temp->GetLastModified().size() * sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, temp->GetHash().c_str(), temp->GetHash().size(), &NuByRe, NULL);
 						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 					}
@@ -458,15 +460,17 @@ list<Oggetto*> GetAllFiles(SOCKET server){
 	char* Hash = recvFile(server);
 	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
 	istringstream fhash(Hash);
-	wistringstream fpath(PathNameLast);
+	wistringstream fpathlast(PathNameLast);
 
 	int t = 0;
 	while (t<n){
 		wchar_t buf1[DEFAULT_BUFLEN];
+		wchar_t buf2[DEFAULT_BUFLEN];
 		char buf4[DEFAULT_BUFLEN];
-		fpath.getline(buf1, DEFAULT_BUFLEN);
+		fpathlast.getline(buf1, DEFAULT_BUFLEN);
+		fpathlast.getline(buf2, DEFAULT_BUFLEN);
 		fhash.getline(buf4, DEFAULT_BUFLEN);
-		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
+		last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
 
 		t++;
 	}
