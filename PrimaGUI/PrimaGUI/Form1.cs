@@ -75,21 +75,23 @@ namespace PrimaGUI
         private void button2_Click(object sender, EventArgs e)
         {
             folderBrowserDialog1.ShowDialog();
-            Program.path = folderBrowserDialog1.SelectedPath;
-            try
+            if (folderBrowserDialog1.SelectedPath != "")
             {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                Program.path = folderBrowserDialog1.SelectedPath;
+                try
                 {
-                    file.WriteLine(folderBrowserDialog1.SelectedPath);
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                    {
+                        file.WriteLine(folderBrowserDialog1.SelectedPath);
+                    }
                 }
+                catch
+                {
+                    //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
+                    //le credenziali
+                }
+                this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
             }
-            catch
-            {
-                //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
-                //le credenziali
-            }
-            this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
-            
         }
 
         //Bisogna fare un controllo sulla buona riuscita della sync e magari far apparire un messaggio fino alla terminazione della stessa
