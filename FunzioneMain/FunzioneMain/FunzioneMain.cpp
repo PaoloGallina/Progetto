@@ -60,6 +60,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	while (c == 999){
 
 		server = ConnectClient(hpipe);
+
 		if (server != INVALID_SOCKET){
 			try{
 				ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
@@ -85,7 +86,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 				closeConn(server);
 			}
 			else{
-				WriteFile(hpipe, L"OK\n", 7 * sizeof(wchar_t), &NuByRe, NULL);
+				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 				sendInt(server, 999);
 				closeConn(server);
 			}
@@ -95,7 +96,6 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		}
 	}
 
-//DA AGGIUNGERE BLOCCHI TRY CATCH RISPOSTE ALLA GUI NEGATIVE/POSITIVE PER OGNI AZIONE
 
 	while (1){
 		list<Oggetto*> debug;
@@ -109,6 +109,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 			try{
 				
 				Login(server); //A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
+				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 
 				if (choice == 10){
 					sync(server);
@@ -118,6 +119,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, temp->GetLastModified().c_str(), temp->GetLastModified().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, temp->GetHash().c_str(), temp->GetHash().size(), &NuByRe, NULL);
 						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
@@ -150,6 +153,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
+						WriteFile(hpipe, temp->GetLastModified().c_str(), temp->GetLastModified().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, temp->GetHash().c_str(), temp->GetHash().size(), &NuByRe, NULL);
 						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
@@ -188,7 +193,6 @@ void sync(SOCKET server){
 	wstring *cartella;
 
 	try{
-
 		int size;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		size = *((int*)recvbuf);
@@ -385,15 +389,17 @@ list<Oggetto*> GetLastConfig(SOCKET server){
 	char* Hash = recvFile(server);
 	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
 	istringstream fhash(Hash);
-	wistringstream fpath(PathNameLast);
+	wistringstream fpathlast(PathNameLast);
 
 	int t = 0;
 	while (t<n){
 		wchar_t buf1[DEFAULT_BUFLEN];
+		wchar_t buf2[DEFAULT_BUFLEN];
 		char buf4[DEFAULT_BUFLEN];
-		fpath.getline(buf1, DEFAULT_BUFLEN);
+		fpathlast.getline(buf1, DEFAULT_BUFLEN);
+		fpathlast.getline(buf2, DEFAULT_BUFLEN);
 		fhash.getline(buf4, DEFAULT_BUFLEN);
-		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
+		last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
 		
 		t++;
 	}
@@ -428,16 +434,17 @@ list<Oggetto*> GetConfig(SOCKET server,HANDLE hpipe){
 	char* Hash = recvFile(server);
 	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
 	istringstream fhash(Hash);
-	wistringstream fpath(PathNameLast);
+	wistringstream fpathlast(PathNameLast);
 
 	int t = 0;
 	while (t<n){
 		wchar_t buf1[DEFAULT_BUFLEN];
+		wchar_t buf2[DEFAULT_BUFLEN];
 		char buf4[DEFAULT_BUFLEN];
-		fpath.getline(buf1, DEFAULT_BUFLEN);
+		fpathlast.getline(buf1, DEFAULT_BUFLEN);
+		fpathlast.getline(buf2, DEFAULT_BUFLEN);
 		fhash.getline(buf4, DEFAULT_BUFLEN);
-		last.push_front(new Oggetto(buf1, L"", L"", buf4, 0, INVALID_HANDLE_VALUE));
-
+		last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
 		t++;
 	}
 
@@ -610,8 +617,7 @@ int Register(SOCKET server){
 }
 
 int Login(SOCKET server){
-	sendInt(server, 40);
-	
+
 	int c;
 	DWORD read;
 	char nome[500];
@@ -621,13 +627,15 @@ int Login(SOCKET server){
 	c = *((int*)nome);
 	ReadFile(hpipe, nome, c, &read, NULL);
 	nome[read] = '\0';
-	sendInt(server, strlen(nome)+1);
-	sendNbytes(server, nome, strlen(nome)+1);
 	
 	ReadFile(hpipe, pass, 4, &read, NULL);
 	c = *((int*)pass);
 	ReadFile(hpipe, pass, c, &read, NULL);
 	pass[read] = '\0';
+
+	sendInt(server, 40);
+	sendInt(server, strlen(nome) + 1);
+	sendNbytes(server, nome, strlen(nome) + 1);
 	sendInt(server, strlen(pass)+1);
 	sendNbytes(server, pass, strlen(pass)+1);
 	return recInt(server);

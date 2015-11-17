@@ -266,6 +266,8 @@ void SendLastconfig(SOCKET client,  std::string nome){
 			c.write("\n", 1);
 			b.write(IT.GetPath().c_str(), IT.GetPath().size());
 			b.write(L"\n", 1);
+			b.write(IT.GetLastModified().c_str(), IT.GetLastModified().size());
+			b.write(L"\n", 1);
 		}
 		printf("I send the number of files in the last config\n");
 		sendInt(client, last.size());
@@ -305,6 +307,9 @@ void SendConfig(SOCKET client, std::string nome){
 			c.write("\n", 1);
 			b.write(IT.GetPath().c_str(), IT.GetPath().size());
 			b.write(L"\n", 1);
+			b.write(IT.GetLastModified().c_str(), IT.GetLastModified().size());
+			b.write(L"\n", 1);
+
 		}
 		printf("I send the number of files in the last config\n");
 		sendInt(client, last.size());

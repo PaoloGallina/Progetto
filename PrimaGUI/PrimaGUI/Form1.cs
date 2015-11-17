@@ -72,149 +72,23 @@ namespace PrimaGUI
             
         }
 
-        private void button2_Click(object sender, EventArgs e)
-        {
-            folderBrowserDialog1.ShowDialog();
-            if (folderBrowserDialog1.SelectedPath != "")
-            {
-                Program.path = folderBrowserDialog1.SelectedPath;
-                try
-                {
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
-                    {
-                        file.WriteLine(folderBrowserDialog1.SelectedPath);
-                    }
-                }
-                catch
-                {
-                    //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
-                    //le credenziali
-                }
-                this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
-            }
-        }
-
-        //Bisogna fare un controllo sulla buona riuscita della sync e magari far apparire un messaggio fino alla terminazione della stessa
         private void SYNC_Click(object sender, EventArgs e)
         {
-            
+
             Program.Bin.Write(10);
             if (sendCred() == 999)
-            {
                 return;
-            }
+                
+
             Program.Bin.Write(Program.path.Length);
             Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
 
 
             Program.Sr.DiscardBufferedData();
-            string temp = Program.Sr.ReadLine();
+            string  temp = Program.Sr.ReadLine();
             if (temp.CompareTo("OK") != 0)
             {
                 label1.Text = temp;
-            }
-        }
-
-        //Necessario per la chiusura del processo client C++
-        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
-        {
-            Program.myprocess.Kill();
-            base.OnClosing(e);
-        }
-
-       
-        private int sendCred() {
-
-            Program.Bin.Write(Program.ip.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.ip));
-            Program.Sr.DiscardBufferedData();
-            string temp = Program.Sr.ReadLine();
-            if (temp.CompareTo("OK") != 0)
-            {
-                label1.Text = temp;
-                label1.ForeColor = System.Drawing.Color.Red;
-                return 999;
-            }
-            Program.Bin.Write(Program.userName.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.userName));
-            Program.Bin.Write(Program.Password.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.Password));
-
-            return 0;
-        }
-
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
-        {
-            if (e.ColumnIndex != 4)
-            {
-                return;
-            }
-            if (this.dataGridView1.Columns[0].HeaderText.CompareTo("Versione numero") != 0)
-            {
-                Program.Bin.Write(50);
-                if (sendCred() == 999)
-                {
-                    return;
-                }
-                int index = e.RowIndex;
-                string path = (string)this.dataGridView1.Rows[index].Cells[0].Value;
-                string hash = (string)this.dataGridView1.Rows[index].Cells[1].Value;
-                hash.ToLower();
-                Program.Bin.Write(path.Length);
-                Program.Bin.Write(Encoding.Unicode.GetBytes(path));
-                Program.Bin.Write(hash.Length);
-                Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
-
-                Program.Sr.DiscardBufferedData();
-                string temp = Program.Sr.ReadLine();
-                if (temp.CompareTo("OK") != 0)
-                {
-                    label1.Text = temp;
-                }
-            }
-            else {
-                int index = 0;
-                Program.Bin.Write(80);
-                if (sendCred() == 999)
-                {
-                    return;
-                }
-
-                int ver = Int32.Parse((string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value);
-
-                Program.Bin.Write(ver);
-                    
-                while (true)
-                {
-                    Program.Sr.DiscardBufferedData();
-                    string patht = Program.Sr.ReadLine();
-                    if (patht.CompareTo(@"end") == 0)
-                    {
-                        this.dataGridView1.Columns[0].HeaderText = "Path";
-                        this.dataGridView1.Columns[1].HeaderText = "";
-                        this.dataGridView1.RowCount = index;
-                        break;
-                    }
-                    Program.Srchar.DiscardBufferedData();
-                    string hash = Program.Srchar.ReadLine();
-
-                    if (dataGridView1.Rows.Count == index)
-                    {
-                        this.dataGridView1.Rows.Add();
-                    }
-                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
-                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                    this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
-                    this.dataGridView1.Rows[index].Cells[2].Value = "";
-                    index++;
-                }
-                Program.Sr.DiscardBufferedData();
-                string temp = Program.Sr.ReadLine();
-                if (temp.CompareTo("OK") != 0)
-                {
-                    label1.Text = temp;
-                }
-
             }
         }
 
@@ -223,14 +97,12 @@ namespace PrimaGUI
 
             if (dataGridView1.Visible == false)
             {
-                dataGridView1.Visible = true;
+
                 int index = 0;
                 Program.Bin.Write(20);
                 if (sendCred() == 999)
-                {
                     return;
-                }
-
+               
                 while (true)
                 {
                     Program.Sr.DiscardBufferedData();
@@ -240,8 +112,15 @@ namespace PrimaGUI
                         this.dataGridView1.Columns[0].HeaderText = "Path";
                         this.dataGridView1.Columns[1].HeaderText = "";
                         this.dataGridView1.RowCount = index;
+                        dataGridView1.Visible = true;
                         break;
                     }
+                    else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA")==0) {
+                        label1.Text = patht;
+                        return;
+                    }
+                    Program.Sr.DiscardBufferedData();
+                    string last = Program.Sr.ReadLine();
                     Program.Srchar.DiscardBufferedData();
                     string hash = Program.Srchar.ReadLine();
 
@@ -252,9 +131,10 @@ namespace PrimaGUI
                     this.dataGridView1.Rows[index].Cells[0].Value = patht;
                     this.dataGridView1.Rows[index].Cells[1].Value = hash;
                     this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
-                    this.dataGridView1.Rows[index].Cells[2].Value = "";
+                    this.dataGridView1.Rows[index].Cells[2].Value = last;
                     index++;
                 }
+
                 Program.Sr.DiscardBufferedData();
                 string temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)
@@ -272,12 +152,11 @@ namespace PrimaGUI
         {
             if (dataGridView1.Visible == false){
 
-                dataGridView1.Visible = true;
                 int index = 0;
                 Program.Bin.Write(60);
-                if (sendCred() == 999){
-                    return;}
-
+                if (sendCred() == 999)
+                    return;
+                
                 while (true){
                     Program.Sr.DiscardBufferedData();
                     string patht = Program.Sr.ReadLine();
@@ -285,7 +164,13 @@ namespace PrimaGUI
                         this.dataGridView1.Columns[0].HeaderText = "Path";
                         this.dataGridView1.Columns[1].HeaderText = "";
                         this.dataGridView1.RowCount = index;
+                        dataGridView1.Visible = true;
                         break;
+                    }
+                    else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
+                    {
+                        label1.Text = patht;
+                        return;
                     }
                     Program.Sr.DiscardBufferedData();
                     string last = Program.Sr.ReadLine();
@@ -316,15 +201,11 @@ namespace PrimaGUI
         {
             if (dataGridView1.Visible == false)
             {
-
-                dataGridView1.Visible = true;
                 int index = 0;
                 Program.Bin.Write(70);
                 if (sendCred() == 999)
-                {
                     return;
-                }
-
+                
                 while (true)
                 {
                     Program.Srchar.DiscardBufferedData();
@@ -334,7 +215,13 @@ namespace PrimaGUI
                         this.dataGridView1.Columns[0].HeaderText = "Versione numero";
                         this.dataGridView1.Columns[1].HeaderText = "Data Creazione";
                         this.dataGridView1.RowCount = index;
+                        dataGridView1.Visible = true;
                         break;
+                    }
+                    else if (numero.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
+                    {
+                        label1.Text = numero;
+                        return;
                     }
                     Program.Srchar.DiscardBufferedData();
                     string data = Program.Srchar.ReadLine();
@@ -364,6 +251,144 @@ namespace PrimaGUI
 
         }
 
+        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        {
+            if (e.ColumnIndex != 4)
+            {
+                return;
+            }
+            if (this.dataGridView1.Columns[0].HeaderText.CompareTo("Versione numero") != 0)
+            {
+                Program.Bin.Write(50);
+                if (sendCred() == 999)
+                    return;
+
+
+                int index = e.RowIndex;
+                string path = (string)this.dataGridView1.Rows[index].Cells[0].Value;
+                string hash = (string)this.dataGridView1.Rows[index].Cells[1].Value;
+                hash.ToLower();
+                Program.Bin.Write(path.Length);
+                Program.Bin.Write(Encoding.Unicode.GetBytes(path));
+                Program.Bin.Write(hash.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
+
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
+                }
+            }
+            else
+            {
+                int index = 0;
+                Program.Bin.Write(80);
+                if (sendCred() == 999)
+                    return;
+
+                int ver = Int32.Parse((string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value);
+                Program.Bin.Write(ver);
+
+                while (true)
+                {
+                    Program.Sr.DiscardBufferedData();
+                    string patht = Program.Sr.ReadLine();
+                    if (patht.CompareTo(@"end") == 0)
+                    {
+                        this.dataGridView1.Columns[0].HeaderText = "Path";
+                        this.dataGridView1.Columns[1].HeaderText = "";
+                        this.dataGridView1.RowCount = index;
+                        break;
+                    }
+                    else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
+                    {
+                        label1.Text = patht;
+                        return;
+                    }
+                    Program.Sr.DiscardBufferedData();
+                    string last = Program.Sr.ReadLine();
+                   
+                    Program.Srchar.DiscardBufferedData();
+                    string hash = Program.Srchar.ReadLine();
+
+                    if (dataGridView1.Rows.Count == index)
+                    {
+                        this.dataGridView1.Rows.Add();
+                    }
+                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
+                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
+                    this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
+                    this.dataGridView1.Rows[index].Cells[2].Value = last;
+                    index++;
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label1.Text = temp;
+                }
+
+            }
+        }
+
+        private void SelectPath_Click(object sender, EventArgs e)
+        {
+            folderBrowserDialog1.ShowDialog();
+            if (folderBrowserDialog1.SelectedPath != "")
+            {
+                Program.path = folderBrowserDialog1.SelectedPath;
+                try
+                {
+                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                    {
+                        file.WriteLine(folderBrowserDialog1.SelectedPath);
+                    }
+                }
+                catch
+                {
+                    //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
+                    //le credenziali
+                }
+                this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
+            }
+        }
+
+        private int sendCred()
+        {
+
+            Program.Bin.Write(Program.ip.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.ip));
+            Program.Sr.DiscardBufferedData();
+            string temp = Program.Sr.ReadLine();
+            if (temp.CompareTo("OK") != 0)
+            {
+                label1.Text = temp;
+                label1.ForeColor = System.Drawing.Color.Red;
+                return 999;
+            }
+            Program.Bin.Write(Program.userName.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.userName));
+            Program.Bin.Write(Program.Password.Length);
+            Program.Bin.Write(Encoding.ASCII.GetBytes(Program.Password));
+
+            Program.Sr.DiscardBufferedData();
+            temp = Program.Sr.ReadLine();
+            if (temp.CompareTo("OK") != 0)
+            {
+                label1.Text = temp;
+                label1.ForeColor = System.Drawing.Color.Red;
+                return 999;
+            }
+            return 0;
+        }
+
+        //Necessario per la chiusura del processo client C++
+        protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
+        {
+            Program.myprocess.Kill();
+            base.OnClosing(e);
+        }
 
     }
 }

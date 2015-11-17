@@ -36,28 +36,29 @@
             this.SYNC = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.VisualizzaFile = new System.Windows.Forms.Button();
-            this.button1 = new System.Windows.Forms.Button();
             this.Path = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Hash = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Data_Ceazione = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.tofill = new System.Windows.Forms.DataGridViewTextBoxColumn();
             this.Restore = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.VisualizzaFile = new System.Windows.Forms.Button();
+            this.button1 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
             // VisualizzaVersione
             // 
-            this.VisualizzaVersione.Anchor = System.Windows.Forms.AnchorStyles.Bottom;
+            this.VisualizzaVersione.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.VisualizzaVersione.BackColor = System.Drawing.Color.Transparent;
             this.VisualizzaVersione.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.VisualizzaVersione.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
             this.VisualizzaVersione.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.VisualizzaVersione.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.VisualizzaVersione.ForeColor = System.Drawing.Color.White;
-            this.VisualizzaVersione.Location = new System.Drawing.Point(261, 413);
+            this.VisualizzaVersione.Location = new System.Drawing.Point(283, 413);
             this.VisualizzaVersione.Name = "VisualizzaVersione";
-            this.VisualizzaVersione.Size = new System.Drawing.Size(293, 37);
+            this.VisualizzaVersione.Size = new System.Drawing.Size(212, 37);
             this.VisualizzaVersione.TabIndex = 12;
             this.VisualizzaVersione.Text = "Ultima Versione";
             this.VisualizzaVersione.UseCompatibleTextRendering = true;
@@ -66,23 +67,22 @@
             // 
             // button2
             // 
-            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
+            this.button2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.button2.BackColor = System.Drawing.Color.Transparent;
             this.button2.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.button2.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
             this.button2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.button2.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.button2.ForeColor = System.Drawing.Color.White;
-            this.button2.Location = new System.Drawing.Point(345, 9);
+            this.button2.Location = new System.Drawing.Point(502, 9);
             this.button2.Margin = new System.Windows.Forms.Padding(0);
             this.button2.Name = "button2";
-            this.button2.Size = new System.Drawing.Size(275, 37);
+            this.button2.Size = new System.Drawing.Size(265, 37);
             this.button2.TabIndex = 13;
-            this.button2.Text = "Cartella da sincronizzare";
+            this.button2.Text = "Seleziona la Cartella ";
             this.button2.UseCompatibleTextRendering = true;
             this.button2.UseVisualStyleBackColor = false;
-            this.button2.Click += new System.EventHandler(this.button2_Click);
+            this.button2.Click += new System.EventHandler(this.SelectPath_Click);
             // 
             // button3
             // 
@@ -103,26 +103,26 @@
             // 
             // SYNC
             // 
-            this.SYNC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.SYNC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.SYNC.BackColor = System.Drawing.Color.Transparent;
             this.SYNC.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.SYNC.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
             this.SYNC.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.SYNC.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.SYNC.ForeColor = System.Drawing.Color.White;
-            this.SYNC.Location = new System.Drawing.Point(629, 9);
+            this.SYNC.Location = new System.Drawing.Point(284, 9);
             this.SYNC.Margin = new System.Windows.Forms.Padding(0);
             this.SYNC.Name = "SYNC";
-            this.SYNC.Size = new System.Drawing.Size(138, 37);
+            this.SYNC.Size = new System.Drawing.Size(212, 37);
             this.SYNC.TabIndex = 16;
-            this.SYNC.Text = "SYNC";
+            this.SYNC.Text = "Sincronizza";
             this.SYNC.UseCompatibleTextRendering = true;
             this.SYNC.UseVisualStyleBackColor = false;
             this.SYNC.Click += new System.EventHandler(this.SYNC_Click);
             // 
             // label1
             // 
-            this.label1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
             this.label1.AutoSize = true;
             this.label1.BackColor = System.Drawing.Color.Transparent;
             this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
@@ -163,42 +163,6 @@
             this.dataGridView1.Visible = false;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
             // 
-            // VisualizzaFile
-            // 
-            this.VisualizzaFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
-            this.VisualizzaFile.BackColor = System.Drawing.Color.Transparent;
-            this.VisualizzaFile.FlatAppearance.BorderColor = System.Drawing.Color.White;
-            this.VisualizzaFile.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.VisualizzaFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.VisualizzaFile.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.VisualizzaFile.ForeColor = System.Drawing.Color.White;
-            this.VisualizzaFile.Location = new System.Drawing.Point(16, 413);
-            this.VisualizzaFile.Name = "VisualizzaFile";
-            this.VisualizzaFile.Size = new System.Drawing.Size(239, 37);
-            this.VisualizzaFile.TabIndex = 19;
-            this.VisualizzaFile.Text = "Tutti i Files";
-            this.VisualizzaFile.UseCompatibleTextRendering = true;
-            this.VisualizzaFile.UseVisualStyleBackColor = false;
-            this.VisualizzaFile.Click += new System.EventHandler(this.VisualizzaFile_Click);
-            // 
-            // button1
-            // 
-            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
-            this.button1.BackColor = System.Drawing.Color.Transparent;
-            this.button1.FlatAppearance.BorderColor = System.Drawing.Color.White;
-            this.button1.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
-            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.button1.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.button1.ForeColor = System.Drawing.Color.White;
-            this.button1.Location = new System.Drawing.Point(560, 413);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(212, 37);
-            this.button1.TabIndex = 20;
-            this.button1.Text = "Versioni";
-            this.button1.UseCompatibleTextRendering = true;
-            this.button1.UseVisualStyleBackColor = false;
-            this.button1.Click += new System.EventHandler(this.VisualizzaVersioni_Click);
-            // 
             // Path
             // 
             this.Path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
@@ -215,7 +179,6 @@
             this.Hash.ReadOnly = true;
             this.Hash.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
             this.Hash.Visible = false;
-            this.Hash.Width = 38;
             // 
             // Data_Ceazione
             // 
@@ -244,6 +207,42 @@
             this.Restore.ReadOnly = true;
             this.Restore.Text = "";
             this.Restore.Width = 70;
+            // 
+            // VisualizzaFile
+            // 
+            this.VisualizzaFile.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.VisualizzaFile.BackColor = System.Drawing.Color.Transparent;
+            this.VisualizzaFile.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.VisualizzaFile.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.VisualizzaFile.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.VisualizzaFile.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.VisualizzaFile.ForeColor = System.Drawing.Color.White;
+            this.VisualizzaFile.Location = new System.Drawing.Point(12, 413);
+            this.VisualizzaFile.Name = "VisualizzaFile";
+            this.VisualizzaFile.Size = new System.Drawing.Size(265, 37);
+            this.VisualizzaFile.TabIndex = 19;
+            this.VisualizzaFile.Text = "Tutti i Files";
+            this.VisualizzaFile.UseCompatibleTextRendering = true;
+            this.VisualizzaFile.UseVisualStyleBackColor = false;
+            this.VisualizzaFile.Click += new System.EventHandler(this.VisualizzaFile_Click);
+            // 
+            // button1
+            // 
+            this.button1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Right)));
+            this.button1.BackColor = System.Drawing.Color.Transparent;
+            this.button1.FlatAppearance.BorderColor = System.Drawing.Color.White;
+            this.button1.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
+            this.button1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.button1.Font = new System.Drawing.Font("Times New Roman", 17F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.button1.ForeColor = System.Drawing.Color.White;
+            this.button1.Location = new System.Drawing.Point(502, 413);
+            this.button1.Name = "button1";
+            this.button1.Size = new System.Drawing.Size(265, 37);
+            this.button1.TabIndex = 20;
+            this.button1.Text = "Versioni";
+            this.button1.UseCompatibleTextRendering = true;
+            this.button1.UseVisualStyleBackColor = false;
+            this.button1.Click += new System.EventHandler(this.VisualizzaVersioni_Click);
             // 
             // Form1
             // 
