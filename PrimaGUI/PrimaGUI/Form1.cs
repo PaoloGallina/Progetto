@@ -145,7 +145,7 @@ namespace PrimaGUI
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
-            if (e.ColumnIndex != 3)
+            if (e.ColumnIndex != 4)
             {
                 return;
             }
