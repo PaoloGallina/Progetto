@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -7,6 +8,7 @@ using System.IO;
 using System.IO.Pipes;
 using System.Diagnostics;
 using System.ComponentModel;
+
 namespace PrimaGUI
 {
     static class Program
@@ -20,7 +22,6 @@ namespace PrimaGUI
         public static string path="";
         public static string ip = "";
         public static Process myprocess;
-        
         [STAThread]
         static void Main()
         {
@@ -42,6 +43,8 @@ namespace PrimaGUI
             }catch(Exception e){
             return;
             }
+            
+            
 
             while (PServer1 == null||Bin==null || Sr == null)
             {
@@ -63,5 +66,7 @@ namespace PrimaGUI
             }
             
         }
+
     }
+   
 }

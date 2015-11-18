@@ -40,7 +40,7 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
 	int iResult;
 
-	int flag = 3;
+	int flag = 1;
 	while (ConnectSocket == INVALID_SOCKET){
 		try{
 

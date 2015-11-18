@@ -30,9 +30,10 @@ sqlite3 * CreateDatabase(std::string nome){
 	int  rc;
 	char *sql;
 	char *zErrMsg = 0;
-
+	string temp = nome;
+	temp.append(".db");
 	/* Open database */
-	rc = sqlite3_open(nome.c_str(), &db);
+	rc = sqlite3_open(temp.c_str(), &db);
 	if (rc){
 		fprintf(stderr, "Can't open database: %s\n", sqlite3_errmsg(db));
 		exit(0);

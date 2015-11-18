@@ -72,9 +72,10 @@ namespace PrimaGUI
             
         }
 
+
         private void SYNC_Click(object sender, EventArgs e)
         {
-
+            label1.Text = "";
             Program.Bin.Write(10);
             if (sendCred() == 999)
                 return;
@@ -94,6 +95,7 @@ namespace PrimaGUI
 
         private void VisualizzaUltimaVersione_Click(object sender, EventArgs e)
         {
+            label1.Text = "";
 
             if (dataGridView1.Visible == false)
             {
@@ -150,6 +152,7 @@ namespace PrimaGUI
 
         private void VisualizzaFile_Click(object sender, EventArgs e)
         {
+            label1.Text = "";
             if (dataGridView1.Visible == false){
 
                 int index = 0;
@@ -199,6 +202,7 @@ namespace PrimaGUI
 
         private void VisualizzaVersioni_Click(object sender, EventArgs e)
         {
+            label1.Text = "";
             if (dataGridView1.Visible == false)
             {
                 int index = 0;
@@ -253,6 +257,7 @@ namespace PrimaGUI
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+            label1.Text = "";
             if (e.ColumnIndex != 4)
             {
                 return;

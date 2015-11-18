@@ -439,8 +439,9 @@ void Register(SOCKET client,std::string& nome){
 		}
 		clients.push_back(nome);
 	}
-	
-	std::ifstream my_file(nome);
+	std::string temp = nome;
+	temp.append(".db");
+	std::ifstream my_file(temp);
 	
 	if (my_file)
 	{
@@ -506,8 +507,9 @@ void Login(SOCKET client, std::string& nome){
 		}
 		clients.push_back(nome);
 	}
-
-	std::ifstream my_file(nome);
+	std::string temp = nome;
+	temp.append(".db");
+	std::ifstream my_file(temp);
 	if (my_file)
 	{	
 		my_file.close();

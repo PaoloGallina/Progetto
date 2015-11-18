@@ -28,6 +28,7 @@
         /// </summary>
         private void InitializeComponent()
         {
+            this.components = new System.ComponentModel.Container();
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(Form1));
             this.VisualizzaVersione = new System.Windows.Forms.Button();
             this.button2 = new System.Windows.Forms.Button();
@@ -43,6 +44,7 @@
             this.Restore = new System.Windows.Forms.DataGridViewButtonColumn();
             this.VisualizzaFile = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
+            this.timer1 = new System.Windows.Forms.Timer(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -244,6 +246,12 @@
             this.button1.UseVisualStyleBackColor = false;
             this.button1.Click += new System.EventHandler(this.VisualizzaVersioni_Click);
             // 
+            // timer1
+            // 
+            this.timer1.Enabled = true;
+            this.timer1.Interval = 15000;
+            this.timer1.Tick += new System.EventHandler(this.SYNC_Click);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -287,6 +295,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Data_Ceazione;
         private System.Windows.Forms.DataGridViewTextBoxColumn tofill;
         private System.Windows.Forms.DataGridViewButtonColumn Restore;
+        private System.Windows.Forms.Timer timer1;
     }
 }
 

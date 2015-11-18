@@ -18,8 +18,7 @@ namespace PrimaGUI
         private Point _start_point = new Point(0, 0);
 
         public Form2()
-        {
-            
+        {      
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None;
         }
