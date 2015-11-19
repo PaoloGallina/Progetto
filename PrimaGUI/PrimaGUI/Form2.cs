@@ -79,62 +79,75 @@ namespace PrimaGUI
 
         private void OK_Click(object sender, EventArgs e)
         {
-            if (UsernameText.Text == "Username" ||!IsValidalfa(UsernameText.Text)||!IsValidalfa(PasswordText.Text)|| ! IsValidIP(IpAddressText.Text) || PasswordText.Text == "Password" || (Program.path == "" && CartDaSyncButton.Visible == true))
-            { 
-                label4.Text = "Inserisci tutti i campi.";
-                label4.ForeColor = System.Drawing.Color.Red;
-                return;     
-            } 
-            
-            int logORreg = 40;
-            if (CartDaSyncButton.Visible == true) {
-                logORreg = 30;
-            }
-
-            Program.Bin.Write(IpAddressText.Text.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
-            string temp = Program.Sr.ReadLine();
-            if (temp.CompareTo("OK") != 0)
+            try
             {
-                label4.Text = temp;
-                label4.ForeColor = System.Drawing.Color.Red;
-                return;
-            }
-            Program.Bin.Write(logORreg);
-            Program.Bin.Write(UsernameText.Text.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
-            Program.Bin.Write(PasswordText.Text.Length);
-            Program.Bin.Write(Encoding.ASCII.GetBytes(PasswordText.Text));
-            
-            
-            temp=Program.Sr.ReadLine();
-            if (temp.CompareTo("OK")!=0) {
-                label4.Text = temp;
-                label4.ForeColor = System.Drawing.Color.Red;
-                return;
-            }
-
-            Program.userName = UsernameText.Text;
-            Program.Password = PasswordText.Text;
-            Program.path     = folderBrowserDialog1.SelectedPath;
-            Program.ip = IpAddressText.Text;
-
-            if (CartDaSyncButton.Visible == true){ // i.e. Ho effettuato la registrazione
-                try
+                if (UsernameText.Text == "Username" || !IsValidalfa(UsernameText.Text) || !IsValidalfa(PasswordText.Text) || !IsValidIP(IpAddressText.Text) || PasswordText.Text == "Password" || (Program.path == "" && CartDaSyncButton.Visible == true))
                 {
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
-                    {
-                        file.WriteLine(Program.path);
-                     }
+                    label4.Text = "Inserisci tutti i campi.";
+                    label4.ForeColor = System.Drawing.Color.Red;
+                    return;
                 }
-                catch {
-                    label4.Text = "FILE CONFIG ERROR";
-                }
-            }
 
-            flag = true;
-            this.Close();
-            
+                int logORreg = 40;
+                if (CartDaSyncButton.Visible == true)
+                {
+                    logORreg = 30;
+                }
+
+                Program.Bin.Write(IpAddressText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label4.Text = temp;
+                    label4.ForeColor = System.Drawing.Color.Red;
+                    return;
+                }
+                Program.Bin.Write(logORreg);
+                Program.Bin.Write(UsernameText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
+                Program.Bin.Write(PasswordText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(PasswordText.Text));
+
+
+                temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    label4.Text = temp;
+                    label4.ForeColor = System.Drawing.Color.Red;
+                    return;
+                }
+
+                Program.userName = UsernameText.Text;
+                Program.Password = PasswordText.Text;
+                Program.path = folderBrowserDialog1.SelectedPath;
+                Program.ip = IpAddressText.Text;
+
+                if (CartDaSyncButton.Visible == true)
+                { // i.e. Ho effettuato la registrazione
+                    try
+                    {
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                        {
+                            file.WriteLine(Program.path);
+                        }
+                    }
+                    catch
+                    {
+                        label4.Text = "FILE CONFIG ERROR";
+                    }
+                }
+
+                flag = true;
+                this.Close();
+            }
+            catch (System.IO.IOException err)
+            {   
+                
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.","Informazione per l'utente",MessageBoxButtons.OK,MessageBoxIcon.Information);
+                this.Close();
+            }
         }
 
         private void ChooseFolder_Click(object sender, EventArgs e)
@@ -223,6 +236,7 @@ namespace PrimaGUI
         {
             if (flag == false)
             {
+                
                 Program.myprocess.Kill();
             }
             base.OnClosing(e);

@@ -18,7 +18,7 @@ namespace PrimaGUI
     public partial class Form1 : Form
     {
         public AutoResetEvent T = new AutoResetEvent(false);
-
+        private bool flag= false;
         public Form1()
         {
             InitializeComponent();
@@ -75,6 +75,7 @@ namespace PrimaGUI
 
         private void SYNC_Click(object sender, EventArgs e)
         {
+            try { 
             label1.Text = "";
             Program.Bin.Write(10);
             if (sendCred() == 999)
@@ -91,67 +92,87 @@ namespace PrimaGUI
             {
                 label1.Text = temp;
             }
+            }
+            catch (System.IO.IOException err)
+            {
+
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
         }
 
         private void VisualizzaUltimaVersione_Click(object sender, EventArgs e)
         {
-            label1.Text = "";
-
-            if (dataGridView1.Visible == false)
+            try
             {
+                label1.Text = "";
 
-                int index = 0;
-                Program.Bin.Write(20);
-                if (sendCred() == 999)
-                    return;
-               
-                while (true)
+                if (dataGridView1.Visible == false)
                 {
-                    Program.Sr.DiscardBufferedData();
-                    string patht = Program.Sr.ReadLine();
-                    if (patht.CompareTo(@"end") == 0)
-                    {
-                        this.dataGridView1.Columns[0].HeaderText = "Path";
-                        this.dataGridView1.Columns[1].HeaderText = "";
-                        this.dataGridView1.RowCount = index;
-                        dataGridView1.Visible = true;
-                        break;
-                    }
-                    else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA")==0) {
-                        label1.Text = patht;
+
+                    int index = 0;
+                    Program.Bin.Write(20);
+                    if (sendCred() == 999)
                         return;
-                    }
-                    Program.Sr.DiscardBufferedData();
-                    string last = Program.Sr.ReadLine();
-                    Program.Srchar.DiscardBufferedData();
-                    string hash = Program.Srchar.ReadLine();
 
-                    if (dataGridView1.Rows.Count == index)
+                    while (true)
                     {
-                        this.dataGridView1.Rows.Add();
-                    }
-                    this.dataGridView1.Rows[index].Cells[0].Value = patht;
-                    this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                    this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
-                    this.dataGridView1.Rows[index].Cells[2].Value = last;
-                    index++;
-                }
+                        Program.Sr.DiscardBufferedData();
+                        string patht = Program.Sr.ReadLine();
+                        if (patht.CompareTo(@"end") == 0)
+                        {
+                            this.dataGridView1.Columns[0].HeaderText = "Path";
+                            this.dataGridView1.Columns[1].HeaderText = "";
+                            this.dataGridView1.RowCount = index;
+                            dataGridView1.Visible = true;
+                            break;
+                        }
+                        else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
+                        {
+                            label1.Text = patht;
+                            return;
+                        }
+                        Program.Sr.DiscardBufferedData();
+                        string last = Program.Sr.ReadLine();
+                        Program.Srchar.DiscardBufferedData();
+                        string hash = Program.Srchar.ReadLine();
 
-                Program.Sr.DiscardBufferedData();
-                string temp = Program.Sr.ReadLine();
-                if (temp.CompareTo("OK") != 0)
+                        if (dataGridView1.Rows.Count == index)
+                        {
+                            this.dataGridView1.Rows.Add();
+                        }
+                        this.dataGridView1.Rows[index].Cells[0].Value = patht;
+                        this.dataGridView1.Rows[index].Cells[1].Value = hash;
+                        this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
+                        this.dataGridView1.Rows[index].Cells[2].Value = last;
+                        index++;
+                    }
+
+                    Program.Sr.DiscardBufferedData();
+                    string temp = Program.Sr.ReadLine();
+                    if (temp.CompareTo("OK") != 0)
+                    {
+                        label1.Text = temp;
+                    }
+                }
+                else
                 {
-                    label1.Text = temp;
+                    dataGridView1.Visible = false;
                 }
             }
-            else
+            catch (System.IO.IOException err)
             {
-                dataGridView1.Visible = false;
+
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
             }
         }
 
         private void VisualizzaFile_Click(object sender, EventArgs e)
         {
+            try { 
             label1.Text = "";
             if (dataGridView1.Visible == false){
 
@@ -197,11 +218,19 @@ namespace PrimaGUI
             else{
                 dataGridView1.Visible = false;
             }
+            }
+            catch (System.IO.IOException err)
+            {
 
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
         }
 
         private void VisualizzaVersioni_Click(object sender, EventArgs e)
         {
+            try { 
             label1.Text = "";
             if (dataGridView1.Visible == false)
             {
@@ -252,11 +281,20 @@ namespace PrimaGUI
             {
                 dataGridView1.Visible = false;
             }
+            }
+            catch (System.IO.IOException err)
+            {
+
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
 
         }
 
         private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
+            try { 
             label1.Text = "";
             if (e.ColumnIndex != 4)
             {
@@ -335,6 +373,14 @@ namespace PrimaGUI
                 }
 
             }
+            }
+            catch (System.IO.IOException err)
+            {
+
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
         }
 
         private void SelectPath_Click(object sender, EventArgs e)
@@ -361,7 +407,7 @@ namespace PrimaGUI
 
         private int sendCred()
         {
-
+            try { 
             Program.Bin.Write(Program.ip.Length);
             Program.Bin.Write(Encoding.ASCII.GetBytes(Program.ip));
             Program.Sr.DiscardBufferedData();
@@ -385,14 +431,25 @@ namespace PrimaGUI
                 label1.ForeColor = System.Drawing.Color.Red;
                 return 999;
             }
+            }
+            catch (System.IO.IOException err)
+            {
+
+                this.flag = true;
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
             return 0;
         }
 
         //Necessario per la chiusura del processo client C++
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            Program.myprocess.Kill();
-            base.OnClosing(e);
+            if (flag == false)
+                Program.myprocess.Kill();
+           
+                base.OnClosing(e);
+            
         }
 
     }
