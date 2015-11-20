@@ -35,18 +35,17 @@
             this.folderBrowserDialog1 = new System.Windows.Forms.FolderBrowserDialog();
             this.button3 = new System.Windows.Forms.Button();
             this.SYNC = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
             this.dataGridView1 = new System.Windows.Forms.DataGridView();
-            this.Path = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Hash = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Data_Ceazione = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.tofill = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.Restore = new System.Windows.Forms.DataGridViewButtonColumn();
             this.VisualizzaFile = new System.Windows.Forms.Button();
             this.button1 = new System.Windows.Forms.Button();
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
+            this.Restore = new System.Windows.Forms.DataGridViewButtonColumn();
+            this.tofill = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Data_Ceazione = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Hash = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.Path = new System.Windows.Forms.DataGridViewTextBoxColumn();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -125,17 +124,6 @@
             this.SYNC.UseVisualStyleBackColor = false;
             this.SYNC.Click += new System.EventHandler(this.SYNC_Click);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, ((System.Drawing.FontStyle)((System.Drawing.FontStyle.Bold | System.Drawing.FontStyle.Underline))), System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.label1.Location = new System.Drawing.Point(256, 399);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(57, 20);
-            this.label1.TabIndex = 17;
-            this.label1.Text = "label1";
-            // 
             // dataGridView1
             // 
             this.dataGridView1.AllowUserToAddRows = false;
@@ -166,51 +154,6 @@
             this.dataGridView1.TabIndex = 18;
             this.dataGridView1.Visible = false;
             this.dataGridView1.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView1_CellContentClick);
-            // 
-            // Path
-            // 
-            this.Path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.Path.HeaderText = "Path";
-            this.Path.Name = "Path";
-            this.Path.ReadOnly = true;
-            this.Path.Width = 54;
-            // 
-            // Hash
-            // 
-            this.Hash.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.Hash.HeaderText = "Hash";
-            this.Hash.Name = "Hash";
-            this.Hash.ReadOnly = true;
-            this.Hash.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Hash.Visible = false;
-            // 
-            // Data_Ceazione
-            // 
-            this.Data_Ceazione.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.Data_Ceazione.HeaderText = "Data";
-            this.Data_Ceazione.MinimumWidth = 2;
-            this.Data_Ceazione.Name = "Data_Ceazione";
-            this.Data_Ceazione.ReadOnly = true;
-            this.Data_Ceazione.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
-            this.Data_Ceazione.Width = 36;
-            // 
-            // tofill
-            // 
-            this.tofill.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
-            this.tofill.HeaderText = "";
-            this.tofill.MinimumWidth = 2;
-            this.tofill.Name = "tofill";
-            this.tofill.ReadOnly = true;
-            // 
-            // Restore
-            // 
-            this.Restore.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
-            this.Restore.HeaderText = "";
-            this.Restore.MinimumWidth = 70;
-            this.Restore.Name = "Restore";
-            this.Restore.ReadOnly = true;
-            this.Restore.Text = "";
-            this.Restore.Width = 70;
             // 
             // VisualizzaFile
             // 
@@ -278,6 +221,52 @@
             this.label3.TabIndex = 22;
             this.label3.Text = "a PDS project";
             // 
+            // Restore
+            // 
+            this.Restore.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Restore.HeaderText = "";
+            this.Restore.MinimumWidth = 70;
+            this.Restore.Name = "Restore";
+            this.Restore.ReadOnly = true;
+            this.Restore.Text = "";
+            this.Restore.Width = 70;
+            // 
+            // tofill
+            // 
+            this.tofill.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.Fill;
+            this.tofill.HeaderText = "";
+            this.tofill.MinimumWidth = 2;
+            this.tofill.Name = "tofill";
+            this.tofill.ReadOnly = true;
+            // 
+            // Data_Ceazione
+            // 
+            this.Data_Ceazione.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Data_Ceazione.HeaderText = "Data";
+            this.Data_Ceazione.MinimumWidth = 2;
+            this.Data_Ceazione.Name = "Data_Ceazione";
+            this.Data_Ceazione.ReadOnly = true;
+            this.Data_Ceazione.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.Data_Ceazione.Width = 36;
+            // 
+            // Hash
+            // 
+            this.Hash.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Hash.HeaderText = "Hash";
+            this.Hash.Name = "Hash";
+            this.Hash.ReadOnly = true;
+            this.Hash.SortMode = System.Windows.Forms.DataGridViewColumnSortMode.NotSortable;
+            this.Hash.Visible = false;
+            this.Hash.Width = 38;
+            // 
+            // Path
+            // 
+            this.Path.AutoSizeMode = System.Windows.Forms.DataGridViewAutoSizeColumnMode.AllCells;
+            this.Path.HeaderText = "Path";
+            this.Path.Name = "Path";
+            this.Path.ReadOnly = true;
+            this.Path.Width = 54;
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -291,7 +280,6 @@
             this.Controls.Add(this.button1);
             this.Controls.Add(this.VisualizzaFile);
             this.Controls.Add(this.dataGridView1);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.SYNC);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.button2);
@@ -314,18 +302,17 @@
         private System.Windows.Forms.FolderBrowserDialog folderBrowserDialog1;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button SYNC;
-        private System.Windows.Forms.Label label1;
         private System.Windows.Forms.DataGridView dataGridView1;
         private System.Windows.Forms.Button VisualizzaFile;
         private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Timer timer1;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.DataGridViewTextBoxColumn Path;
         private System.Windows.Forms.DataGridViewTextBoxColumn Hash;
         private System.Windows.Forms.DataGridViewTextBoxColumn Data_Ceazione;
         private System.Windows.Forms.DataGridViewTextBoxColumn tofill;
         private System.Windows.Forms.DataGridViewButtonColumn Restore;
-        private System.Windows.Forms.Timer timer1;
-        private System.Windows.Forms.Label label2;
-        private System.Windows.Forms.Label label3;
     }
 }
 
