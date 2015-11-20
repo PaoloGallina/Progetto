@@ -19,6 +19,11 @@ namespace PrimaGUI
     {
         public AutoResetEvent T = new AutoResetEvent(false);
         private bool flag= false;
+        private BackgroundWorker bw = new BackgroundWorker();
+
+        private List<string[]> Result=new List<string[]>();
+        private Object ResultLock = new Object();
+    
         public Form1()
         {
             InitializeComponent();
@@ -69,52 +74,155 @@ namespace PrimaGUI
             dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
             dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.InactiveCaption;
             dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
-            
+
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+            bw.DoWork += new DoWorkEventHandler(DoWork);
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DoWork_end);
         }
 
-
-        private void SYNC_Click(object sender, EventArgs e)
+        private void DoWork(object sender, DoWorkEventArgs e)
         {
-            try { 
-            label1.Text = "";
-            Program.Bin.Write(10);
-            if (sendCred() == 999)
-                return;
-                
-
-            Program.Bin.Write(Program.path.Length);
-            Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
-
-
-            Program.Sr.DiscardBufferedData();
-            string  temp = Program.Sr.ReadLine();
-            if (temp.CompareTo("OK") != 0)
+            String action = (string)e.Argument;
+            if (action.CompareTo("clicksync") == 0 || action.CompareTo("timersync") == 0)
             {
-                label1.Text = temp;
+                SYNC_DoWork(ref e);
             }
+            else if (action.CompareTo("VisualizzaUltimaVersione")==0) {
+                VisualizzaUltimaVersione_DoWork(ref e);
             }
-            catch (System.IO.IOException err)
-            {
+        }
 
-                this.flag = true;
+        private void DoWork_end(object sender, RunWorkerCompletedEventArgs e)
+        {
+            String result = (string)e.Result;
+            if (result.CompareTo("Client closed") == 0)
+            {
                 MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
             }
+            else if (result.CompareTo("Sync completed") == 0)
+            {
+                MessageBox.Show("La sincronizzazione è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }else if(result.CompareTo("ShowGrid")==0){
+                lock(ResultLock){
+                    int index = 0;
+                    foreach (String[] array in Result) {
+                        if (dataGridView1.Rows.Count == index)
+                        {
+                            this.dataGridView1.Rows.Add();
+                        }  
+                        this.dataGridView1.Rows[index].Cells[0].Value = array[0];
+                        this.dataGridView1.Rows[index].Cells[1].Value = array[1];
+                        this.dataGridView1.Rows[index].Cells[2].Value = array[2];
+                        this.dataGridView1.Rows[index].Cells[2].Value = array[3];
+                        this.dataGridView1.Rows[index].Cells[4].Value = array[4];    
+                        index++;  
+                    }
+                    this.dataGridView1.Columns[0].HeaderText = "Path";
+                    this.dataGridView1.Columns[1].HeaderText = "";
+                    this.dataGridView1.RowCount = Result.Count;
+                    dataGridView1.Visible = true;
+                }
+            }
+            else if (result.CompareTo("Not Show") != 0)
+            {
+                MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private void SYNC_Click(object sender, EventArgs e)
+        {  
+            if (bw.IsBusy != true)
+            {
+                bw.RunWorkerAsync("clicksync");
+            }
+            else {
+                MessageBox.Show("Una operazione è già in corso.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        private void SYNC_Timer(object sender, EventArgs e)
+        {
+            if (bw.IsBusy != true)
+            {
+                bw.RunWorkerAsync("timersync");
+            }
+
+        }
+
+        private void SYNC_DoWork(ref DoWorkEventArgs e)
+        {
+            try
+            {
+                Program.Bin.Write(10);
+                if (sendCred(ref e) == 999)
+                    return;
+                Program.Bin.Write(Program.path.Length);
+                Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                }
+                else
+                {
+                    string arg = (string)e.Argument;
+                    if (arg.CompareTo("clicksync") == 0)
+                    {
+                        e.Result = "Sync completed";
+                    }
+                    else
+                    {
+                        e.Result = "Not Show";
+                    }
+                }
+            }
+            catch (System.IO.IOException err)
+            {
+                this.flag = true;
+                e.Result = "Client closed";
+            }
+            catch (Exception err)
+            {
+                this.flag = true;
+                e.Result = "Errore Generico\n";
+            }
+
         }
 
         private void VisualizzaUltimaVersione_Click(object sender, EventArgs e)
         {
+            if (dataGridView1.Visible == false)
+            {
+                if (bw.IsBusy != true)
+                {
+                    bw.RunWorkerAsync("VisualizzaUltimaVersione");
+                }
+                else
+                {
+                    MessageBox.Show("Una operazione è già in corso.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+            else { 
+             dataGridView1.Visible = false;
+            }
+        }
+
+        private void VisualizzaUltimaVersione_DoWork(ref DoWorkEventArgs e)
+        {
             try
             {
-                label1.Text = "";
-
-                if (dataGridView1.Visible == false)
-                {
-
                     int index = 0;
                     Program.Bin.Write(20);
-                    if (sendCred() == 999)
+                    if (sendCred(ref e) == 999)
                         return;
+
+                    lock (ResultLock)
+                    {
+                    Result.Clear();
+                    }
 
                     while (true)
                     {
@@ -122,30 +230,22 @@ namespace PrimaGUI
                         string patht = Program.Sr.ReadLine();
                         if (patht.CompareTo(@"end") == 0)
                         {
-                            this.dataGridView1.Columns[0].HeaderText = "Path";
-                            this.dataGridView1.Columns[1].HeaderText = "";
-                            this.dataGridView1.RowCount = index;
-                            dataGridView1.Visible = true;
-                            break;
+                           break;
                         }
                         else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
                         {
-                            label1.Text = patht;
+                            e.Result = patht;
                             return;
                         }
-                        Program.Sr.DiscardBufferedData();
-                        string last = Program.Sr.ReadLine();
-                        Program.Srchar.DiscardBufferedData();
-                        string hash = Program.Srchar.ReadLine();
+                        
+                            Program.Sr.DiscardBufferedData();
+                            string last = Program.Sr.ReadLine();
+                            Program.Srchar.DiscardBufferedData();
+                            string hash = Program.Srchar.ReadLine();
+                        
+                        lock (ResultLock){
+                        Result.Add(new string[] { patht, hash, last, "", "Restore" });}
 
-                        if (dataGridView1.Rows.Count == index)
-                        {
-                            this.dataGridView1.Rows.Add();
-                        }
-                        this.dataGridView1.Rows[index].Cells[0].Value = patht;
-                        this.dataGridView1.Rows[index].Cells[1].Value = hash;
-                        this.dataGridView1.Rows[index].Cells[4].Value = "Restore";
-                        this.dataGridView1.Rows[index].Cells[2].Value = last;
                         index++;
                     }
 
@@ -153,20 +253,17 @@ namespace PrimaGUI
                     string temp = Program.Sr.ReadLine();
                     if (temp.CompareTo("OK") != 0)
                     {
-                        label1.Text = temp;
+                        e.Result = Text;
                     }
-                }
-                else
-                {
-                    dataGridView1.Visible = false;
-                }
+                    else {
+                        e.Result = "ShowGrid";
+                    }
+                
             }
             catch (System.IO.IOException err)
             {
-
                 this.flag = true;
-                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close();
+                e.Result = "Client closed";
             }
         }
 
@@ -438,6 +535,41 @@ namespace PrimaGUI
                 this.flag = true;
                 MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 this.Close();
+            }
+            return 0;
+        }
+
+        private int sendCred(ref DoWorkEventArgs e)
+        {
+            try
+            {
+                Program.Bin.Write(Program.ip.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(Program.ip));
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                    return 999;
+                }
+                Program.Bin.Write(Program.userName.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(Program.userName));
+                Program.Bin.Write(Program.Password.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(Program.Password));
+
+                Program.Sr.DiscardBufferedData();
+                temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                    return 999;
+                }
+            }
+            catch (System.IO.IOException err)
+            {
+                this.flag = true;
+                e.Result = "Client closed";
+                return 999;
             }
             return 0;
         }
