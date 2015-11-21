@@ -13,10 +13,11 @@
 #include "Cartella.h"
 #include <windows.h>
 
+
 using namespace std;
 
 
-Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles)
+Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthefiles,HANDLE hpipe)
 {
 	SetLastError(0);
 	wstring desk(L"desktop.ini");
@@ -35,7 +36,7 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 		
 		if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(find_file_data.cFileName, L"..") != 0 && wcscmp(find_file_data.cFileName, L".") != 0){
 				
-			this->contains.push_front(new Cartella(&filepath, allthefiles));
+			this->contains.push_front(new Cartella(&filepath, allthefiles,hpipe));
 			SetLastError(0);
 		}
 		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
@@ -49,6 +50,8 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 					t--;
 					if (t < 0){
+						DWORD NuByRe;
+						WriteFile(hpipe, L"ACCESS ", 7 * sizeof(wchar_t), &NuByRe, NULL);
 						throw "a file cannot be accessed";
 					}
 				}

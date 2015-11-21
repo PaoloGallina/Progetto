@@ -18,8 +18,7 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 
-#define DEFAULT_BUFLEN 1024
-#define DEFAULT_PORT "8080"
+#define DEFAULT_BUFLEN 1500
 
 
 SOCKET __cdecl ConnectClient(HANDLE hpipe)
@@ -29,11 +28,17 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 	DWORD read;
 	DWORD NuByRe;
 	char addr[100];
+	char porta[100];
 
 	ReadFile(hpipe, addr, 4, &read, NULL);
 	c = *((int*)addr);
 	ReadFile(hpipe, addr, c, &read, NULL);
 	addr[read] = '\0';
+	
+	ReadFile(hpipe, porta, 4, &read, NULL);
+	c = *((int*)porta);
+	ReadFile(hpipe, porta, c, &read, NULL);
+	porta[read] = '\0';
 
 	WSADATA wsaData;
 	SOCKET ConnectSocket = INVALID_SOCKET;
@@ -58,7 +63,7 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 			hints.ai_protocol = IPPROTO_TCP;
 
 			// Resolve the server address and port
-			iResult = getaddrinfo(addr, DEFAULT_PORT, &hints, &result);
+			iResult = getaddrinfo(addr, porta, &hints, &result);
 			if (iResult != 0) {
 				printf("getaddrinfo failed with error: %d\n", iResult);
 				throw "getaddrinfo failed with error: %d\n";

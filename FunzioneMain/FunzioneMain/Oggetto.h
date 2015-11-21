@@ -7,7 +7,7 @@ private:
 	std::wstring name;
 	std::wstring path;
 	std::string hash;
-	HANDLE handle;
+	HANDLE handle=INVALID_HANDLE_VALUE;
 	DWORD size;
 	std::wstring LastModified;
 

@@ -21,6 +21,8 @@ namespace PrimaGUI
         public static string Password="";
         public static string path="";
         public static string ip = "";
+        public static string porta = "";
+
         public static Process myprocess;
         [STAThread]
         static void Main()
@@ -30,8 +32,8 @@ namespace PrimaGUI
             //exception proble.. not hardcoded string
             Random rnd = new Random();
             int pipenumber = rnd.Next(10000);
-            string pipename = "PIPE" + pipenumber;
-            //string pipename = "PIPE" + 1;//DEBUG
+           // string pipename = "PIPE" + pipenumber;
+            string pipename = "PIPE" + 1;//DEBUG
             try{
             
             myprocess = new Process();
@@ -39,7 +41,7 @@ namespace PrimaGUI
             myprocess.StartInfo.CreateNoWindow = true;
             myprocess.StartInfo.Arguments = pipenumber.ToString();
             myprocess.StartInfo.Verb = "runas";
-            myprocess.Start();
+           // myprocess.Start();
             }catch(Exception e){
             return;
             }

@@ -103,7 +103,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		int choice;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		choice = *((int*)recvbuf);
-
+		
 		server = ConnectClient(hpipe);
 		if (server != INVALID_SOCKET){
 			try{
@@ -199,12 +199,9 @@ void sync(SOCKET server){
 		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		recvbuf[NuByRe] = '\0';
 		recvbuf[NuByRe + 1] = '\0';
-
 		cartella = new wstring((wchar_t*)recvbuf);
 
-		
-		Cartella cartelle(cartella, newconfig);
-
+		Cartella cartelle(cartella, newconfig,hpipe);
 		::printf("\nI get from the server the last configuration\n");
 		lastconfig = GetLastConfig(server);
 		missingfiles = FilesDaMandare(newconfig, lastconfig);
@@ -297,7 +294,7 @@ void Restore(SOCKET server){
 	recvbuf2[NuByRe] = '\0';	
 	string hash(recvbuf2);
 
-	HANDLE handle;
+	HANDLE handle=INVALID_HANDLE_VALUE;
 	wchar_t* temp2;
 	wstring temp;
 	try{

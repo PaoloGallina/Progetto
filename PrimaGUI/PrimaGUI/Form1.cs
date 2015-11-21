@@ -66,80 +66,90 @@ namespace PrimaGUI
             }
             catch (Exception errs)
             {
-                MessageBox.Show("L'ultima operazione ha causato un errore generico inaspettato.\n Si consiglia di riprovare e nel caso di riavviare l'applicazione", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                e.Result = "Errore Generico";
             }
         }
 
         private void DoWork_end(object sender, RunWorkerCompletedEventArgs e)
         {
-            String result = (string)e.Result;
-            if (result.CompareTo("Client closed") == 0)
+            try
             {
-                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                this.Close();
-            }
-            if (result.CompareTo("Restore avvenuto con successo") == 0)
-            {
-                MessageBox.Show(result, "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else if (result.CompareTo("Sync completed") == 0)
-            {
-                MessageBox.Show("La sincronizzazione è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            else if (result.CompareTo("ShowGrid") == 0)
-            {
-                lock (ResultLock)
+                String result = (string)e.Result;
+                if (result.CompareTo("Client closed") == 0)
                 {
-                    int index = 0;
-                    foreach (String[] array in Result)
-                    {
-                        if (dataGridView1.Rows.Count == index)
-                        {
-                            this.dataGridView1.Rows.Add();
-                        }
-                        this.dataGridView1.Rows[index].Cells[0].Value = array[0];
-                        this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                        this.dataGridView1.Rows[index].Cells[2].Value ="  "+array[2]+"  ";
-                        this.dataGridView1.Rows[index].Cells[3].Value = array[3];
-                        this.dataGridView1.Rows[index].Cells[4].Value = array[4];
-                        index++;
-                    }
+                    MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    this.Close();
                 }
+                if (result.CompareTo("Restore avvenuto con successo") == 0)
+                {
+                    MessageBox.Show(result, "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (result.CompareTo("Sync completed") == 0)
+                {
+                    MessageBox.Show("La sincronizzazione è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (result.CompareTo("ACCESS ERRORE OP. NON EFFETTUATA") == 0)
+                {
+                    MessageBox.Show("La sincronizzazione non è avvenuta con successo poiché il programma non riesce ad accedere ad un file aperto in un altro processo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+                else if (result.CompareTo("ShowGrid") == 0)
+                {
+                    lock (ResultLock)
+                    {
+                        int index = 0;
+                        foreach (String[] array in Result)
+                        {
+                            if (dataGridView1.Rows.Count == index)
+                            {
+                                this.dataGridView1.Rows.Add();
+                            }
+                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
+                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
+                            this.dataGridView1.Rows[index].Cells[2].Value = "  " + array[2] + "  ";
+                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
+                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
+                            index++;
+                        }
+                    }
                     this.dataGridView1.Columns[0].HeaderText = "Path";
                     this.dataGridView1.Columns[1].HeaderText = "";
                     this.dataGridView1.Columns[2].HeaderText = "Data Ultima Modifica";
                     this.dataGridView1.RowCount = Result.Count;
                     dataGridView1.Visible = true;
-                
-            }
-            else if (result.CompareTo("ShowGrid2") == 0)
-            {
-                lock (ResultLock)
-                {
-                    int index = 0;
-                    foreach (String[] array in Result)
-                    {
-                        if (dataGridView1.Rows.Count == index)
-                        {
-                            this.dataGridView1.Rows.Add();
-                        }
-                        this.dataGridView1.Rows[index].Cells[0].Value = array[0];
-                        this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                        this.dataGridView1.Rows[index].Cells[2].Value = "  " + array[2] + "  ";
-                        this.dataGridView1.Rows[index].Cells[3].Value = array[3];
-                        this.dataGridView1.Rows[index].Cells[4].Value = array[4];
-                        index++;
-                    }
+
                 }
+                else if (result.CompareTo("ShowGrid2") == 0)
+                {
+                    lock (ResultLock)
+                    {
+                        int index = 0;
+                        foreach (String[] array in Result)
+                        {
+                            if (dataGridView1.Rows.Count == index)
+                            {
+                                this.dataGridView1.Rows.Add();
+                            }
+                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
+                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
+                            this.dataGridView1.Rows[index].Cells[2].Value = "  " + array[2] + "  ";
+                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
+                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
+                            index++;
+                        }
+                    }
                     this.dataGridView1.Columns[0].HeaderText = "Numero Versione";
                     this.dataGridView1.Columns[1].HeaderText = "";
                     this.dataGridView1.Columns[2].HeaderText = "Data Creazione";
                     this.dataGridView1.RowCount = Result.Count;
-                    dataGridView1.Visible = true;   
+                    dataGridView1.Visible = true;
+                }
+                else if (result.CompareTo("Not Show") != 0)
+                {
+                    MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
-            else if (result.CompareTo("Not Show") != 0)
-            {
-                MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            catch (Exception err) {
+                MessageBox.Show( "Errore generico", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -296,7 +306,15 @@ namespace PrimaGUI
                 string temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)
                 {
-                    e.Result = temp;
+                    string arg = (string)e.Argument;
+                    if (arg.CompareTo("clicksync") == 0)
+                    {
+                        e.Result = temp;
+                    }
+                    else
+                    {
+                        e.Result = "Not Show";
+                    }
                 }
                 else
                 {
@@ -591,6 +609,10 @@ namespace PrimaGUI
             {
                 Program.Bin.Write(Program.ip.Length);
                 Program.Bin.Write(Encoding.ASCII.GetBytes(Program.ip));
+                Program.Bin.Write(Program.porta.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(Program.porta));
+                
+                
                 Program.Sr.DiscardBufferedData();
                 string temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)

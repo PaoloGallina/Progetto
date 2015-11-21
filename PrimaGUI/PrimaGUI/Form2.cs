@@ -51,6 +51,12 @@ namespace PrimaGUI
                     e.Result = "L'indirizzo IP inserito non è un indirizzo IP valido.";
                     return;
                 }
+                else if (!IsValidPort(PortaText.Text))
+                {
+                    e.Result = "Il numero di porta non è valido.";
+                    return;
+                }
+
 
                 int logORreg = 40;
                 if (CartDaSyncButton.Visible == true)
@@ -60,6 +66,11 @@ namespace PrimaGUI
 
                 Program.Bin.Write(IpAddressText.Text.Length);
                 Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
+                Program.Bin.Write(PortaText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(PortaText.Text));
+               
+                
+                
                 string temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)
                 {
@@ -84,6 +95,7 @@ namespace PrimaGUI
                 Program.Password = PasswordText.Text;
                 Program.path = folderBrowserDialog1.SelectedPath;
                 Program.ip = IpAddressText.Text;
+                Program.porta = PortaText.Text;
 
                 if (CartDaSyncButton.Visible == true)
                 { // i.e. Ho effettuato la registrazione
@@ -145,6 +157,7 @@ namespace PrimaGUI
             UsernameText.Visible = true;
             PasswordText.Visible = true;
             IpAddressText.Visible = true;
+            PortaText.Visible = true;
            
 
         }
@@ -163,7 +176,7 @@ namespace PrimaGUI
             UsernameText.Visible = true;
             PasswordText.Visible = true;
             IpAddressText.Visible = true;
-     
+            PortaText.Visible = true;
 
         }
 
@@ -182,6 +195,7 @@ namespace PrimaGUI
             UsernameText.Visible = false;
             PasswordText.Visible = false;
             IpAddressText.Visible = false;
+            PortaText.Visible = false;
             label4.Text = "Inserisci tutti i campi";
             label4.ForeColor = System.Drawing.Color.White;
         }
@@ -218,6 +232,7 @@ namespace PrimaGUI
             UsernameText.Visible = false;
             PasswordText.Visible = false;
             IpAddressText.Visible = false;
+            PortaText.Visible = false;
             infoLabel.Visible = true;
             infoLabel.Text = "Il core del programma è scritto in c++ la GUI in c#, sono state utilizzate librerie open source di terze parti per calcolare l'hash e per gestire il database interno.\nL'intento è creare un servizio di backup e versioning automatico di una cartella che permetta di recuperare versioni passate o file cancellati.";
         }
@@ -237,6 +252,7 @@ namespace PrimaGUI
             UsernameText.Visible = false;
             PasswordText.Visible = false;
             IpAddressText.Visible = false;
+            PortaText.Visible = true;
             infoLabel.Visible = true;
             infoLabel.Text = "Stai visualizzando la procedura di login del programma.\n\nSe non lo hai già fatto puoi procedere alla registrazione attraverso il corrispondente pannello scegliendo uno username, una password e la cartellla da sincronizzare.\nAl contrario puoi procedere al login.\n";
         }
@@ -257,6 +273,11 @@ namespace PrimaGUI
             IpAddressText.ForeColor = SystemColors.WindowText;
         }
 
+        private void Porta_TextChanged(object sender, EventArgs e)
+        {
+            PortaText.ForeColor = SystemColors.WindowText;
+        }
+
         private void UserText_MouseClick(object sender, MouseEventArgs e)
         {
             UsernameText.SelectAll();
@@ -271,6 +292,12 @@ namespace PrimaGUI
         {
             IpAddressText.SelectAll();
         }
+
+        private void Porta_MouseClick(object sender, MouseEventArgs e)
+        {
+            PortaText.SelectAll();
+        }
+
 
         private void ControlloEnter_KeyPress(object sender, KeyPressEventArgs e)
         {
@@ -361,6 +388,23 @@ namespace PrimaGUI
             else
             {
 
+                valid = check.IsMatch(addr, 0);
+            }
+            return valid;
+        }
+
+        public bool IsValidPort(string addr)
+        {
+
+            string pattern = @"^([0-9]{1,4}|[1-5][0-9]{4}|6[0-4][0-9]{3}|65[0-4][0-9]{2}|655[0-2][0-9]|6553[0-5])$";
+            Regex check = new Regex(pattern);
+            bool valid = false;
+            if (addr == "")
+            {
+                valid = false;
+            }
+            else
+            {
                 valid = check.IsMatch(addr, 0);
             }
             return valid;

@@ -9,6 +9,7 @@
 using namespace std;
 
 
+
 class Cartella
 {
 private:
@@ -18,7 +19,7 @@ private:
 
 public:
 	std::wstring name;
-	Cartella(std::wstring*, std::list <Oggetto*>&);
+	Cartella(std::wstring*, std::list <Oggetto*>&,HANDLE hpipe);
 	~Cartella();
 };
 

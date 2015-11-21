@@ -45,6 +45,7 @@
             this.IpAddressText = new System.Windows.Forms.TextBox();
             this.titolo = new System.Windows.Forms.Label();
             this.label1 = new System.Windows.Forms.Label();
+            this.PortaText = new System.Windows.Forms.TextBox();
             this.SuspendLayout();
             // 
             // LoginButton
@@ -82,7 +83,7 @@
             this.UsernameText.BackColor = System.Drawing.SystemColors.InactiveBorder;
             this.UsernameText.Font = new System.Drawing.Font("Arial", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.UsernameText.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.UsernameText.Location = new System.Drawing.Point(11, 209);
+            this.UsernameText.Location = new System.Drawing.Point(11, 206);
             this.UsernameText.MaxLength = 40;
             this.UsernameText.Name = "UsernameText";
             this.UsernameText.Size = new System.Drawing.Size(278, 25);
@@ -98,7 +99,7 @@
             this.PasswordText.BackColor = System.Drawing.SystemColors.InactiveBorder;
             this.PasswordText.Font = new System.Drawing.Font("Arial", 10.25F);
             this.PasswordText.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.PasswordText.Location = new System.Drawing.Point(11, 247);
+            this.PasswordText.Location = new System.Drawing.Point(11, 237);
             this.PasswordText.MaxLength = 40;
             this.PasswordText.Name = "PasswordText";
             this.PasswordText.Size = new System.Drawing.Size(278, 23);
@@ -162,11 +163,11 @@
             this.CartDaSyncButton.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.CartDaSyncButton.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
             this.CartDaSyncButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.CartDaSyncButton.Font = new System.Drawing.Font("Times New Roman", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.CartDaSyncButton.Font = new System.Drawing.Font("Times New Roman", 13.25F);
             this.CartDaSyncButton.ForeColor = System.Drawing.SystemColors.ButtonHighlight;
-            this.CartDaSyncButton.Location = new System.Drawing.Point(90, 322);
+            this.CartDaSyncButton.Location = new System.Drawing.Point(90, 325);
             this.CartDaSyncButton.Name = "CartDaSyncButton";
-            this.CartDaSyncButton.Size = new System.Drawing.Size(121, 48);
+            this.CartDaSyncButton.Size = new System.Drawing.Size(121, 49);
             this.CartDaSyncButton.TabIndex = 6;
             this.CartDaSyncButton.Text = "Cartella da sincronizzare";
             this.CartDaSyncButton.UseCompatibleTextRendering = true;
@@ -181,7 +182,7 @@
             this.label4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label4.Font = new System.Drawing.Font("Times New Roman", 15F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
             this.label4.ForeColor = System.Drawing.Color.White;
-            this.label4.Location = new System.Drawing.Point(7, 187);
+            this.label4.Location = new System.Drawing.Point(7, 180);
             this.label4.MaximumSize = new System.Drawing.Size(320, 0);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(177, 22);
@@ -242,11 +243,11 @@
             this.IpAddressText.BackColor = System.Drawing.SystemColors.InactiveBorder;
             this.IpAddressText.Font = new System.Drawing.Font("Arial", 10.25F);
             this.IpAddressText.ForeColor = System.Drawing.SystemColors.InactiveCaption;
-            this.IpAddressText.Location = new System.Drawing.Point(11, 285);
+            this.IpAddressText.Location = new System.Drawing.Point(11, 267);
             this.IpAddressText.MaxLength = 15;
             this.IpAddressText.Name = "IpAddressText";
             this.IpAddressText.Size = new System.Drawing.Size(278, 23);
-            this.IpAddressText.TabIndex = 3;
+            this.IpAddressText.TabIndex = 2;
             this.IpAddressText.Text = "IpAddress";
             this.IpAddressText.Visible = false;
             this.IpAddressText.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Iptext_MouseClick);
@@ -279,6 +280,21 @@
             this.label1.TabIndex = 15;
             this.label1.Text = "a PDS project";
             // 
+            // PortaText
+            // 
+            this.PortaText.BackColor = System.Drawing.SystemColors.InactiveBorder;
+            this.PortaText.Font = new System.Drawing.Font("Arial", 10.25F);
+            this.PortaText.ForeColor = System.Drawing.SystemColors.InactiveCaption;
+            this.PortaText.Location = new System.Drawing.Point(11, 296);
+            this.PortaText.MaxLength = 15;
+            this.PortaText.Name = "PortaText";
+            this.PortaText.Size = new System.Drawing.Size(278, 23);
+            this.PortaText.TabIndex = 3;
+            this.PortaText.Text = "Porta";
+            this.PortaText.Visible = false;
+            this.PortaText.TextChanged += new System.EventHandler(this.Porta_TextChanged);
+            this.PortaText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ControlloEnter_KeyPress);
+            // 
             // Form2
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -286,6 +302,7 @@
             this.BackgroundImage = global::PrimaGUI.Properties.Resources.b;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(304, 416);
+            this.Controls.Add(this.PortaText);
             this.Controls.Add(this.label1);
             this.Controls.Add(this.titolo);
             this.Controls.Add(this.label3);
@@ -333,5 +350,6 @@
         private System.Windows.Forms.TextBox IpAddressText;
         private System.Windows.Forms.Label titolo;
         private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox PortaText;
     }
 }

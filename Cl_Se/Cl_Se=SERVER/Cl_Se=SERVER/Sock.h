@@ -19,7 +19,8 @@
 #pragma comment (lib, "AdvApi32.lib")
 
 
-#define DEFAULT_BUFLEN 512
+
+#define DEFAULT_BUFLEN 1500
 #define DEFAULT_PORT "8080"
 
 SOCKET __cdecl ConnectClient(HANDLE hpipe);

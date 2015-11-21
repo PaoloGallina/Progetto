@@ -49,64 +49,87 @@ std::mutex m;
 
 int _tmain(int argc, _TCHAR* argv[])
 {
-
-	_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
-	
-	WSADATA wsaData;
-	int iResult;
-
 	SOCKET ListenSocket = INVALID_SOCKET;
 	SOCKET ClientSocket = INVALID_SOCKET;
 
-	struct addrinfo *result = NULL;
-	struct addrinfo hints;
+	try{
+		int temp;
+		std::string porta;
 
-	// Initialize Winsock used to initiate the use of a DLL
-	iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
-	if (iResult != 0) {
-		printf("WSAStartup failed with error: %d\n", iResult);
-	}
+		while (true){
+			printf("Che porta vuoi utilizzare?\n");
+			scanf("%d", &temp);
+			if (temp > 0 && temp < 65535){
+				break;
+			}
+			printf("Immetti una porta valida! Range 0-65535\n");
+			system("pause");
+			return -1;
+		}
+		printf("La porta utilizzata e' la numero %d\nNel caso la volessi modificare riavvia il server\n", temp);
+		porta = std::to_string(temp);
 
-	ZeroMemory(&hints, sizeof(hints));
-	hints.ai_family = AF_INET;
-	hints.ai_socktype = SOCK_STREAM;
-	hints.ai_protocol = IPPROTO_TCP;
-	hints.ai_flags = AI_PASSIVE;
+		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
+
+		WSADATA wsaData;
+		int iResult;
+
+		
+		struct addrinfo *result = NULL;
+		struct addrinfo hints;
+
+		// Initialize Winsock used to initiate the use of a DLL
+		iResult = WSAStartup(MAKEWORD(2, 2), &wsaData);
+		if (iResult != 0) {
+			printf("WSAStartup failed with error: %d\n", iResult);
+		}
+
+		ZeroMemory(&hints, sizeof(hints));
+		hints.ai_family = AF_INET;
+		hints.ai_socktype = SOCK_STREAM;
+		hints.ai_protocol = IPPROTO_TCP;
+		hints.ai_flags = AI_PASSIVE;
 
 
-	// Resolve the server address and port
-	iResult = getaddrinfo(NULL, DEFAULT_PORT, &hints, &result);
-	if (iResult != 0) {
-		printf("getaddrinfo failed with error: %d\n", iResult);
-		WSACleanup();
-	}
+		// Resolve the server address and port
+		iResult = getaddrinfo(NULL, porta.c_str(), &hints, &result);
+		if (iResult != 0) {
+			printf("getaddrinfo failed with error: %d\n", iResult);
+			WSACleanup();
+		}
 
-	// Create a SOCKET for connecting to server
-	ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
-	if (ListenSocket == INVALID_SOCKET) {
-		printf("socket failed with error: %ld\n", WSAGetLastError());
+		// Create a SOCKET for connecting to server
+		ListenSocket = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+		if (ListenSocket == INVALID_SOCKET) {
+			printf("socket failed with error: %ld\n", WSAGetLastError());
+			freeaddrinfo(result);
+			WSACleanup();
+			throw "SERVER socket failed \n";
+		}
+		// Setup the TCP listening socket
+		iResult = ::bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
+		if (iResult == SOCKET_ERROR) {
+			printf("bind failed with error: %d\n", WSAGetLastError());
+			freeaddrinfo(result);
+			closesocket(ListenSocket);
+			WSACleanup();
+			throw "SERVER bind failed  \n";
+		}
+
 		freeaddrinfo(result);
-		WSACleanup();
-		throw "SERVER socket failed \n";
-	}
-	// Setup the TCP listening socket
-	iResult = ::bind(ListenSocket, result->ai_addr, (int)result->ai_addrlen);
-	if (iResult == SOCKET_ERROR) {
-		printf("bind failed with error: %d\n", WSAGetLastError());
-		freeaddrinfo(result);
-		closesocket(ListenSocket);
-		WSACleanup();
-		throw "SERVER bind failed  \n";
-	}
 
-	freeaddrinfo(result);
-	
-	iResult = listen(ListenSocket, SOMAXCONN);
-	if (iResult == SOCKET_ERROR) {
-		printf("listen failed with error: %d\n", WSAGetLastError());
-		closesocket(ListenSocket);
-		WSACleanup();
-		throw "SERVER listen failed";
+		iResult = listen(ListenSocket, SOMAXCONN);
+		if (iResult == SOCKET_ERROR) {
+			printf("listen failed with error: %d\n", WSAGetLastError());
+			closesocket(ListenSocket);
+			WSACleanup();
+			throw "SERVER listen failed";
+		}
+	}
+	catch (...){
+		printf("Probabilmente hai aperto due volte il server senza accorgertene");
+		system("pause");
+		return -1;
 	}
 
 	while (ClientSocket == INVALID_SOCKET){
@@ -214,25 +237,25 @@ void Sync(SOCKET client, std::string nome){
 
 
 		if (missingfiles.size() != 0 || file_cancellati(db, newconfig.size()) != 0){
+			std::wcout << L"\nA new version is insered\n" << std::endl;
 			nuovaVersione(db, client, newconfig, missingfiles);
+			sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		}
 		else{
 			std::wcout << L"\nThe database is updated\n" << std::endl;
 			
 		}
-		for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
-			ReadVERSIONE(db, i);
-		}
-		ReadFILES(db);
+		//for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
+		//	ReadVERSIONE(db, i);
+		//}
+		//ReadFILES(db);
 	}
 	catch (...){
 		PulisciLista(newconfig);
 		PulisciLista(missingfiles);
-		sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		int rc=sqlite3_close(db);
 		throw "errore durante la sync";
 	}
-	sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 	PulisciLista(newconfig);
 	PulisciLista(missingfiles);
 	sqlite3_close(db);
