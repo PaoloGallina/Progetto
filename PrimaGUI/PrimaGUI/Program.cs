@@ -57,7 +57,6 @@ namespace PrimaGUI
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-
             Application.Run(new Form2());
            
             if (userName != "")

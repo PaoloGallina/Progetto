@@ -17,10 +17,119 @@ namespace PrimaGUI
         private bool _dragging = false;
         private Point _start_point = new Point(0, 0);
 
+        private BackgroundWorker bw = new BackgroundWorker();
         public Form2()
         {      
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None;
+            bw.WorkerReportsProgress = false;
+            bw.WorkerSupportsCancellation = false;
+            bw.DoWork += new DoWorkEventHandler(DoWork);
+            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DoWork_end);
+        }
+
+        private void DoWork(object sender, DoWorkEventArgs e) {
+            try
+            {
+                if (!IsValidpass(PasswordText.Text) || PasswordText.Text == "Password")
+                {
+                    e.Result = "Non hai inserito la password o hai immesso caratteri non validi. Sono ammessi solo caratteri ASCII alfanumerici con aggiunta dei seguenti caratteri speciali !£$%&/()=?^\\ per la password.";
+                    return;
+                }
+                else if (Program.path == "" && CartDaSyncButton.Visible == true)
+                {
+                    e.Result = "Non hai scelto la cartella da sincronizzare.";
+                    return;
+                }
+                else if (UsernameText.Text == "Username" || !IsValidalfa(UsernameText.Text))
+                {
+                    e.Result = "Non hai inserito lo username o hai immesso caratteri non validi. Sono ammessi solo caratteri ASCII alfanumerici per lo username.";
+                    return;
+                }
+                else if (!IsValidIP(IpAddressText.Text))
+                {
+                    e.Result = "L'indirizzo IP inserito non è un indirizzo IP valido.";
+                    return;
+                }
+
+                int logORreg = 40;
+                if (CartDaSyncButton.Visible == true)
+                {
+                    logORreg = 30;
+                }
+
+                Program.Bin.Write(IpAddressText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                    return;
+                }
+                Program.Bin.Write(logORreg);
+                Program.Bin.Write(UsernameText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
+                Program.Bin.Write(PasswordText.Text.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(PasswordText.Text));
+
+
+                temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                    return;
+                }
+
+                Program.userName = UsernameText.Text;
+                Program.Password = PasswordText.Text;
+                Program.path = folderBrowserDialog1.SelectedPath;
+                Program.ip = IpAddressText.Text;
+
+                if (CartDaSyncButton.Visible == true)
+                { // i.e. Ho effettuato la registrazione
+                    try
+                    {
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                        {
+                            file.WriteLine(Program.path);
+                        }
+                    }
+                    catch
+                    {
+                        //il file non viene creato ma non è un grande problema
+                    }
+                }
+
+                this.flag = true;
+                e.Result = "OK";
+            }
+            catch (System.IO.IOException err)
+            {
+                this.flag = true;
+                e.Result = "Client closed";
+            }
+            catch (Exception err) {
+                e.Result = "Err generico";
+            }
+        }
+
+        private void DoWork_end(object sender, RunWorkerCompletedEventArgs e) {
+            String result = (string)e.Result;
+            if (result.CompareTo("Client closed") == 0)
+            {
+                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                this.Close();
+            }
+            else if (result.CompareTo("OK") == 0) {
+                this.Close();
+            }
+            else if (result.CompareTo("Err generico") == 0)
+            {
+                MessageBox.Show("L'ultima operazione ha causato un errore generico inaspettato.\n Si consiglia di riprovare e nel caso di riavviare l'applicazione", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+            else{
+                MessageBox.Show(result, "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void Login_Click(object sender, EventArgs e)
@@ -79,74 +188,13 @@ namespace PrimaGUI
 
         private void OK_Click(object sender, EventArgs e)
         {
-            try
+            if (bw.IsBusy != true)
             {
-                if (UsernameText.Text == "Username" || !IsValidalfa(UsernameText.Text) || !IsValidalfa(PasswordText.Text) || !IsValidIP(IpAddressText.Text) || PasswordText.Text == "Password" || (Program.path == "" && CartDaSyncButton.Visible == true))
-                {
-                    label4.Text = "Inserisci tutti i campi.";
-                    label4.ForeColor = System.Drawing.Color.Red;
-                    return;
-                }
-
-                int logORreg = 40;
-                if (CartDaSyncButton.Visible == true)
-                {
-                    logORreg = 30;
-                }
-
-                Program.Bin.Write(IpAddressText.Text.Length);
-                Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
-                string temp = Program.Sr.ReadLine();
-                if (temp.CompareTo("OK") != 0)
-                {
-                    label4.Text = temp;
-                    label4.ForeColor = System.Drawing.Color.Red;
-                    return;
-                }
-                Program.Bin.Write(logORreg);
-                Program.Bin.Write(UsernameText.Text.Length);
-                Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
-                Program.Bin.Write(PasswordText.Text.Length);
-                Program.Bin.Write(Encoding.ASCII.GetBytes(PasswordText.Text));
-
-
-                temp = Program.Sr.ReadLine();
-                if (temp.CompareTo("OK") != 0)
-                {
-                    label4.Text = temp;
-                    label4.ForeColor = System.Drawing.Color.Red;
-                    return;
-                }
-
-                Program.userName = UsernameText.Text;
-                Program.Password = PasswordText.Text;
-                Program.path = folderBrowserDialog1.SelectedPath;
-                Program.ip = IpAddressText.Text;
-
-                if (CartDaSyncButton.Visible == true)
-                { // i.e. Ho effettuato la registrazione
-                    try
-                    {
-                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
-                        {
-                            file.WriteLine(Program.path);
-                        }
-                    }
-                    catch
-                    {
-                        label4.Text = "FILE CONFIG ERROR";
-                    }
-                }
-
-                flag = true;
-                this.Close();
+                bw.RunWorkerAsync();
             }
-            catch (System.IO.IOException err)
-            {   
-                
-                this.flag = true;
-                MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.","Informazione per l'utente",MessageBoxButtons.OK,MessageBoxIcon.Information);
-                this.Close();
+            else
+            {
+                MessageBox.Show("Il login è in corso.\nIl programma sta cercando di contattare il server.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
 
@@ -285,7 +333,7 @@ namespace PrimaGUI
         public bool IsValidalfa(string addr)
         {
 
-            string pattern = @"[a-zA-Z0-9]+$";
+            string pattern = @"^[a-zA-Z0-9]+$";
             Regex check = new Regex(pattern);
             bool valid = false;
             if (addr == "")
@@ -300,6 +348,23 @@ namespace PrimaGUI
             return valid;
         }
 
+        public bool IsValidpass(string addr)
+        {
+
+            string pattern = @"^[a-zA-Z0-9!£$%&()=?^//]+$";
+            Regex check = new Regex(pattern);
+            bool valid = false;
+            if (addr == "")
+            {
+                valid = false;
+            }
+            else
+            {
+
+                valid = check.IsMatch(addr, 0);
+            }
+            return valid;
+        }
 
     }
 }

@@ -36,27 +36,37 @@ namespace PrimaGUI
 
         private void DoWork(object sender, DoWorkEventArgs e)
         {
-            String action = (string)e.Argument;
-            if (action.CompareTo("clicksync") == 0 || action.CompareTo("timersync") == 0){
-                SYNC_DoWork(ref e);
-            }
-            else if (action.CompareTo("VisualizzaUltimaVersione")==0) {
-                VisualizzaUltimaVersione_DoWork(ref e);
-            }
-            else if (action.CompareTo("VisualizzaFile") == 0)
+            try
             {
-                VisualizzaFile_DoWork(ref e);
+                String action = (string)e.Argument;
+                if (action.CompareTo("clicksync") == 0 || action.CompareTo("timersync") == 0)
+                {
+                    SYNC_DoWork(ref e);
+                }
+                else if (action.CompareTo("VisualizzaUltimaVersione") == 0)
+                {
+                    VisualizzaUltimaVersione_DoWork(ref e);
+                }
+                else if (action.CompareTo("VisualizzaFile") == 0)
+                {
+                    VisualizzaFile_DoWork(ref e);
+                }
+                else if (action.CompareTo("VisualizzaVersione") == 0)
+                {
+                    VisualizzaVersione_DoWork(ref e);
+                }
+                else if (action.CompareTo("VisualizzaVersioni") == 0)
+                {
+                    VisualizzaVersioni_DoWork(ref e);
+                }
+                else if (action.CompareTo("Restore") == 0)
+                {
+                    Restore_DoWork(ref e);
+                }
             }
-            else if (action.CompareTo("VisualizzaVersione") == 0)
+            catch (Exception errs)
             {
-                VisualizzaVersione_DoWork(ref e);
-            }
-            else if (action.CompareTo("VisualizzaVersioni")==0) {
-                VisualizzaVersioni_DoWork(ref e);
-            }
-            else if (action.CompareTo("Restore") == 0)
-            {
-                Restore_DoWork(ref e);
+                MessageBox.Show("L'ultima operazione ha causato un errore generico inaspettato.\n Si consiglia di riprovare e nel caso di riavviare l'applicazione", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 

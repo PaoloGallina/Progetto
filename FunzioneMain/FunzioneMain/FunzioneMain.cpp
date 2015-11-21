@@ -602,14 +602,13 @@ int Register(SOCKET server){
 	c = *((int*)nome);
 	ReadFile(hpipe, nome, c, &read, NULL);
 	nome[read] = '\0';
-
-	sendInt(server, strlen(nome) + 1);
-	sendNbytes(server, nome, strlen(nome) + 1);
-
 	ReadFile(hpipe, pass, 4, &read, NULL);
 	c = *((int*)pass);
 	ReadFile(hpipe, pass, c, &read, NULL);
 	pass[read] = '\0';
+
+	sendInt(server, strlen(nome) + 1);
+	sendNbytes(server, nome, strlen(nome) + 1);
 	sendInt(server, strlen(pass) + 1);
 	sendNbytes(server, pass, strlen(pass) + 1);
 
