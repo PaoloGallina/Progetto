@@ -113,7 +113,7 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 	}
 
 	struct timeval tv;
-	tv.tv_sec = 30000;  /* 30 Secs Timeout */
+	tv.tv_sec = 70000;  /* 30 Secs Timeout */
 	setsockopt(ConnectSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
 	setsockopt(ConnectSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 

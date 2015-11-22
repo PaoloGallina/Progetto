@@ -259,6 +259,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 		rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 1, &BLOB);
 		if (rc == 1){
 			cout << sqlite3_errmsg(db) << endl;
+			throw "Errore nell'apertura del blob";
 		}
 
 		sendInt(client, (wpath.size() + 1)*sizeof(wchar_t));
@@ -481,6 +482,11 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
 			InsertFILE(db, client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize(), (*ci2)->GetLastModified());
 		}
+		
+		sendInt(client, -10);
+		//message to keep alive the connection
+		recInt(client);
+		printf("Now i update all version file");
 
 		time_t rawtime;
 		struct tm * timeinfo;
@@ -516,14 +522,20 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 			sqlite3_finalize(stm);
 
 		}
-
+		//message to keep alive the connection
+		recInt(client);
+		printf("Pulizia DB\n");	
 		PulisciDB(db);
+
+		//message to keep alive the connection
+		
+		recInt(client);
 		sqlite3_exec(db, "END TRANSACTION;", callback, NULL, &zErrMsg);
 		if (zErrMsg != nullptr){
 			throw "error during the commit-->ROLLBACK";
 		}
 
-		wcout << L"TRANSACTION COMMITTED" << endl;
+		wcout << L"\nTRANSACTION COMMITTED" << endl;
 
 	}
 	catch (...){

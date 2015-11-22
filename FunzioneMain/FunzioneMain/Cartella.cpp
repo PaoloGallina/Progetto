@@ -29,9 +29,10 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
 		throw "La cartella selezionata non esiste";
 	}
-
+	DWORD max_size = 700000000;
 	for (bool i; GetLastError() != ERROR_NO_MORE_FILES;i=FindNextFile(Ffile, &find_file_data)){
-			
+		if (find_file_data.nFileSizeHigh == 0 && find_file_data.nFileSizeLow < max_size){
+
 		wstring filepath = *cartella_origine + L"\\" + find_file_data.cFileName;
 		
 		if (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY && wcscmp(find_file_data.cFileName, L"..") != 0 && wcscmp(find_file_data.cFileName, L".") != 0){
@@ -39,12 +40,12 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 			this->contains.push_front(new Cartella(&filepath, allthefiles,hpipe));
 			SetLastError(0);
 		}
-		else if (! (find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
+		else if (!(find_file_data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)){
 			if (desk.compare(find_file_data.cFileName)){
-			
+
 				HANDLE handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
 				int t = 6;
-				while (handle == INVALID_HANDLE_VALUE&&GetLastError()!=ERROR_FILE_NOT_FOUND){
+				while (handle == INVALID_HANDLE_VALUE&&GetLastError() != ERROR_FILE_NOT_FOUND){
 					wcout << "non posso aprire il file " << filepath << endl;
 					this_thread::sleep_for(chrono::seconds(2));
 					handle = CreateFileW(filepath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
@@ -77,6 +78,7 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 					allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, GetFileSize(handle, NULL), handle));
 				}
 			}
+		}
 		}
 
 	}

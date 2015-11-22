@@ -16,7 +16,7 @@
 #define _CRTDBG_MAP_ALLOC
 using namespace std;
 
-HANDLE hpipe;
+HANDLE hpipe=INVALID_HANDLE_VALUE;
 
 void PulisciLista(std::list < Oggetto *>& a);
 void sync(SOCKET client);
@@ -170,6 +170,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 			}
 			catch (...){
 				PulisciLista(debug);
+				closeConn(server);
 				WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
 			}
 		}
@@ -190,7 +191,7 @@ void sync(SOCKET server){
 	int recvbuflen = DEFAULT_BUFLEN;
 	DWORD NuByRe;
 	std::list <Oggetto*> newconfig, lastconfig, missingfiles;
-	wstring *cartella;
+	wstring *cartella=nullptr;
 
 	try{
 		int size;
@@ -224,7 +225,7 @@ void sync(SOCKET server){
 
 			wstring wpath((wchar_t*)recNbytes(server, lunghezza, recvbuf));
 
-			HANDLE file;
+			HANDLE file=INVALID_HANDLE_VALUE;
 
 			for (std::list<Oggetto*>::iterator it = newconfig.begin(); it != newconfig.end(); ++it){
 				Oggetto IT = *it;
@@ -248,6 +249,12 @@ void sync(SOCKET server){
 			lunghezza = recInt(server);
 			SetFilePointer(file, 0, 0, 0);
 		}
+		//messages to keep alive the connection
+		sendInt(server, 991);
+		sendInt(server, 991);
+		sendInt(server, 991);
+		//messages to close the connection
+
 		sendInt(server, -10);
 		if (recInt(server) == -10){
 			::printf("Sync terminated, no more file needed\n");
@@ -311,10 +318,11 @@ void Restore(SOCKET server){
 		memcpy(temp2, wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
 		PathRemoveFileSpec(temp2);
 		SHCreateDirectoryExW(NULL, temp2, NULL);
-		::free(temp2);
+		
 
-		temp= wpath;
-		temp.append(L".tempandhidden");
+		temp= temp2;
+		temp.append(L"/th.th");
+		::free(temp2);
 		handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
 		if (handle == INVALID_HANDLE_VALUE){
 			throw "the file in the restore has not been created";

@@ -146,16 +146,16 @@ int _tmain(int argc, _TCHAR* argv[])
 			printf("SERVER a connection is settled\n");
 			
 			struct timeval tv;
-			tv.tv_sec = 30000;  /* 30 Secs Timeout */
+			tv.tv_sec = 70000;  /* 70 Secs Timeout */
 			setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
 			setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 
-			std::thread  cliente(ServeClient, ClientSocket);
+		    std::thread  cliente(ServeClient, ClientSocket);
 			cliente.detach();
 			
-		//	ServeClient( ClientSocket);
+			//ServeClient( ClientSocket);
 			ClientSocket = INVALID_SOCKET;
-		//	break;
+		
 			
 		}
 		catch (char * a){
@@ -163,11 +163,10 @@ int _tmain(int argc, _TCHAR* argv[])
 		}
 	}
 	
-	//questa parte del programma ||per ora|| non verrà mai eseguita
-	//il server si tiene sempre online
+
 	closesocket(ListenSocket);
 	WSACleanup();
-	//_CrtDumpMemoryLeaks();
+	_CrtDumpMemoryLeaks();
 	return 0;
 }
 
@@ -235,20 +234,16 @@ void Sync(SOCKET client, std::string nome){
 		TxtToList(client, newconfig);
 		TxtToList(client, missingfiles);
 
-
 		if (missingfiles.size() != 0 || file_cancellati(db, newconfig.size()) != 0){
 			std::wcout << L"\nA new version is insered\n" << std::endl;
 			nuovaVersione(db, client, newconfig, missingfiles);
-			sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
+			//sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		}
 		else{
-			std::wcout << L"\nThe database is updated\n" << std::endl;
-			
+			//message to keep alive the connection
+			sendInt(client, -10); recInt(client); recInt(client); recInt(client);
+			std::wcout << L"\nThe database is updated\n" << std::endl;			
 		}
-		//for (int i = max(1, GetUltimaVersione(db) - 2); i <= GetUltimaVersione(db); i++){
-		//	ReadVERSIONE(db, i);
-		//}
-		//ReadFILES(db);
 	}
 	catch (...){
 		PulisciLista(newconfig);
@@ -259,8 +254,7 @@ void Sync(SOCKET client, std::string nome){
 	PulisciLista(newconfig);
 	PulisciLista(missingfiles);
 	sqlite3_close(db);
-	
-	sendInt(client, -10);
+
 	if (recInt(client) != -10){
 		printf("sync problem, not terminated correctly");
 		throw "sync problem, not terminated correctly";

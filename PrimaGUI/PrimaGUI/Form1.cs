@@ -147,6 +147,10 @@ namespace PrimaGUI
                 {
                     MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                else if (result.CompareTo("Errore Generico") == 0)
+                {
+                    MessageBox.Show("L'ultima operazione ha causato un errore generico inaspettato, nessun dato è andato perso, ma l'operazione non si è conclusa correttamente.\n Si consiglia di riprovare e nel caso di riavviare l'applicazione", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
             catch (Exception err) {
                 MessageBox.Show( "Errore generico", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
@@ -394,6 +398,9 @@ namespace PrimaGUI
                 this.flag = true;
                 e.Result = "Client closed";
             }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
+            }
         }
 
         private void VisualizzaUltimaVersione_DoWork(ref DoWorkEventArgs e)
@@ -444,6 +451,9 @@ namespace PrimaGUI
             {
                 this.flag = true;
                 e.Result = "Client closed";
+            }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
             }
         }
 
@@ -504,6 +514,9 @@ namespace PrimaGUI
                 this.flag = true;
                 e.Result = "Client closed";
             }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
+            }
 
         }
 
@@ -554,6 +567,9 @@ namespace PrimaGUI
                 this.flag = true;
                 e.Result = "Client closed";
             }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
+            }
 
         }
 
@@ -588,6 +604,9 @@ namespace PrimaGUI
             {
                 this.flag = true;
                 e.Result = "Client closed";
+            }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
             }
         }
 
@@ -637,6 +656,10 @@ namespace PrimaGUI
             {
                 this.flag = true;
                 e.Result = "Client closed";
+                return 999;
+            }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
                 return 999;
             }
             return 0;
