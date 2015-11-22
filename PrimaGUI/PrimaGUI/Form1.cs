@@ -23,8 +23,8 @@ namespace PrimaGUI
         private BackgroundWorker bw = new BackgroundWorker();
         private List<string[]> Result=new List<string[]>();
         private Object ResultLock = new Object();
-        private string path;
-        private string hash;
+        private String path;
+        private String hash;
         private Object PathHashLock = new Object();
 
     
@@ -45,7 +45,7 @@ namespace PrimaGUI
                 }
                 else if (action.CompareTo("VisualizzaUltimaVersione") == 0)
                 {
-                    VisualizzaUltimaVersione_DoWork(ref e);
+                    RipristinaUltimaVersione_DoWork(ref e);
                 }
                 else if (action.CompareTo("VisualizzaFile") == 0)
                 {
@@ -80,7 +80,7 @@ namespace PrimaGUI
                     MessageBox.Show("Non devi mai chiudere il client C++, continuare l'esecuzione è impossibile e il programma terminerà, ma nessun dato è andato perso.\n L'utente potrà effettuare il login eseguendo nuovamente il programma.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     this.Close();
                 }
-                if (result.CompareTo("Restore avvenuto con successo") == 0)
+                else if (result.CompareTo("Restore avvenuto con successo") == 0)
                 {
                     MessageBox.Show(result, "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -143,17 +143,24 @@ namespace PrimaGUI
                     this.dataGridView1.RowCount = Result.Count;
                     dataGridView1.Visible = true;
                 }
-                else if (result.CompareTo("Not Show") != 0)
-                {
-                    MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
                 else if (result.CompareTo("Errore Generico") == 0)
                 {
                     MessageBox.Show("L'ultima operazione ha causato un errore generico inaspettato, nessun dato è andato perso, ma l'operazione non si è conclusa correttamente.\n Si consiglia di riprovare e nel caso di riavviare l'applicazione", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+                else if (result.CompareTo("Rest Succ") == 0)
+                {
+                    MessageBox.Show("Il restore completo dell'ultima versione presente sul server è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                }
+                else if (result.CompareTo("Not Show") != 0)
+                {
+                    MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+                }
             }
-            catch (Exception err) {
-                MessageBox.Show( "Errore generico", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            catch (Exception err)
+            {
+                MessageBox.Show("Errore generico", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -179,10 +186,9 @@ namespace PrimaGUI
 
         }
 
-        private void VisualizzaUltimaVersione_Click(object sender, EventArgs e)
+        private void RipristinaUltimaVersione_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.Visible == false)
-            {
+
                 if (bw.IsBusy != true)
                 {
                     bw.RunWorkerAsync("VisualizzaUltimaVersione");
@@ -191,11 +197,7 @@ namespace PrimaGUI
                 {
                     MessageBox.Show("Una operazione è già in corso.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
-            }
-            else
-            {
-                dataGridView1.Visible = false;
-            }
+            
         }
 
         private void VisualizzaFile_Click(object sender, EventArgs e)
@@ -403,7 +405,7 @@ namespace PrimaGUI
             }
         }
 
-        private void VisualizzaUltimaVersione_DoWork(ref DoWorkEventArgs e)
+        private void RipristinaUltimaVersione_DoWork(ref DoWorkEventArgs e)
         {
             try
             {
@@ -444,8 +446,29 @@ namespace PrimaGUI
                         e.Result = Text;
                     }
                     else {
-                        e.Result = "ShowGrid";
+                        e.Result = "Rest Succ";
                     }
+                    lock(ResultLock){
+                       foreach (String[] array in Result)
+                        {
+                        
+                        lock (PathHashLock)
+                        {
+                            path = array[0];
+                            hash = array[1];
+                            hash.ToLower();
+                        }
+                        Restore_DoWork(ref e);
+                        String result = (string)e.Result;
+                        if (result.CompareTo("Restore avvenuto con successo") != 0)
+                        {
+                            return;
+                        }
+                    }
+                    }
+
+                    e.Result = "Rest Succ";
+
             }
             catch (System.IO.IOException err)
             {
@@ -615,8 +638,16 @@ namespace PrimaGUI
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             if (flag == false)
-                Program.myprocess.Kill();
-           
+            {
+                try
+                {
+                    Program.myprocess.Kill();
+                }
+                catch
+                {
+                    //Not a problem.. the user can manually kill it.. not nice to show the ecception
+                }
+            }
                 base.OnClosing(e);
             
         }
@@ -719,5 +750,7 @@ namespace PrimaGUI
             bw.DoWork += new DoWorkEventHandler(DoWork);
             bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DoWork_end);
         }
+
+
     }
 }

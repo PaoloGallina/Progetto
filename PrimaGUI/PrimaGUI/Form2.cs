@@ -309,11 +309,20 @@ namespace PrimaGUI
         //Necessario per la chiusura del processo client C++
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            if (flag == false)
-            {
-                
-                Program.myprocess.Kill();
-            }
+
+            try{
+                FormClosingEventArgs er = (FormClosingEventArgs) e;
+                    
+                    if (flag == false)
+                    {
+                        Program.myprocess.Kill();
+                    }    
+                }
+                catch
+                {
+                    //Not a problem.. the user can manually kill it.. not nice to show the ecception
+                }
+            
             base.OnClosing(e);
         }
 

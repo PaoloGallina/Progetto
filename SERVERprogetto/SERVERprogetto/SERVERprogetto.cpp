@@ -15,18 +15,10 @@
 #include <thread>
 #include "Sha.h"
 #include <mutex>
-#define _CRTDBG_MAP_ALLOC
 #include <stdlib.h>
-#include <crtdbg.h>
 #define MAX_N_CLIENTS 10
 
-#ifdef _DEBUG
 
-#define DEBUG_NEW new(_NORMAL_BLOCK, __FILE__, __LINE__)
-
-#define new DEBUG_NEW
-
-#endif
 
 #pragma comment (lib, "Ws2_32.lib")
 #pragma comment (lib, "Mswsock.lib")
@@ -69,7 +61,6 @@ int _tmain(int argc, _TCHAR* argv[])
 		printf("La porta utilizzata e' la numero %d\nNel caso la volessi modificare riavvia il server\n", temp);
 		porta = std::to_string(temp);
 
-		_CrtSetDbgFlag(_CRTDBG_ALLOC_MEM_DF | _CRTDBG_LEAK_CHECK_DF);
 
 		WSADATA wsaData;
 		int iResult;
@@ -166,7 +157,6 @@ int _tmain(int argc, _TCHAR* argv[])
 
 	closesocket(ListenSocket);
 	WSACleanup();
-	_CrtDumpMemoryLeaks();
 	return 0;
 }
 
@@ -531,7 +521,7 @@ void Login(SOCKET client, std::string& nome){
 	{	
 		my_file.close();
 		sqlite3 *db = CreateDatabase(nome.c_str());
-		sqlite3_stmt* stm;
+		sqlite3_stmt* stm=nullptr;
 		try{
 			std::string sql = "SELECT PASS FROM CREDENTIAL WHERE USER=?1";			
 			int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
@@ -573,8 +563,8 @@ void Restore(SOCKET client, std::string nome){
 
 	int rc;
 	sqlite3* db = CreateDatabase(nome);
-	sqlite3_blob *BLOB;
-	sqlite3_stmt* stm;
+	sqlite3_blob *BLOB=nullptr;
+	sqlite3_stmt* stm=nullptr;
 	try{
 		/* Create SQL statement */
 		std::string sql = "SELECT rowid from FILES where PATH=?1 and HASH=?2";
