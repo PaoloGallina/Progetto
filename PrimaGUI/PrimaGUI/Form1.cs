@@ -109,7 +109,7 @@ namespace PrimaGUI
                             }
                             this.dataGridView1.Rows[index].Cells[0].Value = array[0];
                             this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                            this.dataGridView1.Rows[index].Cells[2].Value = "  " + array[2] + "  ";
+                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
                             this.dataGridView1.Rows[index].Cells[3].Value = array[3];
                             this.dataGridView1.Rows[index].Cells[4].Value = array[4];
                             index++;
@@ -135,7 +135,7 @@ namespace PrimaGUI
                             }
                             this.dataGridView1.Rows[index].Cells[0].Value = array[0];
                             this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                            this.dataGridView1.Rows[index].Cells[2].Value = "  " + array[2] + "  ";
+                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
                             this.dataGridView1.Rows[index].Cells[3].Value = array[3];
                             this.dataGridView1.Rows[index].Cells[4].Value = array[4];
                             index++;
