@@ -252,7 +252,7 @@ namespace PrimaGUI
             UsernameText.Visible = false;
             PasswordText.Visible = false;
             IpAddressText.Visible = false;
-            PortaText.Visible = true;
+            PortaText.Visible = false;
             infoLabel.Visible = true;
             infoLabel.Text = "Stai visualizzando la procedura di login del programma.\n\nSe non lo hai già fatto puoi procedere alla registrazione attraverso il corrispondente pannello scegliendo uno username, una password e la cartellla da sincronizzare.\nAl contrario puoi procedere al login.\n";
         }

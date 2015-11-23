@@ -15,7 +15,6 @@
 #include <iomanip>
 #include <ctime>
 
-
 using namespace std;
 
 //tutto questo può diventare una classe singleton con nome datab, versione ecc salvati in un file
@@ -26,6 +25,8 @@ static int callback(void *NotUsed, int argc, char **argv, char **azColName){
 }
 
 sqlite3 * CreateDatabase(std::string nome){
+
+
 	sqlite3 *db;
 	int  rc;
 	char *sql;

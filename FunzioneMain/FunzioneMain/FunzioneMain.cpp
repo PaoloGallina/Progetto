@@ -19,7 +19,9 @@ using namespace std;
 HANDLE hpipe=INVALID_HANDLE_VALUE;
 
 void PulisciLista(std::list < Oggetto *>& a);
-void sync(SOCKET client);
+void ClearHandles(std::list < Oggetto *>& a);
+void sync(SOCKET client, std::list <Oggetto*>& lastconfig);
+bool syncTobeperformed(std::list <Oggetto*> lastconfig);
 list<Oggetto*> GetLastConfig(SOCKET server);
 list<Oggetto*> GetConfig(SOCKET server, HANDLE hpipe);
 list<Oggetto*> GetAllFiles(SOCKET server);
@@ -96,23 +98,31 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		}
 	}
 
-
+	std::list <Oggetto*> lastconfig;
 	while (1){
 		list<Oggetto*> debug;
+		
 
 		int choice;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		choice = *((int*)recvbuf);
 		
-		server = ConnectClient(hpipe);
-		if (server != INVALID_SOCKET){
+		
 			try{
-				
+
+				if (choice == 10){
+					if (syncTobeperformed(lastconfig) == false){
+						continue;
+					}
+				}
+
+				server = ConnectClient(hpipe);
+				if (server != INVALID_SOCKET){
 				Login(server); //A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
 				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 
 				if (choice == 10){
-					sync(server);
+					sync(server, lastconfig);
 				}
 				if (choice == 20){
 					debug = GetLastConfig(server);
@@ -168,15 +178,19 @@ int _tmain(int argc,_TCHAR* argv[] ){
 				closeConn(server);
 				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 			}
-			catch (...){
-				PulisciLista(debug);
-				closeConn(server);
-				WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
-			}
-		}
 		else{
 			WriteFile(hpipe, L"Server non raggiungibile\n", 25 * sizeof(wchar_t), &NuByRe, NULL);
 		}
+			
+			}
+			catch (...){
+				PulisciLista(debug);
+				if (server != INVALID_SOCKET){
+					closeConn(server);
+				}
+				WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
+			}
+		
 		//system("cls");
 		::printf("wating for new commands\n");
 	}
@@ -185,12 +199,12 @@ int _tmain(int argc,_TCHAR* argv[] ){
 	return 0;
 }
 
-void sync(SOCKET server){
+void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	DWORD NuByRe;
-	std::list <Oggetto*> newconfig, lastconfig, missingfiles;
+	std::list <Oggetto*> newconfig, missingfiles;
 	wstring *cartella=nullptr;
 
 	try{
@@ -203,9 +217,15 @@ void sync(SOCKET server){
 		cartella = new wstring((wchar_t*)recvbuf);
 
 		Cartella cartelle(cartella, newconfig,hpipe);
-		::printf("\nI get from the server the last configuration\n");
-		lastconfig = GetLastConfig(server);
+		
+		if (lastconfig.size() == 0)
+		{
+			::printf("\nI get from the server the last configuration\n");
+			lastconfig = GetLastConfig(server);
+		}
+
 		missingfiles = FilesDaMandare(newconfig, lastconfig);
+
 
 		::printf("I ask to the server to do 10 SYNC\n");
 		sendInt(server, 10);//the required operation is a sync
@@ -264,6 +284,10 @@ void sync(SOCKET server){
 		}
 
 		//pulizia
+		PulisciLista(lastconfig);
+		lastconfig = newconfig;
+		ClearHandles(lastconfig);
+		PulisciLista(missingfiles);
 	}
 	catch(...){
 	
@@ -275,10 +299,62 @@ void sync(SOCKET server){
 		
 	}
 
-	PulisciLista(newconfig);
-	PulisciLista(lastconfig);
-	PulisciLista(missingfiles);
 	delete cartella;
+}
+
+bool syncTobeperformed(std::list <Oggetto*> lastconfig){
+	std::list <Oggetto*> newconfig, missingfiles;
+	wstring* cartella=nullptr;
+	DWORD NuByRe;
+	char recvbuf[DEFAULT_BUFLEN];
+	int recvbuflen = DEFAULT_BUFLEN;
+	int size;
+	try{
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
+		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		recvbuf[NuByRe] = '\0';
+		recvbuf[NuByRe + 1] = '\0';
+
+		cartella = new wstring((wchar_t*)recvbuf);
+		
+		Cartella cartelle(cartella, newconfig, hpipe);
+
+		missingfiles = FilesDaMandare(newconfig, lastconfig);
+
+		if (missingfiles.size() != 0 || newconfig.size() != lastconfig.size()){
+			PulisciLista(newconfig);
+			PulisciLista(missingfiles);
+			delete(cartella);
+			printf("\n\nLa sincronizzazione  e' necessaria\n\n");
+			return true;
+		}
+		PulisciLista(newconfig);
+		PulisciLista(missingfiles);
+		delete(cartella);
+
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
+		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
+		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		WriteFile(hpipe, L"La sync non era necessaria\n", 27 * sizeof(wchar_t), &NuByRe, NULL);
+	}
+	catch(...){
+		PulisciLista(newconfig);
+		PulisciLista(missingfiles);
+		delete(cartella);
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
+		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		size = *((int*)recvbuf);
+		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		WriteFile(hpipe, L"Errore SYNC NEC\n", 16 * sizeof(wchar_t), &NuByRe, NULL);
+
+	}
+	return false;
 }
 
 void Restore(SOCKET server){
@@ -659,5 +735,17 @@ void PulisciLista(std::list < Oggetto *>& a){
 		a.pop_front();
 		delete p2;
 		p2 = NULL;
+	}
+};
+
+void ClearHandles(std::list < Oggetto *>& a){	
+	for (std::list<Oggetto*>::iterator it = a.begin(); it != a.end(); ++it){
+		if ((*it)->GetHandle() != INVALID_HANDLE_VALUE){
+			if (!CloseHandle((*it)->GetHandle())){
+				std::cout << "HO CHIUSO UNA HANDLE MALE" << endl;
+				std::cout << GetLastError() << endl;
+			}
+		}
+		(*it)->SetHandle(INVALID_HANDLE_VALUE);
 	}
 };

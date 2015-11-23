@@ -35,6 +35,9 @@ public:
 	HANDLE GetHandle(){
 		return this->handle;
 	}
+	void SetHandle(HANDLE handle){
+		this->handle = handle;
+	}
 
 	~Oggetto();
 };

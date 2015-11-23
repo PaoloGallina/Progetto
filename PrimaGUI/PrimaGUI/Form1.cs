@@ -88,6 +88,10 @@ namespace PrimaGUI
                 {
                     MessageBox.Show("La sincronizzazione è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
+                else if (result.CompareTo("La sync non era necessaria") == 0)
+                {
+                    MessageBox.Show("La sincronizzazione non è avvenuta poiché la copia di backup è gia aggiornata", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
                 else if (result.CompareTo("ACCESS ERRORE OP. NON EFFETTUATA") == 0)
                 {
                     MessageBox.Show("La sincronizzazione non è avvenuta con successo poiché il programma non riesce ad accedere ad un file aperto in un altro processo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
@@ -303,9 +307,23 @@ namespace PrimaGUI
         {
             try
             {
+                
                 Program.Bin.Write(10);
+                Program.Bin.Write(Program.path.Length);
+                Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
                 if (sendCred(ref e) == 999)
+                {
+                    string arg = (string)e.Argument;
+                    if (arg.CompareTo("clicksync") != 0)
+                    {
+                        string res = (string)e.Result;
+                        if (res.CompareTo("La sync non era necessaria") == 0)
+                        {
+                            e.Result = "Not Show";
+                        }
+                    }
                     return;
+                }
                 Program.Bin.Write(Program.path.Length);
                 Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
                 Program.Sr.DiscardBufferedData();

@@ -29,7 +29,7 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
 		throw "La cartella selezionata non esiste";
 	}
-	DWORD max_size = 700000000;
+	DWORD max_size = 200000000;
 	for (bool i; GetLastError() != ERROR_NO_MORE_FILES;i=FindNextFile(Ffile, &find_file_data)){
 		if (find_file_data.nFileSizeHigh == 0 && find_file_data.nFileSizeLow < max_size){
 
