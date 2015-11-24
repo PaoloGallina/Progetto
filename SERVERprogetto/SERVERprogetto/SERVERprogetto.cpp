@@ -201,6 +201,16 @@ int ServeClient(SOCKET client) {
 			}
 		}
 	}
+	catch (const char* e)
+	{
+		printf("logout of a client due to an error");
+		std::lock_guard<std::mutex> LG(m);
+		if (strcmp(e, "user already served") != 0 && strcmp(e, "too many users") != 0){
+			clients.remove(nome);
+		}
+		closeConn(client);
+		return -1;
+	}
 	catch (...){
 		printf("logout of a client due to an error");
 		std::lock_guard<std::mutex> LG(m);
@@ -428,9 +438,7 @@ void Register(SOCKET client,std::string& nome){
 
 	int sizepass = recInt(client);
 	std::string pass = sha256(std::string((char*)recNbytes(client, sizepass, recvbuf)));
-	
 	{
-
 		std::lock_guard<std::mutex> LG(m);
 
 		if (clients.size() > MAX_N_CLIENTS){
@@ -497,7 +505,6 @@ void Login(SOCKET client, std::string& nome){
 	std::string pass = sha256(std::string((char*)recNbytes(client, sizepass, recvbuf)));
 
 	{
-
 		std::lock_guard<std::mutex> LG(m);
 		
 		if (clients.size() > MAX_N_CLIENTS){
@@ -525,6 +532,7 @@ void Login(SOCKET client, std::string& nome){
 		try{
 			std::string sql = "SELECT PASS FROM CREDENTIAL WHERE USER=?1";			
 			int rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+			printf("\n%d , %s, %s ", rc, nome.c_str(), pass.c_str());
 			rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
 			rc = sqlite3_step(stm);
 			std::string passD = std::string((char*)sqlite3_column_text(stm, 0));

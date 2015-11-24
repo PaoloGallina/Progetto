@@ -29,6 +29,17 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 
 	if (Ffile == INVALID_HANDLE_VALUE){
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
+		DWORD NuByRe;
+		if (flag == 0){
+			char recvbuf[1000];
+			int size;
+			ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+			size = *((int*)recvbuf);
+			ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+			ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+			size = *((int*)recvbuf);
+			ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
+		}
 		throw "La cartella selezionata non esiste";
 	}
 	DWORD max_size = 200000000;
@@ -54,8 +65,7 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 						t--;
 						if (t < 0){
 							DWORD NuByRe;
-							if (flag == 0){
-								
+							if (flag == 0){								
 								char recvbuf[1000];
 								int size;
 								ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
@@ -87,14 +97,12 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 
 					wstring lastmodified(lpszString);
 					free(lpszString);
-
 					if (handle != INVALID_HANDLE_VALUE){
 						allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, GetFileSize(handle, NULL), handle));
 					}
 				}
 			}
 		}
-
 	}
 
 	FindClose(Ffile); //ricordati di chiudere sempre le HANDLE

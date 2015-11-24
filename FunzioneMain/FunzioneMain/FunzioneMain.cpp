@@ -118,7 +118,12 @@ int _tmain(int argc,_TCHAR* argv[] ){
 
 				server = ConnectClient(hpipe);
 				if (server != INVALID_SOCKET){
-				Login(server); //A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
+				
+				if (Login(server) == 999){
+						WriteFile(hpipe, L"Sei già loggato da un altro terminale. ", 39 * sizeof(wchar_t), &NuByRe, NULL);
+						throw "già connesso altro terminale";
+				} 
+				//A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
 				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 
 				if (choice == 10){
