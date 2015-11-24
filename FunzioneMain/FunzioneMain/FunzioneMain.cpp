@@ -230,6 +230,10 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 		}
 
 		missingfiles = FilesDaMandare(newconfig, lastconfig);
+		
+		wstring numero = std::to_wstring(newconfig.size()+1);
+		WriteFile(hpipe, numero.c_str(), numero.size()*sizeof(wchar_t), &NuByRe, NULL);
+		WriteFile(hpipe, L"\n", 2, &NuByRe, NULL);
 
 
 		::printf("I ask to the server to do 10 SYNC\n");
@@ -271,6 +275,7 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 				tot += read;
 				sendNbytes(server, recvbuf, read);
 			}
+			WriteFile(hpipe, L"prog\n", 10, &NuByRe, NULL);
 			lunghezza = recInt(server);
 			SetFilePointer(file, 0, 0, 0);
 		}
@@ -279,7 +284,7 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 		sendInt(server, 991);
 		sendInt(server, 991);
 		//messages to close the connection
-
+		WriteFile(hpipe, L"end\n", 8, &NuByRe, NULL);
 		sendInt(server, -10);
 		if (recInt(server) == -10){
 			::printf("Sync terminated, no more file needed\n");

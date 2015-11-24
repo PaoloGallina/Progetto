@@ -41,7 +41,7 @@ namespace PrimaGUI
                 String action = (string)e.Argument;
                 if (action.CompareTo("clicksync") == 0 || action.CompareTo("timersync") == 0)
                 {
-                    SYNC_DoWork(ref e);
+                    SYNC_DoWork(sender,ref e);
                 }
                 else if (action.CompareTo("VisualizzaUltimaVersione") == 0)
                 {
@@ -168,6 +168,10 @@ namespace PrimaGUI
             }
         }
 
+        private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            this.progress.Text = (e.ProgressPercentage.ToString()+"%");
+        }
 
         //Metodi Eventi
         private void SYNC_Click(object sender, EventArgs e)
@@ -303,11 +307,12 @@ namespace PrimaGUI
 
 
         //Metodi DoWork 
-        private void SYNC_DoWork(ref DoWorkEventArgs e)
+        private void SYNC_DoWork(object sender,ref DoWorkEventArgs e)
         {
             try
             {
-                
+                BackgroundWorker worker = sender as BackgroundWorker; 
+
                 Program.Bin.Write(10);
                 Program.Bin.Write(Program.path.Length);
                 Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
@@ -326,8 +331,38 @@ namespace PrimaGUI
                 }
                 Program.Bin.Write(Program.path.Length);
                 Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
+
+                worker.ReportProgress(0);   
                 Program.Sr.DiscardBufferedData();
                 string temp = Program.Sr.ReadLine();
+                int totale = Int32.Parse(temp);
+                int n=0;
+
+                while (temp.CompareTo("end") != 0)
+                {
+                    Program.Sr.DiscardBufferedData();
+                    temp = Program.Sr.ReadLine();
+                    if (temp.CompareTo("end") != 0 && temp.CompareTo("prog") != 0)
+                    {
+                        e.Result = temp;
+                        return;
+                    }
+                    else
+                    {
+                        n++;
+                        if (n == totale)
+                        {
+                            worker.ReportProgress(100);
+                        }
+                        else {
+                            worker.ReportProgress(100*n/totale); 
+                        }
+                    }
+                }
+
+
+                Program.Sr.DiscardBufferedData();
+                temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)
                 {
                     string arg = (string)e.Argument;
@@ -335,16 +370,13 @@ namespace PrimaGUI
                     {
                         e.Result = temp;
                     }
-                    else
-                    {
-                        e.Result = "Not Show";
-                    }
                 }
                 else
                 {
                     string arg = (string)e.Argument;
                     if (arg.CompareTo("clicksync") == 0)
                     {
+                        worker.ReportProgress(100);
                         e.Result = "Sync completed";
                     }
                     else
@@ -763,10 +795,22 @@ namespace PrimaGUI
             dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.InactiveCaption;
             dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
 
-            bw.WorkerReportsProgress = false;
+            bw.WorkerReportsProgress = true;
             bw.WorkerSupportsCancellation = false;
             bw.DoWork += new DoWorkEventHandler(DoWork);
             bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DoWork_end);
+            bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
+            
+        }
+
+        private void SYNC_MouseEnter(object sender, EventArgs e)
+        {
+            progress.BackColor = System.Drawing.SystemColors.ActiveCaption;
+        }
+
+        private void SYNC_MouseLeave(object sender, EventArgs e)
+        {
+            progress.BackColor = System.Drawing.Color.Transparent;
         }
 
 

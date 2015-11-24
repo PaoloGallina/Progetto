@@ -46,7 +46,7 @@
             this.timer1 = new System.Windows.Forms.Timer(this.components);
             this.label2 = new System.Windows.Forms.Label();
             this.label3 = new System.Windows.Forms.Label();
-            this.label1 = new System.Windows.Forms.Label();
+            this.progress = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView1)).BeginInit();
             this.SuspendLayout();
             // 
@@ -123,6 +123,8 @@
             this.SYNC.UseCompatibleTextRendering = true;
             this.SYNC.UseVisualStyleBackColor = false;
             this.SYNC.Click += new System.EventHandler(this.SYNC_Click);
+            this.SYNC.MouseEnter += new System.EventHandler(this.SYNC_MouseEnter);
+            this.SYNC.MouseLeave += new System.EventHandler(this.SYNC_MouseLeave);
             // 
             // dataGridView1
             // 
@@ -266,18 +268,18 @@
             this.label3.TabIndex = 22;
             this.label3.Text = "a PDS project";
             // 
-            // label1
+            // progress
             // 
-            this.label1.AutoSize = true;
-            this.label1.BackColor = System.Drawing.Color.Transparent;
-            this.label1.Font = new System.Drawing.Font("Times New Roman", 8.75F, System.Drawing.FontStyle.Bold);
-            this.label1.ForeColor = System.Drawing.Color.White;
-            this.label1.Location = new System.Drawing.Point(453, 27);
-            this.label1.Margin = new System.Windows.Forms.Padding(0);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(22, 15);
-            this.label1.TabIndex = 23;
-            this.label1.Text = "1/1";
+            this.progress.AutoSize = true;
+            this.progress.BackColor = System.Drawing.Color.Transparent;
+            this.progress.Font = new System.Drawing.Font("Times New Roman", 8.75F, System.Drawing.FontStyle.Bold);
+            this.progress.ForeColor = System.Drawing.Color.White;
+            this.progress.Location = new System.Drawing.Point(454, 26);
+            this.progress.Margin = new System.Windows.Forms.Padding(0);
+            this.progress.Name = "progress";
+            this.progress.Size = new System.Drawing.Size(36, 15);
+            this.progress.TabIndex = 23;
+            this.progress.Text = "100%";
             // 
             // Form1
             // 
@@ -287,7 +289,7 @@
             this.BackgroundImage = global::PrimaGUI.Properties.Resources.green_blue_nature_spring_plants_macro_depth_of_field_buds_2560x1600_wallpaper_www_wallpaperhi_com_39;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(784, 462);
-            this.Controls.Add(this.label1);
+            this.Controls.Add(this.progress);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.button1);
@@ -326,7 +328,7 @@
         private System.Windows.Forms.DataGridViewTextBoxColumn Data_Ceazione;
         private System.Windows.Forms.DataGridViewTextBoxColumn tofill;
         private System.Windows.Forms.DataGridViewButtonColumn Restore;
-        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.Label progress;
     }
 }
 
