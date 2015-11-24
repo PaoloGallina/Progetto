@@ -216,7 +216,7 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 		recvbuf[NuByRe + 1] = '\0';
 		cartella = new wstring((wchar_t*)recvbuf);
 
-		Cartella cartelle(cartella, newconfig,hpipe);
+		Cartella cartelle(cartella, newconfig,hpipe,1);
 		
 		if (lastconfig.size() == 0)
 		{
@@ -318,7 +318,7 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 
 		cartella = new wstring((wchar_t*)recvbuf);
 		
-		Cartella cartelle(cartella, newconfig, hpipe);
+		Cartella cartelle(cartella, newconfig, hpipe,0);
 
 		missingfiles = FilesDaMandare(newconfig, lastconfig);
 
@@ -332,12 +332,13 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 		PulisciLista(newconfig);
 		PulisciLista(missingfiles);
 		delete(cartella);
-
+		//riordinare
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		size = *((int*)recvbuf);
 		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		size = *((int*)recvbuf);
+
 		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		WriteFile(hpipe, L"La sync non era necessaria\n", 27 * sizeof(wchar_t), &NuByRe, NULL);
 	}
@@ -345,14 +346,7 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 		PulisciLista(newconfig);
 		PulisciLista(missingfiles);
 		delete(cartella);
-		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-		size = *((int*)recvbuf);
-		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-		size = *((int*)recvbuf);
-		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-		WriteFile(hpipe, L"Errore SYNC NEC\n", 16 * sizeof(wchar_t), &NuByRe, NULL);
-
+		WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
 	}
 	return false;
 }

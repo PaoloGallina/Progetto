@@ -292,6 +292,7 @@
             this.PortaText.TabIndex = 3;
             this.PortaText.Text = "Porta";
             this.PortaText.Visible = false;
+            this.PortaText.MouseClick += new System.Windows.Forms.MouseEventHandler(this.Porta_MouseClick);
             this.PortaText.TextChanged += new System.EventHandler(this.Porta_TextChanged);
             this.PortaText.KeyPress += new System.Windows.Forms.KeyPressEventHandler(this.ControlloEnter_KeyPress);
             // 

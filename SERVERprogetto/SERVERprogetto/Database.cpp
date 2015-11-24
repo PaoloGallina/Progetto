@@ -239,6 +239,7 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 		rc = sqlite3_step(stm);
 
 		if (rc != SQLITE_DONE){
+			sqlite3_finalize(stm);
 			fprintf(stderr, " This file was already present in the database!\n", rc);
 			return;
 		}
