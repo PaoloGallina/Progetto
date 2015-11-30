@@ -319,13 +319,10 @@ namespace PrimaGUI
                 if (sendCred(ref e) == 999)
                 {
                     string arg = (string)e.Argument;
-                    if (arg.CompareTo("clicksync") != 0)
+                    string res = (string)e.Result;
+                    if (arg.CompareTo("clicksync") != 0&&res.CompareTo("La sync non era necessaria") == 0)
                     {
-                        string res = (string)e.Result;
-                        if (res.CompareTo("La sync non era necessaria") == 0)
-                        {
-                            e.Result = "Not Show";
-                        }
+                            e.Result = "Not Show";   
                     }
                     return;
                 }
@@ -395,7 +392,7 @@ namespace PrimaGUI
             }
             catch (Exception err)
             {
-                this.flag = true;
+                
                 e.Result = "Errore Generico\n";
             }
 
