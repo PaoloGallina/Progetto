@@ -344,6 +344,7 @@ namespace PrimaGUI
                     temp = Program.Sr.ReadLine();
                     if (temp.CompareTo("end") != 0 && temp.CompareTo("prog") != 0)
                     {
+                        worker.ReportProgress(0);
                         e.Result = temp;
                         return;
                     }
@@ -365,6 +366,7 @@ namespace PrimaGUI
                 temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)
                 {
+                    worker.ReportProgress(0);
                     string arg = (string)e.Argument;
                     if (arg.CompareTo("clicksync") == 0)
                     {
@@ -381,6 +383,7 @@ namespace PrimaGUI
                     }
                     else
                     {
+                        worker.ReportProgress(100);
                         e.Result = "Not Show";
                     }
                 }
