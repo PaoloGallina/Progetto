@@ -205,8 +205,14 @@ char* recvFile(SOCKET Client){
 	int recvbuflen = DEFAULT_BUFLEN;
 	printf("I get the size of the file\n");
 	int size = recInt(Client);
+	if (size < 0 || size>100000000){
+		//questo non succederà mai
+		throw "requested too much memory";
+	}
 	char* file = (char*)malloc(size*sizeof(char)+4);
-	
+	if (file == nullptr){
+		throw "requested too much memory";
+	}
 	int tot = 0;
 	
 	while (tot < size){

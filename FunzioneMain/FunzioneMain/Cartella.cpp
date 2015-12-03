@@ -86,20 +86,27 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 					SYSTEMTIME struct_ultima_modifica, stLocal;
 					FileTimeToSystemTime(&ultimamodifica, &struct_ultima_modifica);
 					TCHAR *lpszString = (TCHAR*)malloc(50 * sizeof(TCHAR));
-					// Convert the last-write time to local time.
-					FileTimeToSystemTime(&ultimamodifica, &struct_ultima_modifica);
-					SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
-					// Build a string showing the date and time.
-					StringCchPrintf(lpszString, 50,
-						TEXT("%02d/%02d/%d  %02d:%02d:%02d"),
-						stLocal.wDay, stLocal.wMonth, stLocal.wYear,
-						stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
+					try{
+						// Convert the last-write time to local time.
+						FileTimeToSystemTime(&ultimamodifica, &struct_ultima_modifica);
+						SystemTimeToTzSpecificLocalTime(NULL, &struct_ultima_modifica, &stLocal);
+						// Build a string showing the date and time.
+						StringCchPrintf(lpszString, 50,
+							TEXT("%02d/%02d/%d  %02d:%02d:%02d"),
+							stLocal.wDay, stLocal.wMonth, stLocal.wYear,
+							stLocal.wHour, stLocal.wMinute, stLocal.wSecond);
 
-					wstring lastmodified(lpszString);
-					free(lpszString);
-					if (handle != INVALID_HANDLE_VALUE){
-						allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, GetFileSize(handle, NULL), handle));
+						wstring lastmodified(lpszString);
+
+						if (handle != INVALID_HANDLE_VALUE){
+							allthefiles.push_front(new Oggetto(filepath, find_file_data.cFileName, lastmodified, GetFileSize(handle, NULL), handle));
+						}
 					}
+					catch (...){
+						free(lpszString);
+						throw "errore generico";
+					}
+					free(lpszString);
 				}
 			}
 		}
@@ -114,7 +121,8 @@ Cartella::~Cartella()
 	while (!this->contains.empty()){
 		p = this->contains.front();
 		this->contains.pop_front();
-		delete p;
+		
+		p;
 		p = NULL;
 	}
 }

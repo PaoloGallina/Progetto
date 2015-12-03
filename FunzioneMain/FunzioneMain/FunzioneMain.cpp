@@ -108,21 +108,21 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		choice = *((int*)recvbuf);
 		
 		
-			try{
+		try{
 
-				if (choice == 10){
-					if (syncTobeperformed(lastconfig) == false){
-						continue;
-					}
+			if (choice == 10){
+				if (syncTobeperformed(lastconfig) == false){
+					continue;
 				}
+			}
 
-				server = ConnectClient(hpipe);
-				if (server != INVALID_SOCKET){
-				
+			server = ConnectClient(hpipe);
+			if (server != INVALID_SOCKET){
+
 				if (Login(server) == 999){
-						WriteFile(hpipe, L"Sei già loggato da un altro terminale. ", 39 * sizeof(wchar_t), &NuByRe, NULL);
-						throw "già connesso altro terminale";
-				} 
+					WriteFile(hpipe, L"Sei già loggato da un altro terminale. ", 39 * sizeof(wchar_t), &NuByRe, NULL);
+					throw "già connesso altro terminale";
+				}
 				//A questo punto sarà sempre giusto, ma lo inseriamo comunque per sicurezza
 				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 
@@ -161,7 +161,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					PulisciLista(debug);
 				}
 				if (choice == 70){
-					GetAllVersionN(server,hpipe);
+					GetAllVersionN(server, hpipe);
 				}
 				if (choice == 80){
 					debug = GetConfig(server, hpipe);
@@ -178,23 +178,23 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					PulisciLista(debug);
 				}
 
-				
+
 				sendInt(server, 999);
 				closeConn(server);
 				WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 			}
-		else{
-			WriteFile(hpipe, L"Server non raggiungibile\n", 25 * sizeof(wchar_t), &NuByRe, NULL);
+			else{
+				WriteFile(hpipe, L"Server non raggiungibile\n", 25 * sizeof(wchar_t), &NuByRe, NULL);
+			}
+
 		}
-			
+		catch (...){
+			PulisciLista(debug);
+			if (server != INVALID_SOCKET){
+				closeConn(server);
 			}
-			catch (...){
-				PulisciLista(debug);
-				if (server != INVALID_SOCKET){
-					closeConn(server);
-				}
-				WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
-			}
+			WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
+		}
 		
 		//system("cls");
 		::printf("wating for new commands\n");
@@ -298,6 +298,7 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 		lastconfig = newconfig;
 		ClearHandles(lastconfig);
 		PulisciLista(missingfiles);
+		delete cartella;
 	}
 	catch(...){
 	
@@ -308,8 +309,6 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig){
 		throw "errore generico sync";
 		
 	}
-
-	delete cartella;
 }
 
 bool syncTobeperformed(std::list <Oggetto*> lastconfig){
@@ -327,11 +326,8 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 		recvbuf[NuByRe + 1] = '\0';
 
 		cartella = new wstring((wchar_t*)recvbuf);
-		
 		Cartella cartelle(cartella, newconfig, hpipe,0);
-
 		missingfiles = FilesDaMandare(newconfig, lastconfig);
-
 		if (missingfiles.size() != 0 || newconfig.size() != lastconfig.size()){
 			PulisciLista(newconfig);
 			PulisciLista(missingfiles);
@@ -342,13 +338,14 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 		PulisciLista(newconfig);
 		PulisciLista(missingfiles);
 		delete(cartella);
+		cartella = nullptr;
+
 		//riordinare
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		size = *((int*)recvbuf);
 		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
 		size = *((int*)recvbuf);
-
 		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		WriteFile(hpipe, L"La sync non era necessaria\n", 27 * sizeof(wchar_t), &NuByRe, NULL);
 	}
@@ -383,7 +380,7 @@ void Restore(SOCKET server){
 
 	HANDLE handle = INVALID_HANDLE_VALUE;
 	HANDLE handlevecchio =INVALID_HANDLE_VALUE;
-	wchar_t* temp2;
+	wchar_t* temp2=nullptr;
 	wstring temp;
 	try{
 		::printf("\nStarting the restore\n");
@@ -403,7 +400,6 @@ void Restore(SOCKET server){
 
 		temp= temp2;
 		temp.append(L"/th.th");
-		::free(temp2);
 		handle = CreateFileW(temp.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_HIDDEN, NULL);
 		if (handle == INVALID_HANDLE_VALUE){
 			throw "the file in the restore has not been created";
@@ -447,13 +443,13 @@ void Restore(SOCKET server){
 		CloseHandle(handle);
 		MoveFileW(temp.c_str(), wpath.c_str());
 		SetFileAttributesW(wpath.c_str(), FILE_ATTRIBUTE_NORMAL);
-
+		::free(temp2);
 	}
 	catch (...){
 		CloseHandle(handlevecchio);
 		CloseHandle(handle);
 		DeleteFileW(temp.c_str());
-
+		::free(temp2);
 		throw "error during the restore";
 	}
 	
@@ -477,153 +473,193 @@ void Restore(SOCKET server){
 }
 
 list<Oggetto*> GetLastConfig(SOCKET server){
-	::printf("I send the #20 requested last config\n");
-	sendInt(server, 20);
+
 	list<Oggetto*>last;
-	::printf("I get the number of files in the last config\n");
-	int n = recInt(server);
+	char* Hash = nullptr;
+	wchar_t *PathNameLast=nullptr;
+	try{
+		::printf("I send the #20 requested last config\n");
+		sendInt(server, 20);
+		::printf("I get the number of files in the last config\n");
+		int n = recInt(server);
 
-	char* Hash = recvFile(server);
-	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
-	istringstream fhash(Hash);
-	wistringstream fpathlast(PathNameLast);
+		Hash = recvFile(server);
+		PathNameLast = (wchar_t*)recvFile(server);
+		istringstream fhash(Hash);
+		wistringstream fpathlast(PathNameLast);
 
-	int t = 0;
-	while (t<n){
-		wchar_t buf1[DEFAULT_BUFLEN];
-		wchar_t buf2[DEFAULT_BUFLEN];
-		char buf4[DEFAULT_BUFLEN];
-		fpathlast.getline(buf1, DEFAULT_BUFLEN);
-		fpathlast.getline(buf2, DEFAULT_BUFLEN);
-		fhash.getline(buf4, DEFAULT_BUFLEN);
-		last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
-		
-		t++;
+		int t = 0;
+		while (t < n){
+			wchar_t buf1[DEFAULT_BUFLEN];
+			wchar_t buf2[DEFAULT_BUFLEN];
+			char buf4[DEFAULT_BUFLEN];
+			fpathlast.getline(buf1, DEFAULT_BUFLEN);
+			fpathlast.getline(buf2, DEFAULT_BUFLEN);
+			fhash.getline(buf4, DEFAULT_BUFLEN);
+			last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
+
+			t++;
+		}
+
+		if (recInt(server) != -20){
+			::printf("\nAn error occurred while receiving last config");
+		}
 	}
-
+	catch (...){
+		::free(Hash);
+		::free(PathNameLast);
+		throw "errore generico";
+	}
 	::free(Hash);
 	::free(PathNameLast);
 
-	if (recInt(server)!=-20){
-		::printf("\nAn error occurred while receiving last config");
-	}
 	return last;
 }
 
 list<Oggetto*> GetConfig(SOCKET server,HANDLE hpipe){
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-	DWORD NuByRe;
-
-	int ver;
-	ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-	ver = *((int*)recvbuf);
-
-	::printf("I send the #80 requested a config\n");
-	sendInt(server, 80);
+	char* Hash = nullptr;
+	wchar_t *PathNameLast = nullptr;
 	list<Oggetto*>last;
+	try{
+		char recvbuf[DEFAULT_BUFLEN];
+		int recvbuflen = DEFAULT_BUFLEN;
+		DWORD NuByRe;
 
-	::printf("I send the number of version of the requested config\n");
-	sendInt(server, ver);
-	::printf("I get the number of files in the requested config\n");
-	int n = recInt(server);
+		int ver;
+		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
+		ver = *((int*)recvbuf);
 
-	char* Hash = recvFile(server);
-	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
-	istringstream fhash(Hash);
-	wistringstream fpathlast(PathNameLast);
+		::printf("I send the #80 requested a config\n");
+		sendInt(server, 80);
 
-	int t = 0;
-	while (t<n){
-		wchar_t buf1[DEFAULT_BUFLEN];
-		wchar_t buf2[DEFAULT_BUFLEN];
-		char buf4[DEFAULT_BUFLEN];
-		fpathlast.getline(buf1, DEFAULT_BUFLEN);
-		fpathlast.getline(buf2, DEFAULT_BUFLEN);
-		fhash.getline(buf4, DEFAULT_BUFLEN);
-		last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
-		t++;
+
+		::printf("I send the number of version of the requested config\n");
+		sendInt(server, ver);
+		::printf("I get the number of files in the requested config\n");
+		int n = recInt(server);
+
+		char* Hash = recvFile(server);
+		wchar_t* PathNameLast = (wchar_t*)recvFile(server);
+		istringstream fhash(Hash);
+		wistringstream fpathlast(PathNameLast);
+
+		int t = 0;
+		while (t < n){
+			wchar_t buf1[DEFAULT_BUFLEN];
+			wchar_t buf2[DEFAULT_BUFLEN];
+			char buf4[DEFAULT_BUFLEN];
+			fpathlast.getline(buf1, DEFAULT_BUFLEN);
+			fpathlast.getline(buf2, DEFAULT_BUFLEN);
+			fhash.getline(buf4, DEFAULT_BUFLEN);
+			last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
+			t++;
+		}
+
+
+
+		if (recInt(server) != -80){
+			::printf("\nAn error occurred while receiving last config");
+		}
 	}
-
+	catch (...){
+		::free(Hash);
+		::free(PathNameLast);
+		throw "Errore generico";
+	}
 	::free(Hash);
 	::free(PathNameLast);
-
-	if (recInt(server) != -80){
-		::printf("\nAn error occurred while receiving last config");
-	}
 	return last;
 }
 
 list<Oggetto*> GetAllFiles(SOCKET server){
-	::printf("I send the #60 requesting all files\n");
-	sendInt(server, 60);
+	char* Hash = nullptr;
+	wchar_t *PathNameLast = nullptr;
 	list<Oggetto*>last;
-	::printf("I get the number of files in the last config\n");
-	int n = recInt(server);
+	try{
+		::printf("I send the #60 requesting all files\n");
+		sendInt(server, 60);
+		::printf("I get the number of files in the last config\n");
+		int n = recInt(server);
 
-	char* Hash = recvFile(server);
-	wchar_t* PathNameLast = (wchar_t*)recvFile(server);
-	istringstream fhash(Hash);
-	wistringstream fpathlast(PathNameLast);
+		char* Hash = recvFile(server);
+		wchar_t* PathNameLast = (wchar_t*)recvFile(server);
+		istringstream fhash(Hash);
+		wistringstream fpathlast(PathNameLast);
 
-	int t = 0;
-	while (t<n){
-		wchar_t buf1[DEFAULT_BUFLEN];
-		wchar_t buf2[DEFAULT_BUFLEN];
-		char buf4[DEFAULT_BUFLEN];
-		fpathlast.getline(buf1, DEFAULT_BUFLEN);
-		fpathlast.getline(buf2, DEFAULT_BUFLEN);
-		fhash.getline(buf4, DEFAULT_BUFLEN);
-		last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
+		int t = 0;
+		while (t < n){
+			wchar_t buf1[DEFAULT_BUFLEN];
+			wchar_t buf2[DEFAULT_BUFLEN];
+			char buf4[DEFAULT_BUFLEN];
+			fpathlast.getline(buf1, DEFAULT_BUFLEN);
+			fpathlast.getline(buf2, DEFAULT_BUFLEN);
+			fhash.getline(buf4, DEFAULT_BUFLEN);
+			last.push_front(new Oggetto(buf1, L"", buf2, buf4, 0, INVALID_HANDLE_VALUE));
 
-		t++;
+			t++;
+		}
+
+
+
+		if (recInt(server) != -60){
+			::printf("\nAn error occurred while receiving all the files");
+		}
 	}
-
+	catch (...){
+		::free(Hash);
+		::free(PathNameLast);
+		throw "Errore generico";
+	}
 	::free(Hash);
 	::free(PathNameLast);
-
-	if (recInt(server) != -60){
-		::printf("\nAn error occurred while receiving all the files");
-	}
 	return last;
 
 }
 
 void GetAllVersionN(SOCKET server,HANDLE hpipe){
-	DWORD NuByRe;
-	::printf("I send the #70 requesting all versions\n");
-	sendInt(server, 70);
-	::printf("I get the number of versions\n");
-	int n = recInt(server);
+	char* NUM = nullptr;
+	char *PathNameLast = nullptr;
+	try{
+		DWORD NuByRe;
+		::printf("I send the #70 requesting all versions\n");
+		sendInt(server, 70);
+		::printf("I get the number of versions\n");
+		int n = recInt(server);
 
-	char* NUM = recvFile(server);
-	char* PathNameLast = recvFile(server);
-	istringstream fnum(NUM);
-	istringstream fLAST(PathNameLast);
+		NUM = recvFile(server);
+		PathNameLast = recvFile(server);
+		istringstream fnum(NUM);
+		istringstream fLAST(PathNameLast);
 
-	int t = 0;
-	while (t<n){
-		char buf1[DEFAULT_BUFLEN];
-		char buf4[DEFAULT_BUFLEN];
-		fLAST.getline(buf1, DEFAULT_BUFLEN);
-		fnum.getline(buf4, DEFAULT_BUFLEN);
+		int t = 0;
+		while (t < n){
+			char buf1[DEFAULT_BUFLEN];
+			char buf4[DEFAULT_BUFLEN];
+			fLAST.getline(buf1, DEFAULT_BUFLEN);
+			fnum.getline(buf4, DEFAULT_BUFLEN);
 
-		WriteFile(hpipe, buf4, strlen(buf4), &NuByRe, NULL);
-		WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
-		WriteFile(hpipe, buf1, strlen(buf1), &NuByRe, NULL);
-		WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
+			WriteFile(hpipe, buf4, strlen(buf4), &NuByRe, NULL);
+			WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
+			WriteFile(hpipe, buf1, strlen(buf1), &NuByRe, NULL);
+			WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 
-		t++;
+			t++;
+		}
+
+
+
+		WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
+		if (recInt(server) != -70){
+			::printf("\nAn error occurred while receiving all the files");
+		}
 	}
-
+	catch (...){
+		::free(NUM);
+		::free(PathNameLast);
+		throw "Errore generico";
+	}
 	::free(NUM);
 	::free(PathNameLast);
-	
-	WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
-	if (recInt(server) != -70){
-		::printf("\nAn error occurred while receiving all the files");
-	}
-
 	return;
 }
 
@@ -762,7 +798,7 @@ void PulisciLista(std::list < Oggetto *>& a){
 
 		a.pop_front();
 		delete p2;
-		p2 = NULL;
+		p2 = nullptr;
 	}
 };
 

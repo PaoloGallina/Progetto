@@ -203,7 +203,7 @@ int ServeClient(SOCKET client) {
 	}
 	catch (const char* e)
 	{
-		printf("logout of a client due to an error");
+		printf("\nlogout of a client due to an error\n");
 		std::lock_guard<std::mutex> LG(m);
 		if (strcmp(e, "user already served") != 0 && strcmp(e, "too many users") != 0){
 			clients.remove(nome);
@@ -212,7 +212,7 @@ int ServeClient(SOCKET client) {
 		return -1;
 	}
 	catch (...){
-		printf("logout of a client due to an error");
+		printf("\nlogout of a client due to an error\n");
 		std::lock_guard<std::mutex> LG(m);
 		clients.remove(nome);
 		closeConn(client);
@@ -394,27 +394,35 @@ void SendAllFiles(SOCKET client, std::string nome){
 
 void TxtToList(SOCKET client, std::list < Oggetto *>& listaobj){
 
-	printf("I get the number of obj in the list\n");
-	int n = recInt(client);
+	char* Hash=nullptr;
+	wchar_t* PathNameLast = nullptr;
+	try{
+		printf("I get the number of obj in the list\n");
+		int n = recInt(client);
 
-	char* Hash = recvFile(client);
-	wchar_t* PathNameLast = (wchar_t*)recvFile(client);
-	std::istringstream c(Hash);
-	std::wistringstream b(PathNameLast);
+		Hash = recvFile(client);
+		PathNameLast = (wchar_t*)recvFile(client);
+		std::istringstream c(Hash);
+		std::wistringstream b(PathNameLast);
 
 
-	int t = 0;
-	while (t<n){
-		wchar_t buf1[512], buf2[512], buf3[512];
-		char buf4[512], buf5[512];
-		b.getline(buf1, 512);
-		b.getline(buf2, 512);
-		b.getline(buf3, 512);
-		c.getline(buf4, 512);
-		listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4, *((DWORD *)recNbytes(client, sizeof(DWORD), buf5)), INVALID_HANDLE_VALUE));
-		t++;
+		int t = 0;
+		while (t < n){
+			wchar_t buf1[512], buf2[512], buf3[512];
+			char buf4[512], buf5[512];
+			b.getline(buf1, 512);
+			b.getline(buf2, 512);
+			b.getline(buf3, 512);
+			c.getline(buf4, 512);
+			listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4, *((DWORD *)recNbytes(client, sizeof(DWORD), buf5)), INVALID_HANDLE_VALUE));
+			t++;
+		}
 	}
-
+	catch (...){
+		::free(Hash);
+		::free(PathNameLast);
+		throw "errore generico";
+	}
 	::free(Hash);
 	::free(PathNameLast);
 }
@@ -425,7 +433,7 @@ void PulisciLista(std::list < Oggetto *>& a){
 		p2 = a.front();
 		a.pop_front();
 		delete p2;
-		p2 = NULL;
+		p2 = nullptr;
 	}
 };
 
@@ -599,6 +607,7 @@ void Login(SOCKET client, std::string& nome){
 			}
 		}
 		clients.push_back(nome);
+		printf("\nSto servendo %s\n", nome.c_str());
 	}
 	std::string temp = nome;
 	temp.append(".db");
@@ -638,7 +647,6 @@ void Login(SOCKET client, std::string& nome){
 		sendInt(client, 999);
 		throw "User not registered ";
 	}
-	
 	sendInt(client, -40);
 	
 };
