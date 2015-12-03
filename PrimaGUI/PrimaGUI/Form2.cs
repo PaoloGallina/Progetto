@@ -108,7 +108,7 @@ namespace PrimaGUI
                     }
                     catch
                     {
-                        //il file non viene creato ma non è un grande problema
+                        MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
 
@@ -298,7 +298,6 @@ namespace PrimaGUI
             PortaText.SelectAll();
         }
 
-
         private void ControlloEnter_KeyPress(object sender, KeyPressEventArgs e)
         {
             if (e.KeyChar==(char)13) {
@@ -309,10 +308,7 @@ namespace PrimaGUI
         //Necessario per la chiusura del processo client C++
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-
             try{
-                FormClosingEventArgs er = (FormClosingEventArgs) e;
-                    
                     if (flag == false)
                     {
                         Program.myprocess.Kill();
@@ -320,7 +316,7 @@ namespace PrimaGUI
                 }
                 catch
                 {
-                    //Not a problem.. the user can manually kill it.. not nice to show the ecception
+                    MessageBox.Show("Il programma ha incontrato un problema nella chiusura del client c++. Procesi manualmente alla chiusura", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             
             base.OnClosing(e);

@@ -178,6 +178,7 @@ namespace PrimaGUI
         {  
             if (bw.IsBusy != true)
             {
+                dataGridView1.Visible = false;
                 bw.RunWorkerAsync("clicksync");
             }
             else {
@@ -189,6 +190,7 @@ namespace PrimaGUI
         {
             if (bw.IsBusy != true)
             {
+                dataGridView1.Visible = false;
                 bw.RunWorkerAsync("timersync");
             }
 
@@ -298,8 +300,7 @@ namespace PrimaGUI
                 }
                 catch
                 {
-                    //Il file non viene creato, non è un gran problema, l'utente dovrà semplicemente immettere ogni volta 
-                    //le credenziali
+                    MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);                 
                 }
                 this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
             }
@@ -695,7 +696,7 @@ namespace PrimaGUI
                 }
                 catch
                 {
-                    //Not a problem.. the user can manually kill it.. not nice to show the ecception
+                    MessageBox.Show("Il programma ha incontrato un problema nella chiusura del client c++. Procesi manualmente alla chiusura", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
                 base.OnClosing(e);
@@ -756,7 +757,7 @@ namespace PrimaGUI
             }
             catch
             {
-                //il file non è presente, ma non è grave
+                MessageBox.Show("Il programma non è stato in grado di trovare il file di impostazioni.\nIl file sarà creato nuovamente e il problema non si dovrebbe riproporre.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
 
             while (Program.path.CompareTo(@"") == 0)
@@ -775,7 +776,7 @@ namespace PrimaGUI
             }
             catch
             {
-                //il file non è presente, ma non è grave l'utente dovrà caricarl ogni volta
+                MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
 

@@ -136,9 +136,9 @@ int _tmain(int argc, _TCHAR* argv[])
 
 			printf("SERVER a connection is settled\n");
 			
-			struct timeval tv;
-			tv.tv_sec = 70000;  /* 70 Secs Timeout */
-			setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));
+			int tv=60000;
+			  
+			setsockopt(ClientSocket, SOL_SOCKET, SO_RCVTIMEO, (char *)&tv, sizeof(struct timeval));	
 			setsockopt(ClientSocket, SOL_SOCKET, SO_SNDTIMEO, (char *)&tv, sizeof(struct timeval));
 
 		    std::thread  cliente(ServeClient, ClientSocket);
@@ -429,6 +429,83 @@ void PulisciLista(std::list < Oggetto *>& a){
 	}
 };
 
+void Restore(SOCKET client, std::string nome){
+
+	char hash[DEFAULT_BUFLEN];
+	wchar_t path[DEFAULT_BUFLEN];
+
+	int Lhash = recInt(client);
+	recNbytes(client, Lhash, hash);
+	int Lpath = recInt(client);
+	recNbytes(client, Lpath, (char*)path);
+
+	int rc;
+	sqlite3* db = CreateDatabase(nome);
+	sqlite3_blob *BLOB = nullptr;
+	sqlite3_stmt* stm = nullptr;
+	try{
+		/* Create SQL statement */
+		std::string sql = "SELECT rowid from FILES where PATH=?1 and HASH=?2";
+
+
+		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
+		rc = sqlite3_bind_blob(stm, 1, path, wcslen(path)*sizeof(TCHAR), SQLITE_STATIC);
+		rc = sqlite3_bind_text(stm, 2, hash, strlen(hash), SQLITE_STATIC);
+		rc = sqlite3_step(stm);
+		sqlite_int64 rowid = sqlite3_column_int64(stm, 0);
+
+
+
+		rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
+		if (rc == 1){
+			std::cout << sqlite3_errmsg(db) << std::endl;
+			sendInt(client, 999);
+			throw "invalid rowid";
+		}
+		else{ sendInt(client, 0); }
+
+		int size = sqlite3_blob_bytes(BLOB);
+		sendInt(client, size);
+		char recvbuf[DEFAULT_BUFLEN];
+		int recvbuflen = DEFAULT_BUFLEN;
+		int tot = 0;
+		while (tot < size){
+			if (tot + recvbuflen < size){
+				int read = sqlite3_blob_read(BLOB, recvbuf, recvbuflen, tot);
+				sendNbytes(client, recvbuf, recvbuflen);
+			}
+			else{
+				int read = sqlite3_blob_read(BLOB, recvbuf, size - tot, tot);
+				sendNbytes(client, recvbuf, size - tot);
+				tot += size - tot;
+				break;
+			}
+			tot += DEFAULT_BUFLEN;
+		}
+
+
+	}
+	catch (...){
+		sqlite3_finalize(stm);
+		sqlite3_blob_close(BLOB);
+		sqlite3_close(db);
+		throw "error during restore";
+	}
+	sqlite3_finalize(stm);
+	sqlite3_blob_close(BLOB);
+	sqlite3_close(db);
+
+	sendInt(client, -50);
+	if (recInt(client) != -50){
+		printf("error detected in the restore\n");
+		throw("error detected in the restore");
+	}
+	else{
+		printf("restore successfully completed\n");
+	}
+	sendInt(client, -50);
+}
+
 void Register(SOCKET client,std::string& nome){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
@@ -437,7 +514,7 @@ void Register(SOCKET client,std::string& nome){
 	nome = std::string((char*)recNbytes(client, sizename, recvbuf));
 
 	int sizepass = recInt(client);
-	std::string pass = sha256(std::string((char*)recNbytes(client, sizepass, recvbuf)));
+	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf));
 	{
 		std::lock_guard<std::mutex> LG(m);
 
@@ -501,8 +578,11 @@ void Login(SOCKET client, std::string& nome){
 	int sizename = recInt(client);
 	nome = std::string((char*)recNbytes(client, sizename, recvbuf));
 
+	int sfida1 = rand();
+	sendInt(client, sfida1);
+	int sfida2 = recInt(client);
 	int sizepass = recInt(client);
-	std::string pass = sha256(std::string((char*)recNbytes(client, sizepass, recvbuf)));
+	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf));
 
 	{
 		std::lock_guard<std::mutex> LG(m);
@@ -511,7 +591,6 @@ void Login(SOCKET client, std::string& nome){
 			sendInt(client, 999);
 			throw "too many users";
 		}
-		
 		for (std::list<std::string>::iterator it = clients.begin(); it != clients.end(); ++it){
 			std::string IT = *it;
 			if (!IT.compare(nome)){
@@ -535,7 +614,13 @@ void Login(SOCKET client, std::string& nome){
 			rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
 			rc = sqlite3_step(stm);
 			std::string passD = std::string((char*)sqlite3_column_text(stm, 0));
-			if (passD.compare(pass) != 0){
+			
+			passD.append(std::to_string(sfida2));
+			passD.append(std::to_string(sfida1));
+			std::string hash = sha256(passD);
+
+			
+			if (hash.compare(pass) != 0){
 				sendInt(client, 999);
 				throw "wrong password ";
 			}
@@ -558,79 +643,3 @@ void Login(SOCKET client, std::string& nome){
 	
 };
 
-void Restore(SOCKET client, std::string nome){
-
-	char hash[DEFAULT_BUFLEN];
-	wchar_t path[DEFAULT_BUFLEN];
-
-	int Lhash = recInt(client);
-	recNbytes(client, Lhash, hash);
-	int Lpath = recInt(client);
-	recNbytes(client, Lpath, (char*)path);
-
-	int rc;
-	sqlite3* db = CreateDatabase(nome);
-	sqlite3_blob *BLOB=nullptr;
-	sqlite3_stmt* stm=nullptr;
-	try{
-		/* Create SQL statement */
-		std::string sql = "SELECT rowid from FILES where PATH=?1 and HASH=?2";
-
-		
-		rc = sqlite3_prepare_v2(db, sql.c_str(), -1, &stm, NULL);
-		rc = sqlite3_bind_blob(stm, 1, path, wcslen(path)*sizeof(TCHAR), SQLITE_STATIC);
-		rc = sqlite3_bind_text(stm, 2, hash, strlen(hash), SQLITE_STATIC);
-		rc = sqlite3_step(stm);
-		sqlite_int64 rowid = sqlite3_column_int64(stm, 0);
-		
-
-
-		rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
-		if (rc == 1){
-			std::cout << sqlite3_errmsg(db) << std::endl;
-			sendInt(client, 999);
-			throw "invalid rowid";
-		}
-		else{ sendInt(client, 0); }
-
-		int size = sqlite3_blob_bytes(BLOB);
-		sendInt(client, size);
-		char recvbuf[DEFAULT_BUFLEN];
-		int recvbuflen = DEFAULT_BUFLEN;
-		int tot = 0;
-		while (tot < size){
-			if (tot + recvbuflen < size){
-				int read = sqlite3_blob_read(BLOB, recvbuf, recvbuflen, tot);
-				sendNbytes(client, recvbuf, recvbuflen);
-			}
-			else{
-				int read = sqlite3_blob_read(BLOB, recvbuf, size - tot, tot);
-				sendNbytes(client, recvbuf, size - tot);
-				tot += size - tot;
-				break;
-			}
-			tot += DEFAULT_BUFLEN;
-		}
-
-
-	}
-	catch (...){
-		sqlite3_finalize(stm);
-		sqlite3_blob_close(BLOB);
-		sqlite3_close(db);
-		throw "error during restore";
-	}
-	sqlite3_finalize(stm);
-	sqlite3_blob_close(BLOB);
-	sqlite3_close(db);
-
-	sendInt(client, -50);
-	if (recInt(client) != -50){
-		printf("error detected in the restore\n");
-		throw("error detected in the restore");
-	}
-	else{
-		printf("restore successfully completed\n");
-	}
-	sendInt(client, -50);
-}

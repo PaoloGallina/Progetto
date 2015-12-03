@@ -107,7 +107,8 @@
             // 
             // SYNC
             // 
-            this.SYNC.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+            this.SYNC.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
             this.SYNC.BackColor = System.Drawing.Color.Transparent;
             this.SYNC.FlatAppearance.BorderColor = System.Drawing.Color.White;
             this.SYNC.FlatAppearance.MouseOverBackColor = System.Drawing.SystemColors.ActiveCaption;
@@ -270,6 +271,7 @@
             // 
             // progress
             // 
+            this.progress.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
             this.progress.AutoSize = true;
             this.progress.BackColor = System.Drawing.Color.Transparent;
             this.progress.Font = new System.Drawing.Font("Times New Roman", 8.75F, System.Drawing.FontStyle.Bold);

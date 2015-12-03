@@ -381,7 +381,8 @@ void Restore(SOCKET server){
 	recvbuf2[NuByRe] = '\0';	
 	string hash(recvbuf2);
 
-	HANDLE handle=INVALID_HANDLE_VALUE;
+	HANDLE handle = INVALID_HANDLE_VALUE;
+	HANDLE handlevecchio =INVALID_HANDLE_VALUE;
 	wchar_t* temp2;
 	wstring temp;
 	try{
@@ -429,19 +430,30 @@ void Restore(SOCKET server){
 			}
 			tot += DEFAULT_BUFLEN;
 		}
+		
+		handlevecchio = CreateFileW(wpath.c_str(), GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+		if (handlevecchio == INVALID_HANDLE_VALUE && GetLastError() != ERROR_FILE_NOT_FOUND){
+			::printf("Errore nell'apertura del vecchio file error\n");
+			throw "the old file is opened";
+		}
+		CloseHandle(handlevecchio);
 
 		if (DeleteFileW(wpath.c_str()) == 0 && GetLastError() != ERROR_FILE_NOT_FOUND){
-			::printf("deletetion error");
-			throw "RESTORE: impossibile eliminare il vecchio file";
+			::printf("Errore nell'eliminazione del vecchio file error");
+			throw "RESTORE: impossibile eliminare il vecchio file\n";
 		}
+		
+
 		CloseHandle(handle);
 		MoveFileW(temp.c_str(), wpath.c_str());
 		SetFileAttributesW(wpath.c_str(), FILE_ATTRIBUTE_NORMAL);
 
 	}
 	catch (...){
+		CloseHandle(handlevecchio);
 		CloseHandle(handle);
 		DeleteFileW(temp.c_str());
+
 		throw "error during the restore";
 	}
 	
@@ -694,8 +706,10 @@ int Register(SOCKET server){
 
 	sendInt(server, strlen(nome) + 1);
 	sendNbytes(server, nome, strlen(nome) + 1);
-	sendInt(server, strlen(pass) + 1);
-	sendNbytes(server, pass, strlen(pass) + 1);
+	
+	string hash = sha256(string(pass));
+	sendInt(server,hash.length() + 1);
+	sendNbytes(server,(char*) hash.c_str(), hash.length() + 1);
 
 	return recInt(server);
 }
@@ -720,8 +734,18 @@ int Login(SOCKET server){
 	sendInt(server, 40);
 	sendInt(server, strlen(nome) + 1);
 	sendNbytes(server, nome, strlen(nome) + 1);
-	sendInt(server, strlen(pass)+1);
-	sendNbytes(server, pass, strlen(pass)+1);
+	
+	int sfida1 = rand();
+	int sfida2 = recInt(server);
+	sendInt(server, sfida1);
+	
+	string sfida=sha256(string(pass));
+	sfida.append(to_string(sfida1));
+	sfida.append(to_string(sfida2));
+	string hash = sha256(sfida);
+	sendInt(server, hash.length() + 1);
+	sendNbytes(server,(char*) hash.c_str(), hash.length() + 1);
+
 	return recInt(server);
 }
 
