@@ -333,6 +333,7 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 			PulisciLista(missingfiles);
 			delete(cartella);
 			printf("\n\nLa sincronizzazione  e' necessaria\n\n");
+			WriteFile(hpipe, L"OK\n", 3 * sizeof(wchar_t), &NuByRe, NULL);
 			return true;
 		}
 		PulisciLista(newconfig);
@@ -340,13 +341,6 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 		delete(cartella);
 		cartella = nullptr;
 
-		//riordinare
-		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-		size = *((int*)recvbuf);
-		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-		size = *((int*)recvbuf);
-		ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
 		WriteFile(hpipe, L"La sync non era necessaria\n", 27 * sizeof(wchar_t), &NuByRe, NULL);
 	}
 	catch(...){
@@ -354,6 +348,7 @@ bool syncTobeperformed(std::list <Oggetto*> lastconfig){
 		PulisciLista(missingfiles);
 		delete(cartella);
 		WriteFile(hpipe, L"ERRORE OP. NON EFFETTUATA\n", 26 * sizeof(wchar_t), &NuByRe, NULL);
+		//non devo rinviare l'eccezione poiché ho già fatto tutto quello che potevo fare per rimediare e torno in attesa di nuovi comandi;
 	}
 	return false;
 }

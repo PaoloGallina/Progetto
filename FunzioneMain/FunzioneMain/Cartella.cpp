@@ -29,17 +29,6 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 
 	if (Ffile == INVALID_HANDLE_VALUE){
 		std::wcout << L"Non ho trovato nulla, la cartella esiste?!\n" << *cartella_origine << std::endl;
-		DWORD NuByRe;
-		if (flag == 0){
-			char recvbuf[1000];
-			int size;
-			ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-			size = *((int*)recvbuf);
-			ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-			ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-			size = *((int*)recvbuf);
-			ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-		}
 		throw "La cartella selezionata non esiste";
 	}
 	DWORD max_size = 200000000;
@@ -65,16 +54,6 @@ Cartella::Cartella(std::wstring* cartella_origine, std::list <Oggetto*>& allthef
 						t--;
 						if (t < 0){
 							DWORD NuByRe;
-							if (flag == 0){								
-								char recvbuf[1000];
-								int size;
-								ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-								size = *((int*)recvbuf);
-								ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-								ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-								size = *((int*)recvbuf);
-								ReadFile(hpipe, recvbuf, size*sizeof(wchar_t), &NuByRe, NULL);
-							}
 							WriteFile(hpipe, L"ACCESS ", 7 * sizeof(wchar_t), &NuByRe, NULL);
 							printf("\na file cannot be accessed\n i read the buffer wrote to the clientc# and thrown an exception");
 							throw "a file cannot be accessed";

@@ -317,14 +317,22 @@ namespace PrimaGUI
                 Program.Bin.Write(10);
                 Program.Bin.Write(Program.path.Length);
                 Program.Bin.Write(Encoding.Unicode.GetBytes(Program.path));
+                
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                    string arg = (string)e.Argument;
+                    if (arg.CompareTo("clicksync") != 0 && temp.CompareTo("La sync non era necessaria") == 0)
+                    {
+                        e.Result = "Not Show";
+                    }
+                    return;
+                }
+
                 if (sendCred(ref e) == 999)
                 {
-                    string arg = (string)e.Argument;
-                    string res = (string)e.Result;
-                    if (arg.CompareTo("clicksync") != 0&&res.CompareTo("La sync non era necessaria") == 0)
-                    {
-                            e.Result = "Not Show";   
-                    }
                     return;
                 }
                 Program.Bin.Write(Program.path.Length);
@@ -332,7 +340,7 @@ namespace PrimaGUI
 
                 worker.ReportProgress(0);   
                 Program.Sr.DiscardBufferedData();
-                string temp = Program.Sr.ReadLine();
+                temp = Program.Sr.ReadLine();
                 int totale = Int32.Parse(temp);
                 int n=0;
 
