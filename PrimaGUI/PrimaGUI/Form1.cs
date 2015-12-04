@@ -19,13 +19,12 @@ namespace PrimaGUI
     {
         public AutoResetEvent T = new AutoResetEvent(false);
         private bool flag= false;
+        private bool operationflag = true;
 
         private BackgroundWorker bw = new BackgroundWorker();
         private List<string[]> Result=new List<string[]>();
-        private Object ResultLock = new Object();
         private String path;
         private String hash;
-        private Object PathHashLock = new Object();
 
     
         public Form1()
@@ -90,62 +89,11 @@ namespace PrimaGUI
                 }
                 else if (result.CompareTo("La sync non era necessaria") == 0)
                 {
-                    MessageBox.Show("La sincronizzazione non è avvenuta poiché la copia di backup è gia aggiornata", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("La sincronizzazione non è avvenuta poiché la copia di backup è gia aggiornata.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else if (result.CompareTo("ACCESS ERRORE OP. NON EFFETTUATA") == 0)
                 {
-                    MessageBox.Show("La sincronizzazione non è avvenuta con successo poiché il programma non riesce ad accedere ad un file aperto in un altro processo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                }
-                else if (result.CompareTo("ShowGrid") == 0)
-                {
-                    lock (ResultLock)
-                    {
-                        int index = 0;
-                        foreach (String[] array in Result)
-                        {
-                            if (dataGridView1.Rows.Count == index)
-                            {
-                                this.dataGridView1.Rows.Add();
-                            }
-                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
-                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
-                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
-                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
-                            index++;
-                        }
-                    }
-                    this.dataGridView1.Columns[0].HeaderText = "Path";
-                    this.dataGridView1.Columns[1].HeaderText = "";
-                    this.dataGridView1.Columns[2].HeaderText = "Data Ultima Modifica";
-                    this.dataGridView1.RowCount = Result.Count;
-                    dataGridView1.Visible = true;
-
-                }
-                else if (result.CompareTo("ShowGrid2") == 0)
-                {
-                    lock (ResultLock)
-                    {
-                        int index = 0;
-                        foreach (String[] array in Result)
-                        {
-                            if (dataGridView1.Rows.Count == index)
-                            {
-                                this.dataGridView1.Rows.Add();
-                            }
-                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
-                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
-                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
-                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
-                            index++;
-                        }
-                    }
-                    this.dataGridView1.Columns[0].HeaderText = "Numero Versione";
-                    this.dataGridView1.Columns[1].HeaderText = "";
-                    this.dataGridView1.Columns[2].HeaderText = "Data Creazione";
-                    this.dataGridView1.RowCount = Result.Count;
-                    dataGridView1.Visible = true;
+                    MessageBox.Show("La sincronizzazione non è avvenuta con successo poiché il programma non riesce ad accedere ad un file aperto in un altro processo.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
                 else if (result.CompareTo("Errore Generico") == 0)
                 {
@@ -156,14 +104,65 @@ namespace PrimaGUI
                     MessageBox.Show("Il restore completo dell'ultima versione presente sul server è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 }
+                else if (result.CompareTo("ShowGrid") == 0)
+                {
+                    
+                        int index = 0;
+                        foreach (String[] array in Result)
+                        {
+                            if (dataGridView1.Rows.Count == index)
+                            {
+                                this.dataGridView1.Rows.Add();
+                            }
+                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
+                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
+                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
+                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
+                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
+                            index++;
+                        }
+
+                        this.dataGridView1.Columns[0].HeaderText = "Path";
+                        this.dataGridView1.Columns[1].HeaderText = "";
+                        this.dataGridView1.Columns[2].HeaderText = "Data Ultima Modifica";
+                        this.dataGridView1.RowCount = Result.Count;
+                        dataGridView1.Visible = true;
+                    
+                }
+                else if (result.CompareTo("ShowGrid2") == 0)
+                {
+                    
+                        int index = 0;
+                        foreach (String[] array in Result)
+                        {
+                            if (dataGridView1.Rows.Count == index)
+                            {
+                                this.dataGridView1.Rows.Add();
+                            }
+                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
+                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
+                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
+                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
+                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
+                            index++;
+                        }
+
+                        this.dataGridView1.Columns[0].HeaderText = "Numero Versione";
+                        this.dataGridView1.Columns[1].HeaderText = "";
+                        this.dataGridView1.Columns[2].HeaderText = "Data Creazione";
+                        this.dataGridView1.RowCount = Result.Count;
+                        dataGridView1.Visible = true;
+                    
+                }
                 else if (result.CompareTo("Not Show") != 0)
                 {
                     MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
-
                 }
+                operationflag = true;
             }
             catch (Exception err)
             {
+                operationflag = true;
                 MessageBox.Show("Errore generico", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
@@ -176,8 +175,9 @@ namespace PrimaGUI
         //Metodi Eventi
         private void SYNC_Click(object sender, EventArgs e)
         {  
-            if (bw.IsBusy != true)
+            if (bw.IsBusy != true && operationflag==true)
             {
+                operationflag = false;
                 dataGridView1.Visible = false;
                 bw.RunWorkerAsync("clicksync");
             }
@@ -188,8 +188,9 @@ namespace PrimaGUI
 
         private void SYNC_Timer(object sender, EventArgs e)
         {
-            if (bw.IsBusy != true)
+            if (bw.IsBusy != true && operationflag == true)
             {
+                operationflag = false;
                 dataGridView1.Visible = false;
                 bw.RunWorkerAsync("timersync");
             }
@@ -199,8 +200,9 @@ namespace PrimaGUI
         private void RipristinaUltimaVersione_Click(object sender, EventArgs e)
         {
 
-                if (bw.IsBusy != true)
+            if (bw.IsBusy != true && operationflag == true)
                 {
+                    operationflag = false;
                     bw.RunWorkerAsync("VisualizzaUltimaVersione");
                 }
                 else
@@ -214,8 +216,9 @@ namespace PrimaGUI
         {
             if (dataGridView1.Visible == false)
             {
-                if (bw.IsBusy != true)
+                if (bw.IsBusy != true && operationflag == true)
                 {
+                    operationflag = false;
                     bw.RunWorkerAsync("VisualizzaFile");
                 }
                 else
@@ -233,8 +236,9 @@ namespace PrimaGUI
         {
             if (dataGridView1.Visible == false)
             {
-                if (bw.IsBusy != true)
+                if (bw.IsBusy != true && operationflag == true)
                 {
+                    operationflag = false;
                     bw.RunWorkerAsync("VisualizzaVersioni");
                 }
                 else
@@ -256,14 +260,12 @@ namespace PrimaGUI
 
             if (this.dataGridView1.Columns[0].HeaderText.CompareTo("Numero Versione") != 0)
             {
-                if (bw.IsBusy != true)
+                if (bw.IsBusy != true && operationflag == true)
                 {
-                    lock (PathHashLock)
-                    {
-                        path = (string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value;
-                        hash = (string)this.dataGridView1.Rows[e.RowIndex].Cells[1].Value;
-                        hash.ToLower();
-                    }
+                    operationflag = false;
+                    path = (string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value;
+                    hash = (string)this.dataGridView1.Rows[e.RowIndex].Cells[1].Value;
+                    hash.ToLower();
                     bw.RunWorkerAsync("Restore");
                 }
                 else
@@ -271,12 +273,10 @@ namespace PrimaGUI
             }
             else
             {
-                if (bw.IsBusy != true)
+                if (bw.IsBusy != true && operationflag == true)
                 {
-                    lock (PathHashLock)
-                    {
-                        path = (string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value;
-                    }
+                    operationflag = false;
+                    path = (string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value;
                     bw.RunWorkerAsync("VisualizzaVersione");
                 }
                 else
@@ -305,7 +305,6 @@ namespace PrimaGUI
                 this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
             }
         }
-
 
         //Metodi DoWork 
         private void SYNC_DoWork(object sender,ref DoWorkEventArgs e)
@@ -415,10 +414,7 @@ namespace PrimaGUI
                 if (sendCred(ref e) == 999)
                     return;
 
-                lock (ResultLock)
-                {
-                    Result.Clear();
-                }
+                Result.Clear();
 
                 while (true)
                 {
@@ -438,10 +434,7 @@ namespace PrimaGUI
                     Program.Srchar.DiscardBufferedData();
                     string hash = Program.Srchar.ReadLine();
 
-                    lock (ResultLock)
-                    {
-                        Result.Add(new string[] { patht, hash, last, "", "Restore" });
-                    }
+                    Result.Add(new string[] { patht, hash, last, "", "Restore" });
                 }
                 Program.Sr.DiscardBufferedData();
                 string temp = Program.Sr.ReadLine();
@@ -472,10 +465,7 @@ namespace PrimaGUI
                     if (sendCred(ref e) == 999)
                         return;
 
-                    lock (ResultLock)
-                    {
                     Result.Clear();
-                    }
 
                     while (true)
                     {
@@ -495,8 +485,8 @@ namespace PrimaGUI
                             Program.Srchar.DiscardBufferedData();
                             string hash = Program.Srchar.ReadLine();
                         
-                        lock (ResultLock){
-                        Result.Add(new string[] { patht, hash, last, "", "Restore" });}
+                       
+                        Result.Add(new string[] { patht, hash, last, "", "Restore" });
                     }
                     Program.Sr.DiscardBufferedData();
                     string temp = Program.Sr.ReadLine();
@@ -507,24 +497,20 @@ namespace PrimaGUI
                     else {
                         e.Result = "Rest Succ";
                     }
-                    lock(ResultLock){
-                       foreach (String[] array in Result)
-                        {
-                        
-                        lock (PathHashLock)
+                    
+                        foreach (String[] array in Result)
                         {
                             path = array[0];
                             hash = array[1];
                             hash.ToLower();
+                            Restore_DoWork(ref e);
+                            String result = (string)e.Result;
+                            if (result.CompareTo("Restore avvenuto con successo") != 0)
+                            {
+                                return;
+                            }
                         }
-                        Restore_DoWork(ref e);
-                        String result = (string)e.Result;
-                        if (result.CompareTo("Restore avvenuto con successo") != 0)
-                        {
-                            return;
-                        }
-                    }
-                    }
+                    
 
                     e.Result = "Rest Succ";
 
@@ -543,19 +529,13 @@ namespace PrimaGUI
         {
             try
             {
-                lock (ResultLock)
-                {
+                
                     Result.Clear();
-                }
                 Program.Bin.Write(80);
                 if (sendCred(ref e) == 999)
                     return;
                 int ver;
-                lock (PathHashLock)
-                {
-                    ver = Int32.Parse(path);
-                }
-
+                ver = Int32.Parse(path);
                 Program.Bin.Write(ver);
 
                 while (true)
@@ -575,8 +555,8 @@ namespace PrimaGUI
                     string last = Program.Sr.ReadLine();
                     Program.Srchar.DiscardBufferedData();
                     string hash = Program.Srchar.ReadLine();
-                    lock (ResultLock){
-                        Result.Add(new string[] { patht, hash, last, "", "Restore" });}
+                   
+                        Result.Add(new string[] { patht, hash, last, "", "Restore" });
                
                 }
                 Program.Sr.DiscardBufferedData();
@@ -609,10 +589,8 @@ namespace PrimaGUI
                 Program.Bin.Write(70);
                 if (sendCred(ref e) == 999)
                     return;
-                lock (ResultLock)
-                {
+               
                     Result.Clear();
-                }
                 while (true)
                 {
                     Program.Srchar.DiscardBufferedData();
@@ -627,10 +605,8 @@ namespace PrimaGUI
                     }
                     Program.Srchar.DiscardBufferedData();
                     string data = Program.Srchar.ReadLine();
-                    lock (ResultLock)
-                    {
+                   
                         Result.Add(new string[] { numero, "", data, "", "Visualizza" });
-                    }
                 }
                 Program.Sr.DiscardBufferedData();
                 string temp = Program.Sr.ReadLine();
@@ -663,13 +639,10 @@ namespace PrimaGUI
                 if (sendCred(ref e) == 999)
                     return;
 
-                lock (PathHashLock)
-                {
-                    Program.Bin.Write(path.Length);
-                    Program.Bin.Write(Encoding.Unicode.GetBytes(path));
-                    Program.Bin.Write(hash.Length);
-                    Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
-                }
+                Program.Bin.Write(path.Length);
+                Program.Bin.Write(Encoding.Unicode.GetBytes(path));
+                Program.Bin.Write(hash.Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(hash));
 
                 Program.Sr.DiscardBufferedData();
                 string temp = Program.Sr.ReadLine();
@@ -796,7 +769,6 @@ namespace PrimaGUI
                 c.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.ActiveCaption;
                 c.DefaultCellStyle.SelectionForeColor = Color.Black;
                 c.DefaultCellStyle.ForeColor = Color.Black;
-
             }
             dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
