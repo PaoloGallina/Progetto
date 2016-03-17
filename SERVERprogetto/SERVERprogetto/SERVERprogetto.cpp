@@ -24,16 +24,16 @@
 #pragma comment (lib, "Mswsock.lib")
 #pragma comment (lib, "AdvApi32.lib")
 
-void TxtToList(SOCKET, std::list < Oggetto *>&);
+void TxtToList(SOCKET, std::list < Oggetto *>&, char* passw);
 void PulisciLista(std::list < Oggetto *>&);
-void Sync(SOCKET client, std::string nome);
-void Restore(SOCKET client, std::string nome);
-void Register(SOCKET client, std::string& nome);
-void Login(SOCKET client,std::string& nome);
+void Sync(SOCKET client, std::string nome, char* passw);
+void Restore(SOCKET client, std::string nome, char* passw);
+void Register(SOCKET client, std::string& nome, char* passw);
+void Login(SOCKET client, std::string& nome, char* passw);
 int ServeClient(SOCKET client);
-void SendLastconfig(SOCKET client, std::string nome);
-void SendConfig(SOCKET client, std::string nome);
-void SendAllFiles(SOCKET client, std::string nome);
+void SendLastconfig(SOCKET client, std::string nome, char* passw);
+void SendConfig(SOCKET client, std::string nome, char* passw);
+void SendAllFiles(SOCKET client, std::string nome, char* passw);
 
 std::list<std::string> clients;
 std::mutex m;
@@ -162,13 +162,14 @@ int _tmain(int argc, _TCHAR* argv[])
 
 int ServeClient(SOCKET client) {
 	std::string nome;
+	char passw[64];
 	try{
-		int op = opRichiesta(client);
+		int op = opRichiesta(client,nullptr);
 		if (op == 30){
-			Register(client,nome);
+			Register(client,nome,passw);
 		}
 		else if (op == 40){
-			Login(client,nome);
+			Login(client,nome,passw);
 		}
 		else{
 			closeConn(client);
@@ -177,24 +178,24 @@ int ServeClient(SOCKET client) {
 		
 
 		while (1){
-			op = opRichiesta(client);
+			op = opRichiesta(client,passw);
 			if (op == 10){
-				Sync(client, nome);
+				Sync(client, nome, passw);
 			}
 			else if (op == 20){
-				SendLastconfig(client, nome);
+				SendLastconfig(client, nome,passw);
 			}
 			else if (op == 50){
-				Restore(client, nome);
+				Restore(client, nome,passw);
 			}
 			else if (op == 60){
-				SendAllFiles(client, nome);
+				SendAllFiles(client, nome,passw);
 			}
 			else if (op == 70){
-				SendVersions(client, nome);
+				SendVersions(client, nome,passw);
 			}
 			else if (op == 80){
-				SendConfig(client, nome);
+				SendConfig(client, nome,passw);
 			}
 			else if (op == 999){
 				break;
@@ -227,21 +228,21 @@ int ServeClient(SOCKET client) {
 	return 0;
 }
 
-void Sync(SOCKET client, std::string nome){
+void Sync(SOCKET client, std::string nome,char* passw){
 	sqlite3 *db = CreateDatabase(nome);
 	std::list < Oggetto *> newconfig,missingfiles;
 	try{
-		TxtToList(client, newconfig);
-		TxtToList(client, missingfiles);
+		TxtToList(client, newconfig, passw);
+		TxtToList(client, missingfiles, passw);
 
 		if (missingfiles.size() != 0 || file_cancellati(db, newconfig.size()) != 0){
 			std::wcout << L"\nA new version is insered\n" << std::endl;
-			nuovaVersione(db, client, newconfig, missingfiles);
+			nuovaVersione(db, client, newconfig, missingfiles, passw);
 			//sqlite3_exec(db, "vacuum;", NULL, NULL, NULL);
 		}
 		else{
 			//message to keep alive the connection
-			sendInt(client, -10); recInt(client); recInt(client); recInt(client);
+			sendInt(client, -10, passw); recInt(client, passw); recInt(client, passw); recInt(client, passw);
 			std::wcout << L"\nThe database is updated\n" << std::endl;			
 		}
 	}
@@ -255,19 +256,19 @@ void Sync(SOCKET client, std::string nome){
 	PulisciLista(missingfiles);
 	sqlite3_close(db);
 
-	if (recInt(client) != -10){
+	if (recInt(client, passw) != -10){
 		printf("sync problem, not terminated correctly");
 		throw "sync problem, not terminated correctly";
 	}
 	else{
-		sendInt(client, -10);
+		sendInt(client, -10, passw);
 		printf("sync is terminated no more files are needed");
 	}
 
 	printf("\n\n\n");
 }
 
-void SendLastconfig(SOCKET client,  std::string nome){
+void SendLastconfig(SOCKET client, std::string nome,char* passw){
 	sqlite3 *db = CreateDatabase(nome);
 	std::list<Oggetto*> last = LastVersion(db);
 	try{
@@ -287,15 +288,15 @@ void SendLastconfig(SOCKET client,  std::string nome){
 			b.write(L"\n", 1);
 		}
 		printf("I send the number of files in the last config\n");
-		sendInt(client, last.size());
+		sendInt(client, last.size(), passw);
 
 		printf("I send the size of first file and the file\n");
-		sendInt(client, c.str().size());
-		invFile(client, (char*)c.str().c_str(), c.str().size());
+		sendInt(client, c.str().size(), passw);
+		invFile(client, (char*)c.str().c_str(), c.str().size(), passw);
 
 		printf("I send the size of second file and the file\n");
-		sendInt(client, b.str().size()*sizeof(wchar_t));
-		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+		sendInt(client, b.str().size()*sizeof(wchar_t), passw);
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t), passw);
 
 	}
 	catch (...){
@@ -305,14 +306,14 @@ void SendLastconfig(SOCKET client,  std::string nome){
 	}
 	PulisciLista(last);
 	sqlite3_close(db);
-	sendInt(client,-20);
+	sendInt(client, -20, passw);
 }
 
-void SendConfig(SOCKET client, std::string nome){
+void SendConfig(SOCKET client, std::string nome,char* passw){
 	sqlite3 *db = CreateDatabase(nome);
 	std::list<Oggetto*> last;
 	try{
-		last = Version(db, recInt(client));
+		last = Version(db, recInt(client, passw));
 
 		//serialize list of files
 		std::stringstream c;
@@ -329,15 +330,15 @@ void SendConfig(SOCKET client, std::string nome){
 
 		}
 		printf("I send the number of files in the last config\n");
-		sendInt(client, last.size());
+		sendInt(client, last.size(), passw);
 
 		printf("I send the size of first file and the file\n");
-		sendInt(client, c.str().size());
-		invFile(client, (char*)c.str().c_str(), c.str().size());
+		sendInt(client, c.str().size(), passw);
+		invFile(client, (char*)c.str().c_str(), c.str().size(), passw);
 
 		printf("I send the size of second file and the file\n");
-		sendInt(client, b.str().size()*sizeof(wchar_t));
-		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+		sendInt(client, b.str().size()*sizeof(wchar_t), passw);
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t), passw);
 
 	}
 	catch (...){
@@ -347,10 +348,10 @@ void SendConfig(SOCKET client, std::string nome){
 	}
 	PulisciLista(last);
 	sqlite3_close(db);
-	sendInt(client, -80);
+	sendInt(client, -80, passw);
 }
 
-void SendAllFiles(SOCKET client, std::string nome){
+void SendAllFiles(SOCKET client, std::string nome, char* passw){
 	sqlite3 *db = CreateDatabase(nome);
 	std::list<Oggetto*> last = AllFiles(db);
 	try{
@@ -371,15 +372,15 @@ void SendAllFiles(SOCKET client, std::string nome){
 
 		}
 		printf("I send the number of files in the last config\n");
-		sendInt(client, last.size());
+		sendInt(client, last.size(),  passw);
 
 		printf("I send the size of first file and the file\n");
-		sendInt(client, c.str().size());
-		invFile(client, (char*)c.str().c_str(), c.str().size());
+		sendInt(client, c.str().size(), passw);
+		invFile(client, (char*)c.str().c_str(), c.str().size(), passw);
 
 		printf("I send the size of second file and the file\n");
-		sendInt(client, b.str().size()*sizeof(wchar_t));
-		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t));
+		sendInt(client, b.str().size()*sizeof(wchar_t), passw);
+		invFile(client, (char*)b.str().c_str(), b.str().size()*sizeof(wchar_t), passw);
 
 	}
 	catch (...){
@@ -389,19 +390,19 @@ void SendAllFiles(SOCKET client, std::string nome){
 	}
 	PulisciLista(last);
 	sqlite3_close(db);
-	sendInt(client, -60);
+	sendInt(client, -60, passw);
 }
 
-void TxtToList(SOCKET client, std::list < Oggetto *>& listaobj){
+void TxtToList(SOCKET client, std::list < Oggetto *>& listaobj,char* passw){
 
 	char* Hash=nullptr;
 	wchar_t* PathNameLast = nullptr;
 	try{
 		printf("I get the number of obj in the list\n");
-		int n = recInt(client);
-
-		Hash = recvFile(client);
-		PathNameLast = (wchar_t*)recvFile(client);
+		int n = recInt(client, passw);
+		
+		Hash = recvFile(client, passw);
+		PathNameLast = (wchar_t*)recvFile(client, passw);
 		std::istringstream c(Hash);
 		std::wistringstream b(PathNameLast);
 
@@ -414,7 +415,7 @@ void TxtToList(SOCKET client, std::list < Oggetto *>& listaobj){
 			b.getline(buf2, 512);
 			b.getline(buf3, 512);
 			c.getline(buf4, 512);
-			listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4, *((DWORD *)recNbytes(client, sizeof(DWORD), buf5)), INVALID_HANDLE_VALUE));
+			listaobj.push_front(new Oggetto(buf1, buf2, buf3, buf4, *((DWORD *)recNbytes(client, sizeof(DWORD), buf5, passw)), INVALID_HANDLE_VALUE));
 			t++;
 		}
 	}
@@ -437,15 +438,15 @@ void PulisciLista(std::list < Oggetto *>& a){
 	}
 };
 
-void Restore(SOCKET client, std::string nome){
+void Restore(SOCKET client, std::string nome, char* passw){
 
 	char hash[DEFAULT_BUFLEN];
 	wchar_t path[DEFAULT_BUFLEN];
 
-	int Lhash = recInt(client);
-	recNbytes(client, Lhash, hash);
-	int Lpath = recInt(client);
-	recNbytes(client, Lpath, (char*)path);
+	int Lhash = recInt(client,passw);
+	recNbytes(client, Lhash, hash, passw);
+	int Lpath = recInt(client, passw);
+	recNbytes(client, Lpath, (char*)path, passw);
 
 	int rc;
 	sqlite3* db = CreateDatabase(nome);
@@ -467,24 +468,24 @@ void Restore(SOCKET client, std::string nome){
 		rc = sqlite3_blob_open(db, "main", "FILES", "DATI", rowid, 0, &BLOB);
 		if (rc == 1){
 			std::cout << sqlite3_errmsg(db) << std::endl;
-			sendInt(client, 999);
+			sendInt(client, 999, passw);
 			throw "invalid rowid";
 		}
-		else{ sendInt(client, 0); }
+		else{ sendInt(client, 0, passw); }
 
 		int size = sqlite3_blob_bytes(BLOB);
-		sendInt(client, size);
+		sendInt(client, size, passw);
 		char recvbuf[DEFAULT_BUFLEN];
 		int recvbuflen = DEFAULT_BUFLEN;
 		int tot = 0;
 		while (tot < size){
 			if (tot + recvbuflen < size){
 				int read = sqlite3_blob_read(BLOB, recvbuf, recvbuflen, tot);
-				sendNbytes(client, recvbuf, recvbuflen);
+				sendNbytes(client, recvbuf, recvbuflen, passw);
 			}
 			else{
 				int read = sqlite3_blob_read(BLOB, recvbuf, size - tot, tot);
-				sendNbytes(client, recvbuf, size - tot);
+				sendNbytes(client, recvbuf, size - tot, passw);
 				tot += size - tot;
 				break;
 			}
@@ -503,37 +504,37 @@ void Restore(SOCKET client, std::string nome){
 	sqlite3_blob_close(BLOB);
 	sqlite3_close(db);
 
-	sendInt(client, -50);
-	if (recInt(client) != -50){
+	sendInt(client, -50, passw);
+	if (recInt(client, passw) != -50){
 		printf("error detected in the restore\n");
 		throw("error detected in the restore");
 	}
 	else{
 		printf("restore successfully completed\n");
 	}
-	sendInt(client, -50);
+	sendInt(client, -50, passw);
 }
 
-void Register(SOCKET client,std::string& nome){
+void Register(SOCKET client,std::string& nome,char* passw){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 
-	int sizename = recInt(client);
-	nome = std::string((char*)recNbytes(client, sizename, recvbuf));
+	int sizename = recInt(client,nullptr);
+	nome = std::string((char*)recNbytes(client, sizename, recvbuf, passw));
 
-	int sizepass = recInt(client);
-	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf));
+	int sizepass = recInt(client,nullptr);
+	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf, passw));
 	{
 		std::lock_guard<std::mutex> LG(m);
 
 		if (clients.size() > MAX_N_CLIENTS){
-			sendInt(client, 999);
+			sendInt(client, 999,nullptr);
 			throw "too many users";
 		}
 		for (std::list<std::string>::iterator it = clients.begin(); it != clients.end(); ++it){
 			std::string IT = *it;
 			if (!IT.compare(nome)){
-				sendInt(client, 999);
+				sendInt(client, 999,nullptr);
 				throw "user already served";
 			}
 		}
@@ -545,7 +546,7 @@ void Register(SOCKET client,std::string& nome){
 	
 	if (my_file)
 	{
-		sendInt(client, 999);
+		sendInt(client, 999,nullptr);
 		throw "User already registered ";
 	}
 	else{
@@ -573,42 +574,40 @@ void Register(SOCKET client,std::string& nome){
 		sqlite3_finalize(stm);
 		sqlite3_close(db);
 	}
+	memcpy(passw, pass.c_str(), 64);
 
-	sendInt(client, -30);
+	sendInt(client, -30,nullptr);
 	return;
 };
 
-void Login(SOCKET client, std::string& nome){
+void Login(SOCKET client, std::string& nome, char* passw){
 	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 
-	int sizename = recInt(client);
-	nome = std::string((char*)recNbytes(client, sizename, recvbuf));
+	int sizename = recInt(client,nullptr);
+	nome = std::string((char*)recNbytes(client, sizename, recvbuf, nullptr));
 
-	int sfida1 = rand();
-	sendInt(client, sfida1);
-	int sfida2 = recInt(client);
-	int sizepass = recInt(client);
-	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf));
 
 	{
 		std::lock_guard<std::mutex> LG(m);
 		
 		if (clients.size() > MAX_N_CLIENTS){
-			sendInt(client, 999);
+			sendInt(client, 999,nullptr);
 			throw "too many users";
 		}
 		for (std::list<std::string>::iterator it = clients.begin(); it != clients.end(); ++it){
 			std::string IT = *it;
 			if (!IT.compare(nome)){
-				sendInt(client, 999);
+				sendInt(client, 999,nullptr);
 				throw "user already served";
 			}
 		}
 		clients.push_back(nome);
 		printf("\nSto servendo %s\n", nome.c_str());
 	}
+	sendInt(client, 0, nullptr);
+
 	std::string temp = nome;
 	temp.append(".db");
 	std::ifstream my_file(temp);
@@ -623,17 +622,28 @@ void Login(SOCKET client, std::string& nome){
 			rc = sqlite3_bind_text(stm, 1, nome.c_str(), nome.size(), SQLITE_STATIC);
 			rc = sqlite3_step(stm);
 			std::string passD = std::string((char*)sqlite3_column_text(stm, 0));
-			
-			passD.append(std::to_string(sfida2));
-			passD.append(std::to_string(sfida1));
-			std::string hash = sha256(passD);
 
-			
-			if (hash.compare(pass) != 0){
-				sendInt(client, 999);
+			int sfida1 = recInt(client, nullptr);
+			std::string sfida = std::string(passD);
+			sfida.append(std::to_string(sfida1));
+			std::string hash = sha256(sfida);
+			sendInt(client, hash.length() + 1, nullptr);
+			sendNbytes(client, (char*)hash.c_str(), hash.length() + 1, nullptr);
+
+
+			int sfida2 = rand();
+			sendInt(client, sfida2, nullptr);
+			sfida = std::string(passD);
+			sfida.append(std::to_string(sfida2));
+			hash = sha256(sfida);
+
+			int sizepass = recInt(client, nullptr);
+			std::string ris_sfida = std::string((char*)recNbytes(client, sizepass, recvbuf, nullptr));
+			if (hash.compare(ris_sfida) != 0){
+				sendInt(client, 999,nullptr);
 				throw "wrong password ";
 			}
-			
+			memcpy(passw, passD.c_str(), 64);
 		}
 		catch (...){
 			sqlite3_finalize(stm);
@@ -644,10 +654,12 @@ void Login(SOCKET client, std::string& nome){
 		sqlite3_close(db);
 	}
 	else{
-		sendInt(client, 999);
+		sendInt(client, 999,nullptr);
 		throw "User not registered ";
 	}
-	sendInt(client, -40);
+	
+	
+	sendInt(client, -40,nullptr);
 	
 };
 

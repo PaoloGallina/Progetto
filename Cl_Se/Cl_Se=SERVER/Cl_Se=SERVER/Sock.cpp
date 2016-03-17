@@ -129,12 +129,17 @@ void closeConn(SOCKET ConnectSocket){
 	closesocket(ConnectSocket);
 }
 
-void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
+void* recNbytes(SOCKET ConnectSocket, int size, char*stringa,char*pass){
 	int tot = 0;
 
 	if (size > DEFAULT_BUFLEN){
 		throw "requested too big packet";
 	}
+
+	if (pass == nullptr){
+		pass = (char*)calloc(64, sizeof(char));
+	}
+
 
 	while (tot < size){
 		int iResult = recv(ConnectSocket, stringa + tot, size - tot, 0);
@@ -153,21 +158,29 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa){
 			throw "recv failed ";
 		}
 	}
+	for (int t = 0; t < size; t++){
+		stringa[t] = stringa[t] ^ pass[t % 64];
+	}
 	return stringa;
 }
 
-void sendNbytes(SOCKET ConnectSocket,char*stringa, int size){
+void sendNbytes(SOCKET ConnectSocket,char*stringa, int size,char *pass){
 	int tot = 0;
 
 	if (size > DEFAULT_BUFLEN){
 		throw "too big packet";
 	}
 
+	if (pass == nullptr){
+		pass = (char*)calloc(64, sizeof(char));
+	}
+	for (int t = 0; t < size; t++){
+		stringa[t] = stringa[t] ^ pass[t%64];
+	}
+
 	while (tot < size){
 		int iResult = send(ConnectSocket,stringa+tot, size - tot, 0);
 		if (iResult > 0) {
-			//DEBUG
-			// printf("Bytes sent: %d\n", iResult);
 			tot += iResult;
 		}
 		else  {
@@ -175,36 +188,37 @@ void sendNbytes(SOCKET ConnectSocket,char*stringa, int size){
 			throw "send failed ";
 		}
 	}
+	for (int t = 0; t < size; t++){
+		stringa[t] = stringa[t] ^ pass[t % 64];
+	}
 }
 
-void sendInt(SOCKET ConnectSocket, int i){
+void sendInt(SOCKET ConnectSocket, int i,char*pass){
 	char* buf;
 	buf = (char*)&i;
-	sendNbytes(ConnectSocket, buf, 4);
+	sendNbytes(ConnectSocket, buf, 4,pass);
 }
 
-int recInt(SOCKET client){
+int recInt(SOCKET client,char*pass){
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
-	int *ptr = (int*)recNbytes(client, sizeof(int), recvbuf);
+	int *ptr = (int*)recNbytes(client, sizeof(int), recvbuf,pass);
 	int size = *ptr;
 	return size;
 }
 
-int opRichiesta(SOCKET Client){
-	char recvbuf[DEFAULT_BUFLEN];
-	int recvbuflen = DEFAULT_BUFLEN;
-	int *ptr = (int*)recNbytes(Client, sizeof(int), recvbuf);
-	int size = *ptr;
-	return size;
+int opRichiesta(SOCKET Client,char*pass){
+	return recInt(Client, pass);
 }
 
-char* recvFile(SOCKET Client){
+char* recvFile(SOCKET Client,char* pass){
+	
+	//Non è la funzione utilizzata per ricevere i file della cartella sotto controllo
 	
 	char recvbuf[DEFAULT_BUFLEN];
 	int recvbuflen = DEFAULT_BUFLEN;
 	printf("I get the size of the file\n");
-	int size = recInt(Client);
+	int size = recInt(Client,pass);
 	if (size < 0 || size>100000000){
 		//questo non succederà mai
 		throw "requested too much memory";
@@ -217,10 +231,10 @@ char* recvFile(SOCKET Client){
 	
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			memcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf), recvbuflen);
+			memcpy(file + tot, (char*)recNbytes(Client, recvbuflen, recvbuf,pass), recvbuflen);
 		}
 		else{
-			memcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf), size - tot);
+			memcpy(file + tot, (char*)recNbytes(Client, size - tot, recvbuf,pass), size - tot);
 			tot += size - tot;
 			break;
 		}
@@ -231,16 +245,16 @@ char* recvFile(SOCKET Client){
 	return file;
 }
 
-void invFile(SOCKET Client, char*file,int size){
+void invFile(SOCKET Client, char*file,int size,char* pass){
 	int recvbuflen = DEFAULT_BUFLEN;
 	int tot = 0;
 
 	while (tot < size){
 		if (tot + recvbuflen < size){
-			sendNbytes(Client, file + tot, recvbuflen);
+			sendNbytes(Client, file + tot, recvbuflen,pass);
 		}
 		else{
-			sendNbytes(Client, file + tot, size - tot);
+			sendNbytes(Client, file + tot, size - tot,pass);
 		}
 		tot += DEFAULT_BUFLEN;
 	}

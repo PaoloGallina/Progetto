@@ -24,11 +24,11 @@
 #define DEFAULT_PORT "8080"
 
 SOCKET __cdecl ConnectClient(HANDLE hpipe);
-void sendNbytes(SOCKET ConnectSocket, char*stringa, int size);
 void closeConn(SOCKET ConnectSocket);
-void sendInt(SOCKET ConnectSocket, int i);
-void* recNbytes(SOCKET ConnectSocket, int size, char*stringa);
-int opRichiesta(SOCKET Client);
-char * recvFile(SOCKET Client);
-void invFile(SOCKET Client, char*file, int size);
-int recInt(SOCKET client);
+void sendNbytes(SOCKET ConnectSocket, char*stringa, int size, char* pass);
+void sendInt(SOCKET ConnectSocket, int i, char* pass);
+void* recNbytes(SOCKET ConnectSocket, int size, char*stringa, char* pass);
+int opRichiesta(SOCKET Client,  char* pass);
+char * recvFile(SOCKET Client,  char* pass);
+void invFile(SOCKET Client, char*file, int size,  char* pass);
+int recInt(SOCKET client,  char* pass);

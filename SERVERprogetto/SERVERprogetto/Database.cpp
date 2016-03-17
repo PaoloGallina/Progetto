@@ -219,7 +219,7 @@ list<Oggetto*> Version(sqlite3*db,int ver){
 	return last;
 }
 
-void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,int versione,DWORD size,wstring last){
+void InsertFILE(sqlite3*db, SOCKET client, std::wstring wpath, std::string hash, int versione, DWORD size, wstring last, char* passw){
 
 	int  rc=0;
 	std::string sql = "INSERT INTO FILES (PATH , HASH , DATI , VER, LAST) VALUES (?1, ?2, ?3, ?4,?5);";
@@ -265,8 +265,8 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 			throw "Errore nell'apertura del blob";
 		}
 
-		sendInt(client, (wpath.size() + 1)*sizeof(wchar_t));
-		sendNbytes(client, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t));
+		sendInt(client, (wpath.size() + 1)*sizeof(wchar_t), passw);
+		sendNbytes(client, (char*)wpath.c_str(), (wpath.size() + 1)*sizeof(wchar_t), passw);
 
 		char recvbuf[DEFAULT_BUFLEN];
 		int recvbuflen = DEFAULT_BUFLEN;
@@ -274,10 +274,10 @@ void InsertFILE(sqlite3*db,SOCKET client, std::wstring wpath, std::string hash,i
 
 		while (tot < (int)size){
 			if (tot + recvbuflen < size){
-				rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf), recvbuflen, tot);
+				rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, recvbuflen, recvbuf, passw), recvbuflen, tot);
 			}
 			else{
-				rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf), size - tot, tot);
+				rc = sqlite3_blob_write(BLOB, (char*)recNbytes(client, size - tot, recvbuf, passw), size - tot, tot);
 				tot += size - tot;
 				break;
 			}
@@ -476,19 +476,19 @@ void PulisciDB(sqlite3* db){
 
 }
 
-void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere){
+void nuovaVersione(sqlite3* db, SOCKET client, std::list < Oggetto *> listaobj, std::list < Oggetto *> da_chiedere, char* passw){
 	char *zErrMsg = 0;
 	try{
 		sqlite3_exec(db, "BEGIN TRANSACTION;", NULL, NULL, NULL);
 		int Versione = GetUltimaVersione(db);
 		Versione++;
 		for (std::list < Oggetto *>::const_iterator ci2 = da_chiedere.begin(); ci2 != da_chiedere.end(); ++ci2){
-			InsertFILE(db, client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize(), (*ci2)->GetLastModified());
+			InsertFILE(db, client, (*ci2)->GetPath(), (*ci2)->GetHash(), Versione, (*ci2)->GetSize(), (*ci2)->GetLastModified(), passw);
 		}
 		
-		sendInt(client, -10);
+		sendInt(client, -10, passw);
 		//message to keep alive the connection
-		recInt(client);
+		recInt(client, passw);
 		printf("Now i update all version file");
 
 		time_t rawtime;
@@ -526,13 +526,13 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 
 		}
 		//message to keep alive the connection
-		recInt(client);
+		recInt(client, passw);
 		printf("Pulizia DB\n");	
 		PulisciDB(db);
 
 		//message to keep alive the connection
 		
-		recInt(client);
+		recInt(client, passw);
 		sqlite3_exec(db, "END TRANSACTION;", callback, NULL, &zErrMsg);
 		if (zErrMsg != nullptr){
 			throw "error during the commit-->ROLLBACK";
@@ -551,7 +551,7 @@ void nuovaVersione(sqlite3* db,SOCKET client, std::list < Oggetto *> listaobj, s
 	}
 }
 
-void SendVersions(SOCKET client, std::string nome){
+void SendVersions(SOCKET client, std::string nome,char* passw){
 	sqlite3 *db = CreateDatabase(nome);
 	int rc;
 	/* Create SQL statement */
@@ -588,15 +588,15 @@ void SendVersions(SOCKET client, std::string nome){
 
 
 		printf("I send the number of files in the last config\n");
-		sendInt(client, n);
+		sendInt(client, n, passw);
 
 		printf("I send the size of first file and the file\n");
-		sendInt(client, c.str().size());
-		invFile(client, (char*)c.str().c_str(), c.str().size());
+		sendInt(client, c.str().size(), passw);
+		invFile(client, (char*)c.str().c_str(), c.str().size(), passw);
 
 		printf("I send the size of second file and the file\n");
-		sendInt(client, b.str().size());
-		invFile(client, (char*)b.str().c_str(), b.str().size());
+		sendInt(client, b.str().size(), passw);
+		invFile(client, (char*)b.str().c_str(), b.str().size(), passw);
 
 	}
 		catch (...){
@@ -607,7 +607,7 @@ void SendVersions(SOCKET client, std::string nome){
 	
 	rc = sqlite3_finalize(stm);
 	sqlite3_close(db);
-	sendInt(client, -70);
+	sendInt(client, -70, passw);
 	return;
 }
 
