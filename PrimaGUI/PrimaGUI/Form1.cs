@@ -29,60 +29,7 @@ namespace PrimaGUI
         public FinestraPrincipale()
         {
             InitializeComponent();
-            #region "inizialOP"
-            try
-            {
-                using (System.IO.StreamReader file = new System.IO.StreamReader(@".\_" + Program.userName + @"_Config_.bin", System.Text.Encoding.Unicode))
-                {
-                    Program.path = file.ReadLine();
-                }
-            }
-            catch
-            {
-                System.Windows.Forms.MessageBox.Show("Il programma non è stato in grado di trovare il file di impostazioni.\nIl file sarà creato nuovamente e il problema non si dovrebbe riproporre.", "Informazione per l'utente", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
-            }
-
-            while (Program.path.CompareTo(@"") == 0)
-            {
-                folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
-                folderBrowserDialog1.ShowDialog();
-                Program.path = folderBrowserDialog1.SelectedPath;
-            }
-
-            try
-            {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
-                {
-                    file.WriteLine(Program.path);
-                }
-            }
-            catch
-            {
-                System.Windows.Forms.MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
-            }
-            this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
-
-
-            foreach (System.Windows.Forms.DataGridViewColumn c in dataGridView1.Columns)
-            {
-                c.DefaultCellStyle.Font = new System.Drawing.Font("Times New Roman", 14F, System.Drawing.GraphicsUnit.Pixel);
-                c.DefaultCellStyle.BackColor = System.Drawing.SystemColors.ActiveCaption;
-                c.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.ActiveCaption;
-                c.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
-                c.DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
-            }
-            dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
-            dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
-            dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.InactiveCaption;
-            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("Times New Roman", 16F, System.Drawing.GraphicsUnit.Pixel);
-
-            bw.WorkerReportsProgress = true;
-            bw.WorkerSupportsCancellation = false;
-            bw.DoWork += new System.ComponentModel.DoWorkEventHandler(DoWork);
-            bw.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(DoWork_end);
-            bw.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(bw_ProgressChanged);
-            #endregion
+    
         }
 
         private void DoWork(object sender, DoWorkEventArgs e)
@@ -125,6 +72,7 @@ namespace PrimaGUI
         {
             try
             {
+                #region "Gestion risultati Dowork"
                 String result = (string)e.Result;
                 if (result.CompareTo("Client closed") == 0)
                 {
@@ -182,45 +130,76 @@ namespace PrimaGUI
                         this.dataGridView1.Columns[0].HeaderText = "Path";
                         this.dataGridView1.Columns[1].HeaderText = "";
                         this.dataGridView1.Columns[2].HeaderText = "Data Ultima Modifica";
-                        this.dataGridView1.RowCount = Result.Count;
+                        this.dataGridView1.RowCount = Result.Count;                 
                         dataGridView1.Visible = true;
-                    
+                        this.dataGridView2.Visible = false;
+                        this.dataGridView3.Visible = false;
                 }
                 else if (result.CompareTo("ShowGrid2") == 0)
                 {
-                    
+                        
                         int index = 0;
                         foreach (String[] array in Result)
                         {
-                            if (dataGridView1.Rows.Count == index)
+                            if (dataGridView2.Rows.Count == index)
                             {
-                                this.dataGridView1.Rows.Add();
+                                this.dataGridView2.Rows.Add();
                             }
-                            this.dataGridView1.Rows[index].Cells[0].Value = array[0];
-                            this.dataGridView1.Rows[index].Cells[1].Value = array[1];
-                            this.dataGridView1.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
-                            this.dataGridView1.Rows[index].Cells[3].Value = array[3];
-                            this.dataGridView1.Rows[index].Cells[4].Value = array[4];
+                            this.dataGridView2.Rows[index].Cells[0].Value = array[0];
+                            this.dataGridView2.Rows[index].Cells[1].Value = array[1];
+                            this.dataGridView2.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
+                            this.dataGridView2.Rows[index].Cells[3].Value = array[3];
+                            this.dataGridView2.Rows[index].Cells[4].Value = array[4];
                             index++;
                         }
 
-                        this.dataGridView1.Columns[0].HeaderText = "Numero Versione";
-                        this.dataGridView1.Columns[1].HeaderText = "";
-                        this.dataGridView1.Columns[2].HeaderText = "Data Creazione";
-                        this.dataGridView1.RowCount = Result.Count;
-                        dataGridView1.Visible = true;
+                        this.dataGridView2.Columns[0].HeaderText = "Numero Versione";
+                        this.dataGridView2.Columns[1].HeaderText = "";
+                        this.dataGridView2.Columns[2].HeaderText = "Data Creazione";
+                        this.dataGridView2.RowCount = Result.Count;
+                        dataGridView2.Visible = true;
+                        this.dataGridView1.Visible = false;
+                        this.dataGridView3.Visible = false;
+                }
+                else if (result.CompareTo("ShowGrid3") == 0)
+                {
+
+                    int index = 0;
+                    foreach (String[] array in Result)
+                    {
+                        if (dataGridView3.Rows.Count == index)
+                        {
+                            this.dataGridView3.Rows.Add();
+                        }
+                        this.dataGridView3.Rows[index].Cells[0].Value = array[0];
+                        this.dataGridView3.Rows[index].Cells[1].Value = array[1];
+                        this.dataGridView3.Rows[index].Cells[2].Value = "    " + array[2] + "    ";
+                        this.dataGridView3.Rows[index].Cells[3].Value = array[3];
+                        this.dataGridView3.Rows[index].Cells[4].Value = array[4];
+                        index++;
+                    }
+
+                    this.dataGridView3.Columns[0].HeaderText = "Path";
+                    this.dataGridView3.Columns[1].HeaderText = "";
+                    this.dataGridView3.Columns[2].HeaderText = "Data Ultima Modifica";
+                    this.dataGridView3.RowCount = Result.Count;
+                    dataGridView3.Visible = true;
+                    this.dataGridView2.Visible = false;
+                    this.dataGridView1.Visible = false;
                 }
                 else if (result.CompareTo("Not Show") != 0)
                 {
                     MessageBox.Show(result + "\nProtrebbe essere caduta la connessione o essere stato stoppato il processo server dall'amministratore", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 operationflag = true;
+                #endregion
             }
             catch (Exception err)
             {
                 operationflag = true;
-                MessageBox.Show("Errore generico", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show("L'ultima operazione ha causato un errore generico inaspettato, nessun dato è andato perso, ma l'operazione non si è conclusa correttamente.\n Si consiglia di riprovare e nel caso di riavviare l'applicazione", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
+               
         }
 
         private void bw_ProgressChanged(object sender, ProgressChangedEventArgs e)
@@ -235,6 +214,8 @@ namespace PrimaGUI
             {
                 operationflag = false;
                 dataGridView1.Visible = false;
+                dataGridView2.Visible = false;
+                this.dataGridView3.Visible = false;
                 bw.RunWorkerAsync("clicksync");
             }
             else {
@@ -248,6 +229,8 @@ namespace PrimaGUI
             {
                 operationflag = false;
                 dataGridView1.Visible = false;
+                dataGridView2.Visible = false;
+                this.dataGridView3.Visible = false;
                 bw.RunWorkerAsync("timersync");
             }
 
@@ -290,7 +273,7 @@ namespace PrimaGUI
 
         private void VisualizzaVersioni_Click(object sender, EventArgs e)
         {
-            if (dataGridView1.Visible == false)
+            if (dataGridView2.Visible == false)
             {
                 if (bw.IsBusy != true && operationflag == true)
                 {
@@ -304,17 +287,17 @@ namespace PrimaGUI
             }
             else
             {
-                dataGridView1.Visible = false;
+                dataGridView2.Visible = false;
             }
         }
 
-        private void dataGridView1_CellContentClick(object sender, DataGridViewCellEventArgs e)
+        private void dataGridView_CellContentClick(object sender, DataGridViewCellEventArgs e)
         {
 
             if (e.ColumnIndex != 4)
                 return;
-
-            if (this.dataGridView1.Columns[0].HeaderText.CompareTo("Numero Versione") != 0)
+            
+            if (this.dataGridView1.Visible==true)
             {
                 if (bw.IsBusy != true && operationflag == true)
                 {
@@ -332,7 +315,7 @@ namespace PrimaGUI
                 if (bw.IsBusy != true && operationflag == true)
                 {
                     operationflag = false;
-                    path = (string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value;
+                    path = (string)this.dataGridView2.Rows[e.RowIndex].Cells[0].Value;
                     bw.RunWorkerAsync("VisualizzaVersione");
                 }
                 else
@@ -630,7 +613,7 @@ namespace PrimaGUI
                 }
                 else
                 {
-                    e.Result = "ShowGrid";
+                    e.Result = "ShowGrid3";
                 }
 
             }
@@ -799,6 +782,8 @@ namespace PrimaGUI
         {
             progress.BackColor = System.Drawing.Color.Transparent;
         }
+
+
 
     }
 }

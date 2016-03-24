@@ -520,10 +520,10 @@ void Register(SOCKET client,std::string& nome,char* passw){
 	int recvbuflen = DEFAULT_BUFLEN;
 
 	int sizename = recInt(client,nullptr);
-	nome = std::string((char*)recNbytes(client, sizename, recvbuf, passw));
+	nome = std::string((char*)recNbytes(client, sizename, recvbuf, nullptr));
 
 	int sizepass = recInt(client,nullptr);
-	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf, passw));
+	std::string pass = std::string((char*)recNbytes(client, sizepass, recvbuf, nullptr));
 	{
 		std::lock_guard<std::mutex> LG(m);
 

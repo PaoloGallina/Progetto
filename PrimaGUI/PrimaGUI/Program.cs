@@ -30,8 +30,8 @@ namespace PrimaGUI
         {
             Random rnd = new Random();
             int pipenumber = rnd.Next(10000);
-            //string pipename = "PIPE" + pipenumber;
-            string pipename = "PIPE" + 1;//DEBUG
+            string pipename = "PIPE" + pipenumber;
+            //string pipename = "PIPE" + 1;//DEBUG
             try{
                 myprocess = new Process();
                 myprocess.StartInfo.FileName = ".\\FunzioneMain.exe";
@@ -40,7 +40,7 @@ namespace PrimaGUI
                 myprocess.StartInfo.Verb = "runas";
                 myprocess.Start();
             }catch(Exception e){
-                MessageBox.Show("E' stato riscontrato un errore all'avvio, l'utente si assicuri che FunzioneMain.exe sia nella stessa cartella di GEMS.exe", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show("E' stato riscontrato un errore all'avvio, l'utente si assicuri che FunzioneMain.exe sia nella stessa cartella di GEMS.exe e di eseguire come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
 
