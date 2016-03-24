@@ -11,14 +11,16 @@ using System.Windows.Forms;
 
 namespace PrimaGUI
 {
-    public partial class Form2 : Form
+    public partial class FinestraLogin : Form
     {
-        private bool flag = false;
+
+        private bool client_altready_closed = false;
         private bool _dragging = false;
         private Point _start_point = new Point(0, 0);
 
+
         private BackgroundWorker bw = new BackgroundWorker();
-        public Form2()
+        public FinestraLogin()
         {      
             InitializeComponent();
             this.FormBorderStyle = FormBorderStyle.None;
@@ -26,6 +28,18 @@ namespace PrimaGUI
             bw.WorkerSupportsCancellation = false;
             bw.DoWork += new DoWorkEventHandler(DoWork);
             bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DoWork_end);
+        }
+
+        private void OK_Click(object sender, EventArgs e)
+        {
+            if (bw.IsBusy != true)
+            {
+                bw.RunWorkerAsync();
+            }
+            else
+            {
+                MessageBox.Show("Il login è in corso.\nIl programma sta cercando di contattare il server.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
         }
 
         private void DoWork(object sender, DoWorkEventArgs e) {
@@ -41,7 +55,7 @@ namespace PrimaGUI
                     e.Result = "Non hai scelto la cartella da sincronizzare.";
                     return;
                 }
-                else if (UsernameText.Text == "Username" || !IsValidalfa(UsernameText.Text))
+                else if ( !IsValidalfa(UsernameText.Text) || UsernameText.Text == "Username" )
                 {
                     e.Result = "Non hai inserito lo username o hai immesso caratteri non validi. Sono ammessi solo caratteri ASCII alfanumerici per lo username.";
                     return;
@@ -64,19 +78,19 @@ namespace PrimaGUI
                     logORreg = 30;
                 }
 
+                //Inviamo al Client C++ le info su come raggiungere il Server
                 Program.Bin.Write(IpAddressText.Text.Length);
                 Program.Bin.Write(Encoding.ASCII.GetBytes(IpAddressText.Text));
                 Program.Bin.Write(PortaText.Text.Length);
                 Program.Bin.Write(Encoding.ASCII.GetBytes(PortaText.Text));
                
-                
-                
                 string temp = Program.Sr.ReadLine();
                 if (temp.CompareTo("OK") != 0)
                 {
                     e.Result = temp;
                     return;
                 }
+                //Inviamo al Client C++ username e password
                 Program.Bin.Write(logORreg);
                 Program.Bin.Write(UsernameText.Text.Length);
                 Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
@@ -96,6 +110,7 @@ namespace PrimaGUI
                 Program.path = folderBrowserDialog1.SelectedPath;
                 Program.ip = IpAddressText.Text;
                 Program.porta = PortaText.Text;
+                Program.LoginPerformed = true;
 
                 if (CartDaSyncButton.Visible == true)
                 { // i.e. Ho effettuato la registrazione
@@ -111,13 +126,11 @@ namespace PrimaGUI
                         MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                     }
                 }
-
-                this.flag = true;
                 e.Result = "OK";
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                client_altready_closed = true;
                 e.Result = "Client closed";
             }
             catch (Exception err) {
@@ -144,6 +157,7 @@ namespace PrimaGUI
             }
         }
 
+        //I  metodi necessari a gestire l'interfaccia grafica del Login
         private void Login_Click(object sender, EventArgs e)
         {
             LoginButton.Visible = false;
@@ -158,8 +172,6 @@ namespace PrimaGUI
             PasswordText.Visible = true;
             IpAddressText.Visible = true;
             PortaText.Visible = true;
-           
-
         }
 
         private void register_Click(object sender, EventArgs e)
@@ -177,7 +189,6 @@ namespace PrimaGUI
             PasswordText.Visible = true;
             IpAddressText.Visible = true;
             PortaText.Visible = true;
-
         }
 
         private void Indietro_Click(object sender, EventArgs e)
@@ -198,18 +209,6 @@ namespace PrimaGUI
             PortaText.Visible = false;
             label4.Text = "Inserisci tutti i campi";
             label4.ForeColor = System.Drawing.Color.White;
-        }
-
-        private void OK_Click(object sender, EventArgs e)
-        {
-            if (bw.IsBusy != true)
-            {
-                bw.RunWorkerAsync();
-            }
-            else
-            {
-                MessageBox.Show("Il login è in corso.\nIl programma sta cercando di contattare il server.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
         }
 
         private void ChooseFolder_Click(object sender, EventArgs e)
@@ -309,14 +308,14 @@ namespace PrimaGUI
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
             try{
-                    if (flag == false)
+                if (Program.LoginPerformed == false && client_altready_closed==false)
                     {
                         Program.myprocess.Kill();
                     }    
                 }
                 catch
                 {
-                    MessageBox.Show("Il programma ha incontrato un problema nella chiusura del client c++. Procesi manualmente alla chiusura", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    MessageBox.Show("Il programma ha incontrato un problema nella chiusura del client c++. Procedi manualmente alla chiusura", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             
             base.OnClosing(e);
@@ -325,7 +324,7 @@ namespace PrimaGUI
         //I tre metodi per rendere spostabile il pannello
         private void panel2_MouseDown(object sender, MouseEventArgs e)
         {
-            _dragging = true;  // _dragging is your variable flag
+            _dragging = true;  
             _start_point = new Point(e.X, e.Y);
         }
 

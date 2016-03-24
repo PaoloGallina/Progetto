@@ -22,33 +22,29 @@ namespace PrimaGUI
         public static string path="";
         public static string ip = "";
         public static string porta = "";
-
+        public static bool LoginPerformed = false;
         public static Process myprocess;
+
         [STAThread]
         static void Main()
         {
-           
-           
-            //exception proble.. not hardcoded string
             Random rnd = new Random();
             int pipenumber = rnd.Next(10000);
-            string pipename = "PIPE" + pipenumber;
-           // string pipename = "PIPE" + 1;//DEBUG
+            //string pipename = "PIPE" + pipenumber;
+            string pipename = "PIPE" + 1;//DEBUG
             try{
-            
-            myprocess = new Process();
-            myprocess.StartInfo.FileName = ".\\FunzioneMain.exe";
-            myprocess.StartInfo.CreateNoWindow = true;
-            myprocess.StartInfo.Arguments = pipenumber.ToString();
-            myprocess.StartInfo.Verb = "runas";
-            myprocess.Start();
+                myprocess = new Process();
+                myprocess.StartInfo.FileName = ".\\FunzioneMain.exe";
+                myprocess.StartInfo.CreateNoWindow = true;
+                myprocess.StartInfo.Arguments = pipenumber.ToString();
+                myprocess.StartInfo.Verb = "runas";
+                myprocess.Start();
             }catch(Exception e){
-            return;
+                MessageBox.Show("E' stato riscontrato un errore all'avvio, l'utente si assicuri che FunzioneMain.exe sia nella stessa cartella di GEMS.exe", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
             }
-            
-            
 
-            while (PServer1 == null||Bin==null || Sr == null)
+            while (PServer1 == null)
             {
                 PServer1 = new NamedPipeServerStream(pipename, System.IO.Pipes.PipeDirection.InOut);
                 PServer1.WaitForConnection();
@@ -59,12 +55,13 @@ namespace PrimaGUI
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new Form2());
-           
-            if (userName != "")
+            
+            Application.Run(new FinestraLogin());
+            if (LoginPerformed == false)
             {
-                Application.Run(new Form1());
-            }
+                return;
+            }    
+            Application.Run(new FinestraPrincipale());
             
         }
 

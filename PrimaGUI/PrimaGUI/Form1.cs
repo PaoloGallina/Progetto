@@ -15,22 +15,74 @@ using System.Text.RegularExpressions;
 
 namespace PrimaGUI
 {
-    public partial class Form1 : Form
+    public partial class FinestraPrincipale : Form
     {
         public AutoResetEvent T = new AutoResetEvent(false);
-        private bool flag= false;
+        private bool clientclosed= false;
         private bool operationflag = true;
 
-        private BackgroundWorker bw = new BackgroundWorker();
+        public BackgroundWorker bw = new BackgroundWorker();
         private List<string[]> Result=new List<string[]>();
         private String path;
         private String hash;
-
-    
-        public Form1()
+  
+        public FinestraPrincipale()
         {
             InitializeComponent();
-            Initialop();
+            #region "inizialOP"
+            try
+            {
+                using (System.IO.StreamReader file = new System.IO.StreamReader(@".\_" + Program.userName + @"_Config_.bin", System.Text.Encoding.Unicode))
+                {
+                    Program.path = file.ReadLine();
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Il programma non è stato in grado di trovare il file di impostazioni.\nIl file sarà creato nuovamente e il problema non si dovrebbe riproporre.", "Informazione per l'utente", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            }
+
+            while (Program.path.CompareTo(@"") == 0)
+            {
+                folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
+                folderBrowserDialog1.ShowDialog();
+                Program.path = folderBrowserDialog1.SelectedPath;
+            }
+
+            try
+            {
+                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                {
+                    file.WriteLine(Program.path);
+                }
+            }
+            catch
+            {
+                System.Windows.Forms.MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", System.Windows.Forms.MessageBoxButtons.OK, System.Windows.Forms.MessageBoxIcon.Information);
+            }
+            this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
+
+
+            foreach (System.Windows.Forms.DataGridViewColumn c in dataGridView1.Columns)
+            {
+                c.DefaultCellStyle.Font = new System.Drawing.Font("Times New Roman", 14F, System.Drawing.GraphicsUnit.Pixel);
+                c.DefaultCellStyle.BackColor = System.Drawing.SystemColors.ActiveCaption;
+                c.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.ActiveCaption;
+                c.DefaultCellStyle.SelectionForeColor = System.Drawing.Color.Black;
+                c.DefaultCellStyle.ForeColor = System.Drawing.Color.Black;
+            }
+            dataGridView1.AutoSizeColumnsMode = System.Windows.Forms.DataGridViewAutoSizeColumnsMode.Fill;
+            dataGridView1.AutoSizeRowsMode = System.Windows.Forms.DataGridViewAutoSizeRowsMode.AllCells;
+            dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
+            dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.InactiveCaption;
+            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new System.Drawing.Font("Times New Roman", 16F, System.Drawing.GraphicsUnit.Pixel);
+
+            bw.WorkerReportsProgress = true;
+            bw.WorkerSupportsCancellation = false;
+            bw.DoWork += new System.ComponentModel.DoWorkEventHandler(DoWork);
+            bw.RunWorkerCompleted += new System.ComponentModel.RunWorkerCompletedEventHandler(DoWork_end);
+            bw.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(bw_ProgressChanged);
+            #endregion
         }
 
         private void DoWork(object sender, DoWorkEventArgs e)
@@ -104,6 +156,11 @@ namespace PrimaGUI
                     MessageBox.Show("Il restore completo dell'ultima versione presente sul server è avvenuta con successo", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
 
                 }
+                else if (result.CompareTo("Sei già loggato da un altro terminale. ERRORE OP. NON EFFETTUATA") == 0)
+                {
+                    MessageBox.Show("Sei già loggato da un altro terminale", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
+                }
                 else if (result.CompareTo("ShowGrid") == 0)
                 {
                     
@@ -152,7 +209,6 @@ namespace PrimaGUI
                         this.dataGridView1.Columns[2].HeaderText = "Data Creazione";
                         this.dataGridView1.RowCount = Result.Count;
                         dataGridView1.Visible = true;
-                    
                 }
                 else if (result.CompareTo("Not Show") != 0)
                 {
@@ -287,23 +343,29 @@ namespace PrimaGUI
 
         private void SelectPath_Click(object sender, EventArgs e)
         {
-            folderBrowserDialog1.ShowDialog();
-            if (folderBrowserDialog1.SelectedPath != "")
+            if (bw.IsBusy != true && operationflag == true)
             {
-                Program.path = folderBrowserDialog1.SelectedPath;
-                try
+                folderBrowserDialog1.ShowDialog();
+                if (folderBrowserDialog1.SelectedPath != "")
                 {
-                    using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                    Program.path = folderBrowserDialog1.SelectedPath;
+                    try
                     {
-                        file.WriteLine(folderBrowserDialog1.SelectedPath);
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                        {
+                            file.WriteLine(folderBrowserDialog1.SelectedPath);
+                        }
                     }
+                    catch
+                    {
+                        MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
                 }
-                catch
-                {
-                    MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);                 
-                }
-                this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
             }
+            else
+                MessageBox.Show("Una operazione è già in corso.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+
         }
 
         //Metodi DoWork 
@@ -395,7 +457,7 @@ namespace PrimaGUI
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                this.clientclosed = true;
                 e.Result = "Client closed";
             }
             catch (Exception err)
@@ -411,6 +473,58 @@ namespace PrimaGUI
             try
             {
                 Program.Bin.Write(60);
+                if (sendCred(ref e) == 999){
+                    return;
+                }
+
+                Result.Clear();
+
+                while (true)
+                {
+                    Program.Sr.DiscardBufferedData();
+                    string patht = Program.Sr.ReadLine();
+                    if (patht.CompareTo(@"end") == 0)
+                    {
+                        break;
+                    }
+                    else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
+                    {
+                        e.Result = patht;
+                        return;
+                    }
+                    Program.Sr.DiscardBufferedData();
+                    string ultimamodifica = Program.Sr.ReadLine();
+                    Program.Srchar.DiscardBufferedData();
+                    string hash = Program.Srchar.ReadLine();
+
+                    Result.Add(new string[] { patht, hash, ultimamodifica, "", "Restore" });
+                }
+                Program.Sr.DiscardBufferedData();
+                string temp = Program.Sr.ReadLine();
+                if (temp.CompareTo("OK") != 0)
+                {
+                    e.Result = temp;
+                }
+                else
+                {
+                    e.Result = "ShowGrid";
+                }
+            }
+            catch (System.IO.IOException err)
+            {
+                this.clientclosed = true;
+                e.Result = "Client closed";
+            }
+            catch (Exception err) {
+                e.Result = "Errore Generico";
+            }
+        }
+
+        private void RipristinaUltimaVersione_DoWork(ref DoWorkEventArgs e)
+        {
+            try
+            {
+                Program.Bin.Write(20);
                 if (sendCred(ref e) == 999)
                     return;
 
@@ -429,11 +543,11 @@ namespace PrimaGUI
                         e.Result = patht;
                         return;
                     }
+
                     Program.Sr.DiscardBufferedData();
                     string last = Program.Sr.ReadLine();
                     Program.Srchar.DiscardBufferedData();
                     string hash = Program.Srchar.ReadLine();
-
                     Result.Add(new string[] { patht, hash, last, "", "Restore" });
                 }
                 Program.Sr.DiscardBufferedData();
@@ -441,86 +555,36 @@ namespace PrimaGUI
                 if (temp.CompareTo("OK") != 0)
                 {
                     e.Result = temp;
+                    return;
                 }
                 else
                 {
-                    e.Result = "ShowGrid";
-                }
-            }
-            catch (System.IO.IOException err)
-            {
-                this.flag = true;
-                e.Result = "Client closed";
-            }
-            catch (Exception err) {
-                e.Result = "Errore Generico";
-            }
-        }
-
-        private void RipristinaUltimaVersione_DoWork(ref DoWorkEventArgs e)
-        {
-            try
-            {
-                    Program.Bin.Write(20);
-                    if (sendCred(ref e) == 999)
-                        return;
-
-                    Result.Clear();
-
-                    while (true)
-                    {
-                        Program.Sr.DiscardBufferedData();
-                        string patht = Program.Sr.ReadLine();
-                        if (patht.CompareTo(@"end") == 0){
-                           break;
-                        }
-                        else if (patht.CompareTo(@"ERRORE OP. NON EFFETTUATA") == 0)
-                        {
-                            e.Result = patht;
-                            return;
-                        }
-                        
-                            Program.Sr.DiscardBufferedData();
-                            string last = Program.Sr.ReadLine();
-                            Program.Srchar.DiscardBufferedData();
-                            string hash = Program.Srchar.ReadLine();
-                        
-                       
-                        Result.Add(new string[] { patht, hash, last, "", "Restore" });
-                    }
-                    Program.Sr.DiscardBufferedData();
-                    string temp = Program.Sr.ReadLine();
-                    if (temp.CompareTo("OK") != 0)
-                    {
-                        e.Result = Text;
-                    }
-                    else {
-                        e.Result = "Rest Succ";
-                    }
-                    
-                        foreach (String[] array in Result)
-                        {
-                            path = array[0];
-                            hash = array[1];
-                            hash.ToLower();
-                            Restore_DoWork(ref e);
-                            String result = (string)e.Result;
-                            if (result.CompareTo("Restore avvenuto con successo") != 0)
-                            {
-                                return;
-                            }
-                        }
-                    
-
                     e.Result = "Rest Succ";
+                }
+
+                foreach (String[] array in Result)
+                {
+                    path = array[0];
+                    hash = array[1];
+                    hash.ToLower();
+                    Restore_DoWork(ref e);
+                    String result = (string)e.Result;
+                    if (result.CompareTo("Restore avvenuto con successo") != 0)
+                    {
+                        e.Result = "Errore durante il restore di un file";
+                        return;
+                    }
+                }
+                e.Result = "Rest Succ";
 
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                this.clientclosed = true;
                 e.Result = "Client closed";
             }
-            catch (Exception err) {
+            catch (Exception err)
+            {
                 e.Result = "Errore Generico";
             }
         }
@@ -528,9 +592,8 @@ namespace PrimaGUI
         private void VisualizzaVersione_DoWork(ref DoWorkEventArgs e)
         {
             try
-            {
-                
-                    Result.Clear();
+            {       
+                Result.Clear();
                 Program.Bin.Write(80);
                 if (sendCred(ref e) == 999)
                     return;
@@ -573,7 +636,7 @@ namespace PrimaGUI
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                this.clientclosed = true;
                 e.Result = "Client closed";
             }
             catch (Exception err) {
@@ -622,7 +685,7 @@ namespace PrimaGUI
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                this.clientclosed = true;
                 e.Result = "Client closed";
             }
             catch (Exception err) {
@@ -657,7 +720,7 @@ namespace PrimaGUI
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                this.clientclosed = true;
                 e.Result = "Client closed";
             }
             catch (Exception err) {
@@ -665,11 +728,10 @@ namespace PrimaGUI
             }
         }
 
-
         //Necessario per la chiusura del processo client C++
         protected override void OnClosing(System.ComponentModel.CancelEventArgs e)
         {
-            if (flag == false)
+            if (clientclosed == false)
             {
                 try
                 {
@@ -717,7 +779,7 @@ namespace PrimaGUI
             }
             catch (System.IO.IOException err)
             {
-                this.flag = true;
+                this.clientclosed = true;
                 e.Result = "Client closed";
                 return 999;
             }
@@ -726,62 +788,6 @@ namespace PrimaGUI
                 return 999;
             }
             return 0;
-        }
-
-        private void Initialop() {
-            try
-            {
-                using (System.IO.StreamReader file = new System.IO.StreamReader(@".\_" + Program.userName + @"_Config_.bin", System.Text.Encoding.Unicode))
-                {
-                    Program.path = file.ReadLine();
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Il programma non è stato in grado di trovare il file di impostazioni.\nIl file sarà creato nuovamente e il problema non si dovrebbe riproporre.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-
-            while (Program.path.CompareTo(@"") == 0)
-            {
-                folderBrowserDialog1.Description = "File di configurazione non trovato.\nPer favore scegli nuovamente la cartella da sincronizzare.";
-                folderBrowserDialog1.ShowDialog();
-                Program.path = folderBrowserDialog1.SelectedPath;
-            }
-
-            try
-            {
-                using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + Program.userName + @"_Config_.bin", false, System.Text.Encoding.Unicode))
-                {
-                    file.WriteLine(Program.path);
-                }
-            }
-            catch
-            {
-                MessageBox.Show("Il programma non è riuscito a creare il file per salvare le impostazioni per i login futuri. \nNon è un problema, tutto funzionarà correttamente.\nAl prossimo avvio prova a risolvere il problema eseguendo come amministratore.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            }
-            this.Text = "Ciao " + Program.userName + ", la cartella attualmente sincronizzata è " + Program.path;
-
-
-            foreach (DataGridViewColumn c in dataGridView1.Columns)
-            {
-                c.DefaultCellStyle.Font = new Font("Times New Roman", 14F, GraphicsUnit.Pixel);
-                c.DefaultCellStyle.BackColor = System.Drawing.SystemColors.ActiveCaption;
-                c.DefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.ActiveCaption;
-                c.DefaultCellStyle.SelectionForeColor = Color.Black;
-                c.DefaultCellStyle.ForeColor = Color.Black;
-            }
-            dataGridView1.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
-            dataGridView1.AutoSizeRowsMode = DataGridViewAutoSizeRowsMode.AllCells;
-            dataGridView1.ColumnHeadersDefaultCellStyle.BackColor = System.Drawing.SystemColors.InactiveCaption;
-            dataGridView1.ColumnHeadersDefaultCellStyle.SelectionBackColor = System.Drawing.SystemColors.InactiveCaption;
-            dataGridView1.ColumnHeadersDefaultCellStyle.Font = new Font("Times New Roman", 16F, GraphicsUnit.Pixel);
-
-            bw.WorkerReportsProgress = true;
-            bw.WorkerSupportsCancellation = false;
-            bw.DoWork += new DoWorkEventHandler(DoWork);
-            bw.RunWorkerCompleted += new RunWorkerCompletedEventHandler(DoWork_end);
-            bw.ProgressChanged += new ProgressChangedEventHandler(bw_ProgressChanged);
-            
         }
 
         private void SYNC_MouseEnter(object sender, EventArgs e)
@@ -793,7 +799,6 @@ namespace PrimaGUI
         {
             progress.BackColor = System.Drawing.Color.Transparent;
         }
-
 
     }
 }

@@ -629,7 +629,7 @@ void Login(SOCKET client, std::string& nome, char* passw){
 			std::string hash = sha256(sfida);
 			sendInt(client, hash.length() + 1, nullptr);
 			sendNbytes(client, (char*)hash.c_str(), hash.length() + 1, nullptr);
-
+			memcpy(passw, hash.c_str(), 64);
 
 			int sfida2 = rand();
 			sendInt(client, sfida2, nullptr);
@@ -643,7 +643,7 @@ void Login(SOCKET client, std::string& nome, char* passw){
 				sendInt(client, 999,nullptr);
 				throw "wrong password ";
 			}
-			memcpy(passw, passD.c_str(), 64);
+			
 		}
 		catch (...){
 			sqlite3_finalize(stm);

@@ -60,8 +60,10 @@ int _tmain(int argc,_TCHAR* argv[] ){
 
 	SOCKET server=INVALID_SOCKET;
 	char passw[64];
-	while (c == 999){
 
+	#pragma region "primo login"
+
+	while (c == 999){
 		server = ConnectClient(hpipe);
 		if (server != INVALID_SOCKET){
 			try{
@@ -98,15 +100,16 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		}
 	}
 
+	#pragma endregion 
+
+	#pragma region "Gestione richieste GUI"
 	std::list <Oggetto*> lastconfig;
 	while (1){
-		list<Oggetto*> debug;
-		
+		list<Oggetto*> tempo;
 
 		int choice;
 		ReadFile(hpipe, recvbuf, 4, &NuByRe, NULL);
-		choice = *((int*)recvbuf);
-		
+		choice = *((int*)recvbuf);	
 		
 		try{
 
@@ -130,8 +133,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 					sync(server, lastconfig,passw);
 				}
 				if (choice == 20){
-					debug = GetLastConfig(server,passw);
-					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+					tempo = GetLastConfig(server, passw);
+					for (std::list<Oggetto*>::iterator it = tempo.begin(); it != tempo.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
@@ -141,14 +144,14 @@ int _tmain(int argc,_TCHAR* argv[] ){
 						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 					}
 					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
-					PulisciLista(debug);
+					PulisciLista(tempo);
 				}
 				if (choice == 50){
 					Restore(server,passw);
 				}
 				if (choice == 60){
-					debug = GetAllFiles(server,passw);
-					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+					tempo = GetAllFiles(server, passw);
+					for (std::list<Oggetto*>::iterator it = tempo.begin(); it != tempo.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
@@ -158,14 +161,14 @@ int _tmain(int argc,_TCHAR* argv[] ){
 						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 					}
 					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
-					PulisciLista(debug);
+					PulisciLista(tempo);
 				}
 				if (choice == 70){
 					GetAllVersionN(server, hpipe, passw);
 				}
 				if (choice == 80){
-					debug = GetConfig(server, hpipe,passw);
-					for (std::list<Oggetto*>::iterator it = debug.begin(); it != debug.end(); ++it){
+					tempo = GetConfig(server, hpipe, passw);
+					for (std::list<Oggetto*>::iterator it = tempo.begin(); it != tempo.end(); ++it){
 						Oggetto* temp = *it;
 						WriteFile(hpipe, temp->GetPath().c_str(), temp->GetPath().size() * sizeof(wchar_t), &NuByRe, NULL);
 						WriteFile(hpipe, L"\n", sizeof(wchar_t), &NuByRe, NULL);
@@ -175,7 +178,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 						WriteFile(hpipe, "\n", 1, &NuByRe, NULL);
 					}
 					WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
-					PulisciLista(debug);
+					PulisciLista(tempo);
 				}
 
 
@@ -189,7 +192,7 @@ int _tmain(int argc,_TCHAR* argv[] ){
 
 		}
 		catch (...){
-			PulisciLista(debug);
+			PulisciLista(tempo);
 			if (server != INVALID_SOCKET){
 				closeConn(server);
 			}
@@ -199,6 +202,8 @@ int _tmain(int argc,_TCHAR* argv[] ){
 		//system("cls");
 		::printf("wating for new commands\n");
 	}
+	#pragma endregion
+
 	WSACleanup();
 	_CrtDumpMemoryLeaks();
 	return 0;
@@ -720,6 +725,7 @@ int Login(SOCKET server,char*passw){
 	if (hash.compare(risp_sfida) != 0){
 		return 999;
 	}
+	memcpy(passw, string(hash).c_str(), 64);
 
 	int sfida2 = recInt(server, nullptr);
 	sfida = sha256(string(pass));
@@ -729,7 +735,7 @@ int Login(SOCKET server,char*passw){
 	sendNbytes(server, (char*)hash.c_str(), hash.length() + 1, nullptr);
 
 
-	memcpy(passw, sha256(string(pass)).c_str(), 64);
+
 	return recInt(server,nullptr);
 }
 
