@@ -132,8 +132,8 @@ namespace PrimaGUI
                         this.dataGridView1.Columns[2].HeaderText = "Data Ultima Modifica";
                         this.dataGridView1.RowCount = Result.Count;                 
                         dataGridView1.Visible = true;
-                        this.dataGridView2.Visible = false;
-                        this.dataGridView3.Visible = false;
+                        dataGridView2.Visible = false;
+                        dataGridView3.Visible = false;
                 }
                 else if (result.CompareTo("ShowGrid2") == 0)
                 {
@@ -158,8 +158,8 @@ namespace PrimaGUI
                         this.dataGridView2.Columns[2].HeaderText = "Data Creazione";
                         this.dataGridView2.RowCount = Result.Count;
                         dataGridView2.Visible = true;
-                        this.dataGridView1.Visible = false;
-                        this.dataGridView3.Visible = false;
+                        dataGridView1.Visible = false;
+                        dataGridView3.Visible = false;
                 }
                 else if (result.CompareTo("ShowGrid3") == 0)
                 {
@@ -184,8 +184,8 @@ namespace PrimaGUI
                     this.dataGridView3.Columns[2].HeaderText = "Data Ultima Modifica";
                     this.dataGridView3.RowCount = Result.Count;
                     dataGridView3.Visible = true;
-                    this.dataGridView2.Visible = false;
-                    this.dataGridView1.Visible = false;
+                    dataGridView2.Visible = false;
+                    dataGridView1.Visible = false;
                 }
                 else if (result.CompareTo("Not Show") != 0)
                 {
@@ -215,7 +215,7 @@ namespace PrimaGUI
                 operationflag = false;
                 dataGridView1.Visible = false;
                 dataGridView2.Visible = false;
-                this.dataGridView3.Visible = false;
+                dataGridView3.Visible = false;
                 bw.RunWorkerAsync("clicksync");
             }
             else {
@@ -230,7 +230,7 @@ namespace PrimaGUI
                 operationflag = false;
                 dataGridView1.Visible = false;
                 dataGridView2.Visible = false;
-                this.dataGridView3.Visible = false;
+                dataGridView3.Visible = false;
                 bw.RunWorkerAsync("timersync");
             }
 
@@ -297,13 +297,26 @@ namespace PrimaGUI
             if (e.ColumnIndex != 4)
                 return;
             
-            if (this.dataGridView1.Visible==true)
+            if (this.dataGridView1.Visible == true)
             {
                 if (bw.IsBusy != true && operationflag == true)
                 {
                     operationflag = false;
                     path = (string)this.dataGridView1.Rows[e.RowIndex].Cells[0].Value;
                     hash = (string)this.dataGridView1.Rows[e.RowIndex].Cells[1].Value;
+                    hash.ToLower();
+                    bw.RunWorkerAsync("Restore");
+                }
+                else
+                    MessageBox.Show("Una operazione è già in corso.", "Informazione per l'utente", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else if ( this.dataGridView3.Visible == true)
+            {
+                if (bw.IsBusy != true && operationflag == true)
+                {
+                    operationflag = false;
+                    path = (string)this.dataGridView3.Rows[e.RowIndex].Cells[0].Value;
+                    hash = (string)this.dataGridView3.Rows[e.RowIndex].Cells[1].Value;
                     hash.ToLower();
                     bw.RunWorkerAsync("Restore");
                 }

@@ -403,6 +403,8 @@
             this.dataGridView3.Size = new System.Drawing.Size(755, 344);
             this.dataGridView3.TabIndex = 25;
             this.dataGridView3.Visible = false;
+            this.dataGridView3.CellContentClick += new System.Windows.Forms.DataGridViewCellEventHandler(this.dataGridView_CellContentClick);
+            
             // 
             // dataGridViewTextBoxColumn5
             // 

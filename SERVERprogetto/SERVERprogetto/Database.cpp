@@ -515,7 +515,6 @@ void nuovaVersione(sqlite3* db, SOCKET client, std::list < Oggetto *> listaobj, 
 			rc = sqlite3_bind_text(stm, 2, hash.c_str(), hash.size(), SQLITE_STATIC);
 			rc = sqlite3_bind_int(stm, 3, Versione);
 
-			//qui il programma richiede di colpo tantissima memoria.. ma è colpa di sqlite3
 			rc = sqlite3_step(stm);
 			}
 			catch (...){

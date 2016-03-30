@@ -296,6 +296,7 @@ void sync(SOCKET server, std::list <Oggetto*>& lastconfig,char* passw){
 		}
 		else{
 			::printf("ERROR during sync termination\n");
+			throw "errore generico sync";
 		}
 
 		//pulizia

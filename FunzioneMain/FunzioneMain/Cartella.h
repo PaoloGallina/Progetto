@@ -18,7 +18,6 @@ private:
 	std::list <Cartella*> contains;
 
 public:
-	std::wstring name;
 	Cartella(std::wstring*, std::list <Oggetto*>&, HANDLE hpipe,int flag);
 
 	~Cartella();
