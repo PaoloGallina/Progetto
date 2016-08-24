@@ -461,6 +461,7 @@ list<Oggetto*> GetLastConfig(SOCKET server,char* passw){
 
 		if (recInt(server, passw) != -20){
 			::printf("\nAn error occurred while receiving last config");
+			throw "Errore generico";
 		}
 	}
 	catch (...){
@@ -517,6 +518,7 @@ list<Oggetto*> GetConfig(SOCKET server, HANDLE hpipe, char* passw){
 
 		if (recInt(server, passw) != -80){
 			::printf("\nAn error occurred while receiving last config");
+			throw "Errore generico";
 		}
 	}
 	catch (...){
@@ -561,6 +563,7 @@ list<Oggetto*> GetAllFiles(SOCKET server,char* passw){
 
 		if (recInt(server, passw) != -60){
 			::printf("\nAn error occurred while receiving all the files");
+			throw "Errore generico";
 		}
 	}
 	catch (...){
@@ -609,6 +612,7 @@ void GetAllVersionN(SOCKET server, HANDLE hpipe,char* passw){
 		WriteFile(hpipe, L"end\n", 4 * sizeof(wchar_t), &NuByRe, NULL);
 		if (recInt(server, passw) != -70){
 			::printf("\nAn error occurred while receiving all the files");
+			throw "Errore generico";
 		}
 	}
 	catch (...){
@@ -643,8 +647,8 @@ void SerializeList(SOCKET server, list<Oggetto*> daser, char* passw){
 	::printf("I send the number of obj in the list\n");
 	sendInt(server, daser.size(), passw);
 
-::	printf("I send the size of first file and the file\n");
-sendInt(server, c.str().size(), passw);
+	::printf("I send the size of first file and the file\n");
+	sendInt(server, c.str().size(), passw);
 	invFile(server, (char*)c.str().c_str(), c.str().size(), passw);
 
 	::printf("I send the size of second fileand the file\n");
@@ -807,10 +811,7 @@ void PulisciLista(std::list < Oggetto *>& a){
 	while (!a.empty() ){
 		p2 = a.front();
 		if (p2->GetHandle() != INVALID_HANDLE_VALUE){
-			if (!CloseHandle(p2->GetHandle())){
-				std::cout << "HO CHIUSO UNA HANDLE MALE" << endl;
-				std::cout << GetLastError() << endl;
-			}
+			CloseHandle(p2->GetHandle());
 		}
 
 		a.pop_front();
@@ -822,10 +823,7 @@ void PulisciLista(std::list < Oggetto *>& a){
 void ClearHandles(std::list < Oggetto *>& a){	
 	for (std::list<Oggetto*>::iterator it = a.begin(); it != a.end(); ++it){
 		if ((*it)->GetHandle() != INVALID_HANDLE_VALUE){
-			if (!CloseHandle((*it)->GetHandle())){
-				std::cout << "HO CHIUSO UNA HANDLE MALE" << endl;
-				std::cout << GetLastError() << endl;
-			}
+			CloseHandle((*it)->GetHandle());
 		}
 		(*it)->SetHandle(INVALID_HANDLE_VALUE);
 	}

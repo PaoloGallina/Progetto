@@ -492,11 +492,12 @@ void nuovaVersione(sqlite3* db, SOCKET client, std::list < Oggetto *> listaobj, 
 		printf("Now i update all version file");
 
 		time_t rawtime;
-		struct tm * timeinfo;
+		struct tm  timeinfo;
 		char buffer[180];
 		time(&rawtime);
-		timeinfo = localtime(&rawtime);
-		strftime(buffer, 80, "%d/%m/%Y %I:%M:%S", timeinfo);
+		localtime_s(&timeinfo,&rawtime);
+		strftime(buffer, 80, "%d/%m/%Y %H:%M:%S", &timeinfo);
+
 		std::string last(buffer);
 		
 		for (std::list < Oggetto *>::const_iterator ci = listaobj.begin(); ci != listaobj.end(); ++ci){

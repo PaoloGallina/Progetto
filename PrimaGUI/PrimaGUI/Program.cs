@@ -36,6 +36,7 @@ namespace PrimaGUI
                 myprocess = new Process();
                 myprocess.StartInfo.FileName = ".\\FunzioneMain.exe";
                 myprocess.StartInfo.CreateNoWindow = true;
+                myprocess.StartInfo.WindowStyle = ProcessWindowStyle.Hidden;
                 myprocess.StartInfo.Arguments = pipenumber.ToString();
                 myprocess.StartInfo.Verb = "runas";
                 myprocess.Start();

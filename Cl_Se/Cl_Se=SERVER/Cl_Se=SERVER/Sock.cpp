@@ -122,10 +122,7 @@ SOCKET __cdecl ConnectClient(HANDLE hpipe)
 
 void closeConn(SOCKET ConnectSocket){
 	// shutdown the connection since no more data will be sent
-	int iResult = shutdown(ConnectSocket, SD_BOTH);
-	if (iResult == SOCKET_ERROR) {
-		printf("shutdown failed with error: %d\n", WSAGetLastError());
-	}
+	shutdown(ConnectSocket, SD_BOTH);
 	closesocket(ConnectSocket);
 }
 

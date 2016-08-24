@@ -91,9 +91,10 @@ namespace PrimaGUI
                     return;
                 }
                 //Inviamo al Client C++ username e password
+
                 Program.Bin.Write(logORreg);
-                Program.Bin.Write(UsernameText.Text.Length);
-                Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text));
+                Program.Bin.Write(UsernameText.Text.ToLower().Length);
+                Program.Bin.Write(Encoding.ASCII.GetBytes(UsernameText.Text.ToLower()));
                 Program.Bin.Write(PasswordText.Text.Length);
                 Program.Bin.Write(Encoding.ASCII.GetBytes(PasswordText.Text));
 
@@ -105,7 +106,7 @@ namespace PrimaGUI
                     return;
                 }
 
-                Program.userName = UsernameText.Text;
+                Program.userName = UsernameText.Text.ToLower();
                 Program.Password = PasswordText.Text;
                 Program.path = folderBrowserDialog1.SelectedPath;
                 Program.ip = IpAddressText.Text;
@@ -116,7 +117,7 @@ namespace PrimaGUI
                 { // i.e. Ho effettuato la registrazione
                     try
                     {
-                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text + @"_Config_.bin", false, System.Text.Encoding.Unicode))
+                        using (System.IO.StreamWriter file = new System.IO.StreamWriter(@".\_" + UsernameText.Text.ToLower() + @"_Config_.bin", false, System.Text.Encoding.Unicode))
                         {
                             file.WriteLine(Program.path);
                         }

@@ -615,6 +615,7 @@ void Login(SOCKET client, std::string& nome, char* passw){
 	{	
 		my_file.close();
 		sqlite3 *db = CreateDatabase(nome.c_str());
+		
 		sqlite3_stmt* stm=nullptr;
 		try{
 			std::string sql = "SELECT PASS FROM CREDENTIAL WHERE USER=?1";			
