@@ -17,6 +17,7 @@ Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified, DWO
 	this->hash = sha256(nhandle);
 	SetFilePointer(handle, 0, 0, 0);
 }
+
 Oggetto::Oggetto(std::wstring path, std::wstring name, wstring LastModified,string hashpassed, DWORD size, HANDLE nhandle)
 {
 	this->name = name;

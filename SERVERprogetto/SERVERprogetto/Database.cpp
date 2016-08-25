@@ -17,12 +17,8 @@
 
 using namespace std;
 
-//tutto questo può diventare una classe singleton con nome datab, versione ecc salvati in un file
+//FUNZIONI VECCHIE ORA SONO UNA CLASSE!
 
-static int callback(void *NotUsed, int argc, char **argv, char **azColName){
-	//useless, right now only the creation of the table "use" it
-	return 0;
-}
 
 sqlite3 * CreateDatabase(std::string nome){
 
@@ -638,3 +634,7 @@ int file_cancellati(sqlite3* db, int val){
 	return val - counter;
 };
 
+static int callback(void *NotUsed, int argc, char **argv, char **azColName){
+	//useless, right now only the creation of the table "use" it
+	return 0;
+}

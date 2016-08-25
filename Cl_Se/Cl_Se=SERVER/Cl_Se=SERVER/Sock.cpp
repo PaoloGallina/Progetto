@@ -142,7 +142,6 @@ void* recNbytes(SOCKET ConnectSocket, int size, char*stringa,char*pass){
 		int iResult = recv(ConnectSocket, stringa + tot, size - tot, 0);
 		tot += iResult;
 		if (iResult > 0 ) {
-			//DEBUG
 			//printf("Bytes received: %d TOT=%d\n", iResult,tot);
 		}
 		else if (iResult == 0)

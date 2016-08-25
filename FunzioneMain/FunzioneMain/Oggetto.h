@@ -1,5 +1,5 @@
-#include <windows.h>
 #pragma once
+#include <windows.h>
 #include <string>
 class Oggetto
 {
@@ -20,21 +20,27 @@ public:
 	std::string GetHash(){
 		return this->hash;
 	}
+
 	std::wstring GetPath(){
 		return this->path;
 	}
+	
 	std::wstring GetName(){
 		return this->name;
 	}
+	
 	std::wstring GetLastModified(){
 		return this->LastModified;
 	}
+	
 	DWORD GetSize(){
 		return this->size;
 	}
+	
 	HANDLE GetHandle(){
 		return this->handle;
 	}
+	
 	void SetHandle(HANDLE handle){
 		this->handle = handle;
 	}
