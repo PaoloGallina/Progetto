@@ -1,4 +1,4 @@
-####The aim of this project is to create a program capable of imitating Dropbox.
+#### The aim of this project is to create a program capable of imitating Dropbox.
 
 The user should be able to select a folder through a suitable GUI of its own client.
 
